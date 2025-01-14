@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BabyCare.APIs", "BabyCare.APIs\BabyCare.APIs.csproj", "{E545F9EF-1301-4F89-A0C0-61FD68CB9ADE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BabyCare.Data", "BabyCare.Data\BabyCare.Data.csproj", "{246E74EE-B690-46DD-9778-04293BF3AFFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BabyCare.Utils", "BabyCare.Utils\BabyCare.Utils.csproj", "{9127CB3E-638B-4D0F-8C6F-A66442AACA1A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BabyCare.BusinessLogic", "BabyCare.BusinessLogic\BabyCare.BusinessLogic.csproj", "{55C77701-E3EE-4A53-8DFB-B4DB3DC7B617}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BabyCare.WorkerService", "BabyCare.WorkerService\BabyCare.WorkerService.csproj", "{E7E77E80-5ADA-4AE2-97A7-EF115D3D89BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BabyCare.Models", "BabyCare.Models\BabyCare.Models.csproj", "{92DE94F9-7B75-4937-8774-82AFEA444EE9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E545F9EF-1301-4F89-A0C0-61FD68CB9ADE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E545F9EF-1301-4F89-A0C0-61FD68CB9ADE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E545F9EF-1301-4F89-A0C0-61FD68CB9ADE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E545F9EF-1301-4F89-A0C0-61FD68CB9ADE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{246E74EE-B690-46DD-9778-04293BF3AFFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{246E74EE-B690-46DD-9778-04293BF3AFFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{246E74EE-B690-46DD-9778-04293BF3AFFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{246E74EE-B690-46DD-9778-04293BF3AFFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9127CB3E-638B-4D0F-8C6F-A66442AACA1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9127CB3E-638B-4D0F-8C6F-A66442AACA1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9127CB3E-638B-4D0F-8C6F-A66442AACA1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9127CB3E-638B-4D0F-8C6F-A66442AACA1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55C77701-E3EE-4A53-8DFB-B4DB3DC7B617}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55C77701-E3EE-4A53-8DFB-B4DB3DC7B617}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55C77701-E3EE-4A53-8DFB-B4DB3DC7B617}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55C77701-E3EE-4A53-8DFB-B4DB3DC7B617}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7E77E80-5ADA-4AE2-97A7-EF115D3D89BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7E77E80-5ADA-4AE2-97A7-EF115D3D89BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7E77E80-5ADA-4AE2-97A7-EF115D3D89BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7E77E80-5ADA-4AE2-97A7-EF115D3D89BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92DE94F9-7B75-4937-8774-82AFEA444EE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92DE94F9-7B75-4937-8774-82AFEA444EE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92DE94F9-7B75-4937-8774-82AFEA444EE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92DE94F9-7B75-4937-8774-82AFEA444EE9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0F6E7A38-0C24-4452-9A94-4EFF4EC68FCE}
+	EndGlobalSection
+EndGlobal

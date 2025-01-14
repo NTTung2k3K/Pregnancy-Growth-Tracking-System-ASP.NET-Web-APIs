@@ -1,0 +1,105 @@
+# Ignore build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rtifacts/
+
+# App settings files
+**/appsettings.json
+
+# Logs
+*.log
+BabyCare/BabyCare.APIs/logs/
+BabyCare.APIs/logs/
+
+# Visual Studio temporary files, build results, and user-generated files
+.vscode/
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Mono Auto Generated Files
+mono_crash.*
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# MacOS directories
+.DS_Store
+
+# NPM Packages
+node_modules/
+
+# Compiled binary
+bin/
+obj/
+out/
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Entity Framework Migrations
+[Mm]igrations/
+
+# MSTest test Results
+TestResults
+*.TestResults
+TestRun*.trx
+TestRun*.dll
+TestRun*.log
+
+# Active Directory Federation Services (AD FS) client certificate
+ADFS/*.pfx
+ADFS/*.cer
+ADFS/*.config
+ADFS/*.key
+
+# Windows Azure
+csx/
+*.build.csdef
+
+# OpenCover UI analysis results
+OpenCover/
+
+# Windows Store app package directories and files
+AppPackages/
+BundleArtifacts/
+
+# Azure Function Apps
+~$Functions.ps1
+~$project.json
+
+# Azure WebJob artifacts
+WebJob.targets
+.project
+
+# Publish results
+.publish/
+
+# npm-debug log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignoring migration files in BabyCare.Data
+BabyCare.Data/Migrations/
