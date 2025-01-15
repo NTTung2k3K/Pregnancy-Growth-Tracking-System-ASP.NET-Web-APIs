@@ -21,8 +21,8 @@ namespace BabyCare.Models.Pagination
         // Static method to create an asynchronous paginated result
         public static async Task<PaginatedResult<T>> CreateAsync(IQueryable<T> source, int pageIndex, int pageSize)
         {
-            var count = await source.CountAsync();
-            var items = await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            var count = source.Count();
+            var items = source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
             return new PaginatedResult<T>(items, count, pageIndex, pageSize);
         }
     }
