@@ -6,7 +6,7 @@ x86/
 [Aa]rtifacts/
 
 # App settings files
-**/appsettings.json
+# **/appsettings.json
 
 # Logs
 *.log
