@@ -5,6 +5,7 @@ using BabyCare.Contract.Services.Interface;
 using BabyCare.Repositories.Context;
 using BabyCare.Services;
 using BabyCare.Services.Service;
+using BabyCare.Repositories.Mapper;
 
 namespace BabyCare.API
 {
@@ -17,7 +18,9 @@ namespace BabyCare.API
             services.AddIdentity();
             services.AddInfrastructure(configuration);
             services.AddServices();
+            services.AddAutoMapperProfiles();
         }
+
         public static void ConfigRoute(this IServiceCollection services)
         {
             services.Configure<RouteOptions>(options =>
@@ -25,6 +28,7 @@ namespace BabyCare.API
                 options.LowercaseUrls = true;
             });
         }
+
         public static void AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<DatabaseContext>(options =>
@@ -37,15 +41,23 @@ namespace BabyCare.API
         {
             services.AddIdentity<ApplicationUsers, ApplicationRoles>(options =>
             {
+                // Identity configuration options
             })
              .AddEntityFrameworkStores<DatabaseContext>()
              .AddDefaultTokenProviders();
         }
+
         public static void AddServices(this IServiceCollection services)
         {
             services
-                //.AddScoped<IUserService, UserService>()
-                .AddScoped<IUserService, UserService>();
+                .AddScoped<IUserService, UserService>()
+                .AddScoped<IRoleService, RoleService>();
+        }
+
+        public static void AddAutoMapperProfiles(this IServiceCollection services)
+        {
+            // Register AutoMapper and scan for profiles in the assembly
+            services.AddAutoMapper(typeof(AutoMapperProfile).Assembly);
         }
     }
 }
