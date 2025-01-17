@@ -6,6 +6,12 @@ using BabyCare.Repositories.Context;
 using BabyCare.Services;
 using BabyCare.Services.Service;
 using BabyCare.Repositories.Mapper;
+using BabyCare.Contract.Services.Implements;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi.Models;
 
 namespace BabyCare.API
 {
@@ -54,10 +60,62 @@ namespace BabyCare.API
                 .AddScoped<IRoleService, RoleService>();
         }
 
+        public static void AddSwagger(this IServiceCollection services)
+        {
+            services.AddSwaggerGen(option =>
+            {
+                option.SwaggerDoc("v1", new OpenApiInfo { Title = "BabyCare", Version = "v1" });
+                option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please enter a valid token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "Bearer"
+                });
+                option.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type=Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                                Id="Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
+                });
+            });
+        }
         public static void AddAutoMapperProfiles(this IServiceCollection services)
         {
             // Register AutoMapper and scan for profiles in the assembly
             services.AddAutoMapper(typeof(AutoMapperProfile).Assembly);
+        }
+        public static void AddConfigJWT(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddAuthentication(options => {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options => {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = configuration["JWT:ValidAudience"],
+                    ValidIssuer = configuration["JWT:ValidIssuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"])),
+                    ClockSkew = TimeSpan.Zero,
+                    ValidateLifetime = true,
+                    RoleClaimType = ClaimTypes.Role
+                };
+            });
         }
     }
 }

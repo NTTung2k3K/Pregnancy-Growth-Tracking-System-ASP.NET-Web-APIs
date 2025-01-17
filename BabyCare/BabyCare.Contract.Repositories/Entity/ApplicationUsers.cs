@@ -12,12 +12,13 @@ namespace BabyCare.Contract.Repositories.Entity
 {
     public class ApplicationUsers : IdentityUser<Guid>
     {
+        public string? FullName { get; set; }
         public string? Image { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? Address { get; set; }
         public string? Gender { get; set; }
         public string? BloodGroup { get; set; }
-
+        public DateTime? DueDate { get; set; }
         public string? CreatedBy { get; set; }
         public string? LastUpdatedBy { get; set; }
         public string? DeletedBy { get; set; }

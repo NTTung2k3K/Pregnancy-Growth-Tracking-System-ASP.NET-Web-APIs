@@ -7,6 +7,7 @@ namespace BabyCare.Core.Constants
         [CustomName("Success")]
         OK = 200,
 
+
         [CustomName("Bad Request")]
         BadRequest = 400,
 

@@ -52,7 +52,7 @@ namespace BabyCare.API.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<string>> CreateRole([FromQuery] CreateRoleModelView model)
         {
-            string result = await _roleService.AddRoleAsync(model);
+            var result = await _roleService.AddRoleAsync(model);
 
             return Ok(new { Message = result });
         }
@@ -63,7 +63,7 @@ namespace BabyCare.API.Controllers
         [HttpPut("update/{id}")]
         public async Task<ActionResult<string>> UpdateRole(string id, [FromQuery] UpdatedRoleModelView model)
         {
-            string result = await _roleService.UpdateRoleAsync(id, model);
+            var result = await _roleService.UpdateRoleAsync(id, model);
 
 
             return Ok(new { Message = result });
@@ -75,7 +75,7 @@ namespace BabyCare.API.Controllers
         [HttpDelete("delete/{id}")]
         public async Task<ActionResult<string>> DeleteRole(string id)
         {
-            string result = await _roleService.DeleteRoleAsync(id);
+            var result = await _roleService.DeleteRoleAsync(id);
 
             return Ok(new { Message = result });
         }

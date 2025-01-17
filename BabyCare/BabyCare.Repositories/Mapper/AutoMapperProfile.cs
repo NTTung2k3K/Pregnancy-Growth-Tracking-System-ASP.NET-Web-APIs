@@ -1,6 +1,7 @@
 using AutoMapper;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.ModelViews.RoleModelViews;
+using BabyCare.ModelViews.UserModelViews.Response;
 
 namespace BabyCare.Repositories.Mapper
 {
@@ -8,8 +9,13 @@ namespace BabyCare.Repositories.Mapper
     {
         public AutoMapperProfile()
         {
-            
-			CreateMap<ApplicationRoles, RoleModelView>();
+            #region user
+            CreateMap<ApplicationUsers,UserLoginResponseModel>().ReverseMap();
+            #endregion
+
+
+
+            CreateMap<ApplicationRoles, RoleModelView>();
 			CreateMap<ApplicationRoles, CreateRoleModelView>();
 			CreateMap<ApplicationRoles, UpdatedRoleModelView>();
 			CreateMap<CreateRoleModelView, ApplicationRoles>();
