@@ -11,6 +11,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using BabyCare.Core.Utils;
 using BabyCare.Contract.Services.Implements;
 
 namespace BabyCare.API
@@ -47,6 +48,7 @@ namespace BabyCare.API
         {
             services.AddIdentity<ApplicationUsers, ApplicationRoles>(options =>
             {
+                options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
                 // Identity configuration options
             })
              .AddEntityFrameworkStores<DatabaseContext>()
@@ -94,6 +96,27 @@ namespace BabyCare.API
         {
             // Register AutoMapper and scan for profiles in the assembly
             services.AddAutoMapper(typeof(AutoMapperProfile).Assembly);
+        }
+        public static async Task SeedData(this IServiceProvider serviceProvider)
+        {
+            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUsers>>();
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRoles>>();
+            var dbContext = serviceProvider.GetRequiredService<DatabaseContext>();
+
+            // Seed Roles
+            if (!await roleManager.RoleExistsAsync("Admin"))
+            {
+                await roleManager.CreateAsync(new ApplicationRoles() { Name = SystemConstant.Role.ADMIN, ConcurrencyStamp = "1", NormalizedName = SystemConstant.Role.ADMIN.ToUpper() });
+            }
+
+            if (!await roleManager.RoleExistsAsync("Member"))
+            {
+                await roleManager.CreateAsync(new ApplicationRoles() { Name = SystemConstant.Role.DOCTOR, ConcurrencyStamp = "2", NormalizedName = SystemConstant.Role.DOCTOR.ToUpper() });
+            }
+            if (!await roleManager.RoleExistsAsync("Guest"))
+            {
+                await roleManager.CreateAsync(new ApplicationRoles() { Name = SystemConstant.Role.USER, ConcurrencyStamp = "3", NormalizedName = SystemConstant.Role.USER.ToUpper() });
+            }
         }
         public static void AddConfigJWT(this IServiceCollection services, IConfiguration configuration)
         {
