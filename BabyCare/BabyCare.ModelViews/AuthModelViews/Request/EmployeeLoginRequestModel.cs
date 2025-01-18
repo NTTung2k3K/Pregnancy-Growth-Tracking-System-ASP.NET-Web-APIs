@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BabyCare.ModelViews.UserModelViews.Request
+namespace BabyCare.ModelViews.AuthModelViews.Request
 {
-    public class UserLoginRequestModel
+    public class EmployeeLoginRequestModel
     {
-        public string Email { get; set; }
+        public string UserName { get; set; }
         public string Password { get; set; }
     }
 }

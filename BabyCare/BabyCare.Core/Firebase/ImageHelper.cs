@@ -5,16 +5,39 @@ using Microsoft.Extensions.Configuration;
 
 namespace BabyCare.Core.Firebase
 {
-    public class ImageHelper
+    public  class ImageHelper
     {
-        private readonly IConfiguration _configuration;
-
-        public ImageHelper(IConfiguration configuration)
+        private static readonly string _firebaseAuthApiKey;
+        private static readonly string _firebaseEmail;
+        private static readonly string _firebasePassword;
+        private static readonly string _firebaseBucket;
+        static ImageHelper()
         {
-            _configuration = configuration;
+            // Calculate the correct relative path to the configuration file
+            var basePath = AppDomain.CurrentDomain.BaseDirectory;
+            var relativePath = @"appsettings.json";
+            var configPath = Path.GetFullPath(Path.Combine(basePath, relativePath));
+
+            if (!File.Exists(configPath))
+            {
+                throw new FileNotFoundException($"Configuration file not found: {configPath}");
+            }
+
+            // Load the configuration
+            var builder = new ConfigurationBuilder()
+                .AddJsonFile(configPath, optional: false, reloadOnChange: true);
+
+            var config = builder.Build();
+
+
+            _firebaseAuthApiKey = config["Settings:FirebaseSettings:AuthApiKey"];
+            _firebaseEmail = config["Settings:FirebaseSettings:Email"];
+            _firebasePassword = config["Settings:FirebaseSettings:Password"];
+            _firebaseBucket = config["Settings:FirebaseSettings:Bucket"];
         }
 
-        public async Task<string> Upload(IFormFile file)
+
+        public static async Task<string> Upload(IFormFile file)
         {
             if (file != null && file.Length > 0)
             {
@@ -28,29 +51,23 @@ namespace BabyCare.Core.Firebase
                     firebaseUrl = await UploadToFirebase(memoryStream, file.FileName); // Get the download URL
                 }
                 return firebaseUrl;
+
             }
             return "";
         }
 
 
-        public async Task<string> UploadToFirebase(Stream stream, string fileName)
+        private static async Task<string> UploadToFirebase(Stream stream, string fileName)
         {
-            // Access Firebase configuration from appsettings.json
-            var apiKey = _configuration["Firebase:ApiKey"];
-            var authEmail = _configuration["Firebase:AuthEmail"];
-            var authPassword = _configuration["Firebase:AuthPassword"];
-            var bucket = _configuration["Firebase:Bucket"];
-
-            // Authenticate using FirebaseAuthProvider with credentials from configuration
-            var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
-            var signIn = await auth.SignInWithEmailAndPasswordAsync(authEmail, authPassword);
+            var auth = new FirebaseAuthProvider(new FirebaseConfig(_firebaseAuthApiKey));
+            var a = await auth.SignInWithEmailAndPasswordAsync(_firebaseEmail, _firebasePassword);
             var cancellation = new CancellationTokenSource();
 
             var task = new FirebaseStorage(
-                bucket,
+                _firebaseBucket,
                 new FirebaseStorageOptions
                 {
-                    AuthTokenAsyncFactory = () => Task.FromResult(signIn.FirebaseToken),
+                    AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
                     ThrowOnCancel = true // when you cancel the upload, exception is thrown. By default no exception is thrown
                 })
                 .Child("images")
@@ -66,7 +83,7 @@ namespace BabyCare.Core.Firebase
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception was thrown: {ex.Message}");
+                Console.WriteLine("Exception was thrown: {0}", ex);
                 return null;
             }
         }

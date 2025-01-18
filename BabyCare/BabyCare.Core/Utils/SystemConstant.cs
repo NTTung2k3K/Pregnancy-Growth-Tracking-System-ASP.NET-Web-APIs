@@ -1,0 +1,32 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BabyCare.Core.Utils
+{
+    public class SystemConstant
+    {
+        public static int PAGE_SIZE = 10;
+
+        public class Role
+        {
+            public static string ADMIN = "Admin";
+            public static string DOCTOR = "Doctor";
+            public static string USER = "User";
+        }
+
+        public enum UserStatus
+        {
+            Active = 1,
+            InActive = 0,
+
+        }
+        public enum EmployeeStatus
+        {
+            Active = 1,
+            InActive = 0
+        }
+    }
+}

@@ -19,14 +19,16 @@ namespace BabyCare.Contract.Repositories.Entity
         public string? Gender { get; set; }
         public string? BloodGroup { get; set; }
         public DateTime? DueDate { get; set; }
-        public string? CreatedBy { get; set; }
-        public string? LastUpdatedBy { get; set; }
-        public string? DeletedBy { get; set; }
+        public Guid? CreatedBy { get; set; }
+        public Guid? LastUpdatedBy { get; set; }
+        public Guid? DeletedBy { get; set; }
         public DateTimeOffset CreatedTime { get; set; }
         public DateTimeOffset LastUpdatedTime { get; set; }
         public DateTimeOffset? DeletedTime { get; set; }
         public string? RefreshToken { get; set; }
         public DateTimeOffset RefreshTokenExpiryTime { get; set; }
+        public int? Status { get; set; }
+
         
 
         public ApplicationUsers()
