@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BabyCare.ModelViews.UserModelViews.Response
+namespace BabyCare.ModelViews.AuthModelViews.Response
 {
     public class UserLoginResponseModel
     {

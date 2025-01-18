@@ -2,7 +2,7 @@
 {
     public class BasePaginatedList<T>
     {
-        public IReadOnlyCollection<T> Items { get; private set; }
+        public List<T> Items { get; private set; }
 
         // Thuộc tính để lưu trữ tổng số phần tử
         public int TotalItems { get; private set; }
@@ -17,7 +17,7 @@
         public int PageSize { get; private set; }
 
         // Constructor để khởi tạo danh sách phân trang
-        public BasePaginatedList(IReadOnlyCollection<T> items, int count, int pageNumber, int pageSize)
+        public BasePaginatedList(List<T> items, int count, int pageNumber, int pageSize)
         {
             TotalItems = count;
             CurrentPage = pageNumber;

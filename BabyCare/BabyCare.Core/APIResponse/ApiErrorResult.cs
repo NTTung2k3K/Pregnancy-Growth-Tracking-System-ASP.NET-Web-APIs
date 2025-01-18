@@ -8,19 +8,10 @@ using System.Threading.Tasks;
 namespace BabyCare.Core.APIResponse
 {
 
-    public class ValidationError
-    {
-        public string Code { get; set; }
-        public int? Minimum { get; set; }
-        public int? Maxnimum { get; set; }
-        public string Type { get; set; }
-        public string Message { get; set; }
-        public string Field { get; set; }
-    }
     public class ApiErrorResult<T> : ApiResult<T>
     {
 
-        public List<ValidationError> Errors { get; set; }
+        public List<string> Errors { get; set; }
         public ApiErrorResult(string message)
         {
             StatusCode = HttpStatusCode.BadRequest;
@@ -34,14 +25,14 @@ namespace BabyCare.Core.APIResponse
             IsSuccessed = false;
         }
 
-        public ApiErrorResult(string message, List<ValidationError> errors)
+        public ApiErrorResult(string message, List<string> errors)
         {
             StatusCode = HttpStatusCode.UnprocessableEntity;
             Message = message;
             IsSuccessed = false;
             Errors = errors;
         }
-        public ApiErrorResult(string message, List<ValidationError> errors, HttpStatusCode statusCode)
+        public ApiErrorResult(string message, List<string> errors, HttpStatusCode statusCode)
         {
             StatusCode = statusCode;
             Message = message;
