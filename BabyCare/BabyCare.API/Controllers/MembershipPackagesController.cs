@@ -6,6 +6,8 @@ using BabyCare.ModelViews.MembershipPackageModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using VNPAY.NET.Utilities;
+using Azure.Core;
 
 namespace BabyCare.API.Controllers
 {
@@ -24,6 +26,33 @@ namespace BabyCare.API.Controllers
             try
             {
                 var result = await _membershipPackageService.CreateMembershipPackage(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+        [HttpGet("callbackvnpay")]
+        public async Task<IActionResult> IpnActionAsync()
+        {
+            try
+            {
+                var result = await _membershipPackageService.HandleIpnActionVNpay(Request.Query);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+        [HttpPost("buy-package")]
+        public async Task<IActionResult> BuyPackage([FromBody] BuyPackageRequest request)
+        {
+            try
+            {
+                var ipAddress = NetworkHelper.GetIpAddress(HttpContext); 
+                var result = await _membershipPackageService.BuyPackage(request, ipAddress);
                 return Ok(result);
             }
             catch (Exception ex)

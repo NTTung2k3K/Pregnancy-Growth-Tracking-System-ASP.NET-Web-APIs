@@ -4,6 +4,7 @@ using BabyCare.Core.Base;
 using BabyCare.ModelViews.MembershipPackageModelViews.Request;
 using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.UserModelViews.Response;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,10 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> DeleteMembershipPackage(DeleteMPRequest id);
         Task<ApiResult<MPResponseModel>> GetMembershipPackageById(int id);
         ApiResult<MPStatusHandleResponseModel> GetMembershipPackageStatusHandler();
+        Task<ApiResult<object>> HandleIpnActionVNpay(IQueryCollection query);
+
+
+        Task<ApiResult<BuyPackageResponse>> BuyPackage(BuyPackageRequest request,string ipAddress);
 
     }
 }
