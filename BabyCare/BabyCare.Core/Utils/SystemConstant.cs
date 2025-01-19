@@ -9,7 +9,12 @@ namespace BabyCare.Core.Utils
     public class SystemConstant
     {
         public static int PAGE_SIZE = 10;
+        public class MembershipPackageStatus
+        {
+            public static string Active = "Active";
+            public static string InActive = "InActive";
 
+        }
         public class Provider
         {
             public static string GOOGLE = "Google";

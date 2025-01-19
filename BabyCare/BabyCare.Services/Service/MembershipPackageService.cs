@@ -21,6 +21,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VNPAY.NET;
+using VNPAY.NET.Enums;
+using VNPAY.NET.Models;
+using VNPAY.NET.Utilities;
 using static BabyCare.Core.Utils.SystemConstant;
 
 namespace BabyCare.Services.Service
@@ -34,12 +37,15 @@ namespace BabyCare.Services.Service
         private string _hashSecret;
         private string _baseUrl;
         private string _callbackUrl;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         private readonly IVnpay _vnpay;
         private readonly IConfiguration _configuration;
+        private readonly UserManager<ApplicationUsers> _userManager;
 
-        public MembershipPackageService(IConfiguration configuration,IVnpay vnpay,IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public MembershipPackageService(UserManager<ApplicationUsers> userManager, IConfiguration configuration, IVnpay vnpay, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
+            _userManager = userManager;
             _configuration = configuration;
 
             _tmnCode = configuration["Vnpay:TmnCode"];
@@ -64,7 +70,7 @@ namespace BabyCare.Services.Service
                 return new ApiErrorResult<object>("Name of package is existed.");
             }
             var membershipPackage = _mapper.Map<MembershipPackage>(request);
-            membershipPackage.Price = (membershipPackage.OriginalPrice - (membershipPackage.OriginalPrice * (membershipPackage.Discount/100)));
+            membershipPackage.Price = (membershipPackage.OriginalPrice - (membershipPackage.OriginalPrice * (membershipPackage.Discount / 100)));
             if (membershipPackage.Price < 0)
             {
                 return new ApiErrorResult<object>("Price is not correct");
@@ -208,7 +214,7 @@ namespace BabyCare.Services.Service
             }
 
             _mapper.Map(request, existingItem);
-            existingItem.Price = (request.OriginalPrice - (request.OriginalPrice * (request.Discount/100)));
+            existingItem.Price = (request.OriginalPrice - (request.OriginalPrice * (request.Discount / 100)));
             if (existingItem.Price < 0)
             {
                 return new ApiErrorResult<object>("Price is not correct");
@@ -223,6 +229,106 @@ namespace BabyCare.Services.Service
             await repo.SaveAsync();
 
             return new ApiSuccessResult<object>("Update successfully.");
+        }
+
+        public async Task<ApiResult<BuyPackageResponse>> BuyPackage(BuyPackageRequest request, string ipAddress)
+        {
+            var package = await _unitOfWork.GetRepository<MembershipPackage>().GetByIdAsync(request.PackageId);
+            if (package == null)
+            {
+                return new ApiErrorResult<BuyPackageResponse>("Package is not existed");
+            }
+            var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+            if (user == null)
+            {
+                return new ApiErrorResult<BuyPackageResponse>("User is not existed");
+            }
+            var res = new BuyPackageResponse()
+            {
+                RedirectUrlVnPay = CreatePaymentUrl((double)package.Price, $"{user.Id}|{package.Id}", ipAddress)
+            };
+            return new ApiSuccessResult<BuyPackageResponse>(res);
+
+        }
+        private string CreatePaymentUrl(double moneyToPay, string description, string IpAddress)
+        {
+
+
+            var request = new PaymentRequest
+            {
+                PaymentId = DateTime.Now.Ticks,
+                Money = moneyToPay,
+                Description = description,
+                IpAddress = IpAddress,
+                BankCode = BankCode.ANY, // Tùy chọn. Mặc định là tất cả phương thức giao dịch
+                CreatedDate = DateTime.Now, // Tùy chọn. Mặc định là thời điểm hiện tại
+                Currency = Currency.VND, // Tùy chọn. Mặc định là VND (Việt Nam đồng)
+                Language = DisplayLanguage.Vietnamese // Tùy chọn. Mặc định là tiếng Việt
+            };
+
+            var paymentUrl = _vnpay.GetPaymentUrl(request);
+
+            return paymentUrl;
+
+        }
+
+        public async Task<ApiResult<object>> HandleIpnActionVNpay(IQueryCollection query)
+        {
+
+            var paymentResult = _vnpay.GetPaymentResult(query);
+            var isSuccess = paymentResult.IsSuccess;
+            _unitOfWork.BeginTransaction();
+            var data = paymentResult.Description.Split("|");
+            var packageId = int.Parse(data.ElementAt(1));
+            var package = await _unitOfWork.GetRepository<MembershipPackage>().Entities.FirstOrDefaultAsync(x => x.Id == packageId);  
+            var userId = Guid.Parse(data.ElementAt(0));
+            var userMembership = new UserMembership()
+            {
+                PackageId = packageId,
+                UserId = userId,
+                CreatedBy = userId.ToString(),
+                CreatedTime = DateTime.Now,
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(package.Duration),
+                Status = isSuccess ? SystemConstant.MembershipPackageStatus.Active : MembershipPackageStatus.InActive,
+            };
+            await _unitOfWork.GetRepository<UserMembership>().InsertAsync(userMembership);
+            await _unitOfWork.SaveAsync();
+
+
+            Payment payment = null;
+            if (paymentResult.IsSuccess)
+            {
+                payment = new Payment()
+                {
+                    CreatedTime = DateTime.Now,
+                    CreatedBy = data.ElementAt(0),
+                    Amount = package.Price.Value,
+                    PaymentMethod = paymentResult.PaymentMethod,
+                    PaymentDate = DateTime.Now,
+                    Status = "Success",
+                    Membership = userMembership,
+                };
+            }
+            else
+            {
+                payment = new Payment()
+                {
+                    CreatedTime = DateTime.Now,
+                    CreatedBy = data.ElementAt(0),
+                    Amount = package.Price.Value,
+                    PaymentMethod = paymentResult.PaymentMethod,
+                    PaymentDate = DateTime.Now,
+                    Status = "Failed",
+                    Membership = userMembership,
+                };
+            }
+            await _unitOfWork.GetRepository<Payment>().InsertAsync(payment);
+            await _unitOfWork.SaveAsync();
+            _unitOfWork.CommitTransaction();
+            return new ApiSuccessResult<object>("Buy successfully.");
+
+
         }
     }
 }
