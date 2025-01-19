@@ -10,7 +10,7 @@
         public string? Address { get; set; }
         public string? Gender { get; set; }
         public string? BloodGroup { get; set; }
-        public int? Status { get; set; }
+        public string? Status { get; set; }
         public DateTime? DueDate { get; set; }
         public string? CreatedBy { get; set; }
         public string? LastUpdatedBy { get; set; }

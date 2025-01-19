@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="VNPAY.NET" Version="8.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BabyCare.Repositories\BabyCare.Repositories.csproj">
       <Private>True</Private>
     </ProjectReference>

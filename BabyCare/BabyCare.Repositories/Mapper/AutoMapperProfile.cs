@@ -1,6 +1,8 @@
 using AutoMapper;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.ModelViews.AuthModelViews.Response;
+using BabyCare.ModelViews.MembershipPackageModelViews.Request;
+using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.RoleModelViews;
 using BabyCare.ModelViews.UserModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
@@ -30,6 +32,12 @@ namespace BabyCare.Repositories.Mapper
 
             CreateMap<ApplicationRoles, RoleModelView>()
                 .ReverseMap();
+            #endregion
+            #region Membership Package
+            CreateMap<CreateMPRequest, MembershipPackage>().ReverseMap();
+            CreateMap<UpdateMPRequest, MembershipPackage>().ReverseMap();
+            CreateMap<MPResponseModel, MembershipPackage>().ReverseMap();
+
             #endregion
 
 

@@ -59,7 +59,9 @@ namespace BabyCare.API
         {
             services
                 .AddScoped<IUserService, UserService>()
-                .AddScoped<IRoleService, RoleService>();
+                .AddScoped<IRoleService, RoleService>()
+                .AddScoped<IMembershipPackageService, MembershipPackageService>();
+
         }
 
         public static void AddSwagger(this IServiceCollection services)
