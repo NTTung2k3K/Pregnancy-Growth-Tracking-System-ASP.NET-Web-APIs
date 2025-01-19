@@ -17,6 +17,7 @@ namespace BabyCare.ModelViews.UserModelViews.Response
         public string? Gender { get; set; }
         public string? CreatedBy { get; set; }
         public string? LastUpdatedBy { get; set; }
+        public string Status { get; set; }
         public RoleModelView Role { get; set; }
     }
 }

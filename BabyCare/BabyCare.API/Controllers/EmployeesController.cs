@@ -89,6 +89,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
             }
         }
+        [HttpGet("get-employee-status")]
+        public IActionResult GetEmployeeStatus()
+        {
+            try
+            {
+                var result = _userService.GetEmployeeStatus();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BabyCare.ModelViews.UserModelViews.Response.UserResponseModel>(ex.Message));
+            }
+        }
         // POST: api/Auth/get-employee-by-id
         [HttpGet("get-employee-by-id")]
         public async Task<IActionResult> GetEmployeeById([FromQuery] Guid Id)

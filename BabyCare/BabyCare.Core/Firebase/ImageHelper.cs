@@ -30,10 +30,10 @@ namespace BabyCare.Core.Firebase
             var config = builder.Build();
 
 
-            _firebaseAuthApiKey = config["Settings:FirebaseSettings:AuthApiKey"];
-            _firebaseEmail = config["Settings:FirebaseSettings:Email"];
-            _firebasePassword = config["Settings:FirebaseSettings:Password"];
-            _firebaseBucket = config["Settings:FirebaseSettings:Bucket"];
+            _firebaseAuthApiKey = config["Firebase:ApiKey"];
+            _firebaseEmail = config["Firebase:AuthEmail"];
+            _firebasePassword = config["Firebase:AuthPassword"];
+            _firebaseBucket = config["Firebase:Bucket"];
         }
 
 

@@ -58,6 +58,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BabyCare.ModelViews.UserModelViews.Response.UserResponseModel>(ex.Message));
             }
         }
+        [HttpGet("get-user-status")]
+        public IActionResult GetUserStatus()
+        {
+            try
+            {
+                var result =  _userService.GetUserStatus();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BabyCare.ModelViews.UserModelViews.Response.UserResponseModel>(ex.Message));
+            }
+        }
         // POST: api/Auth/delete-user
         [HttpDelete("delete-user")]
         public async Task<IActionResult> DeleteUser([FromQuery] DeleteUserRequest request)
