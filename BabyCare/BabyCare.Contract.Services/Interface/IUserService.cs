@@ -14,6 +14,8 @@ namespace BabyCare.Contract.Services.Interface
 
         #region Authen User
         Task<ApiResult<UserLoginResponseModel>> UserLogin(UserLoginRequestModel request);
+        Task<ApiResult<UserLoginResponseModel>> UserLoginGoogle(UserLoginGoogleRequest request);
+
         Task<ApiResult<object>> UserRegister(UserRegisterRequestModel request);
         Task<ApiResult<object>> ConfirmUserRegister(ConfirmUserRegisterRequest request);
 

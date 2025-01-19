@@ -14,11 +14,13 @@ using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VNPAY.NET;
 using static BabyCare.Core.Utils.SystemConstant;
 
 namespace BabyCare.Services.Service
@@ -28,9 +30,26 @@ namespace BabyCare.Services.Service
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
+        private string _tmnCode;
+        private string _hashSecret;
+        private string _baseUrl;
+        private string _callbackUrl;
 
-        public MembershipPackageService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        private readonly IVnpay _vnpay;
+        private readonly IConfiguration _configuration;
+
+        public MembershipPackageService(IConfiguration configuration,IVnpay vnpay,IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
+            _configuration = configuration;
+
+            _tmnCode = configuration["Vnpay:TmnCode"];
+            _hashSecret = configuration["Vnpay:HashSecret"];
+            _baseUrl = configuration["Vnpay:BaseUrl"];
+            _callbackUrl = configuration["Vnpay:ReturnUrl"];
+
+
+            _vnpay = vnpay;
+            _vnpay.Initialize(_tmnCode, _hashSecret, _baseUrl, _callbackUrl);
             _contextAccessor = httpContextAccessor;
             _mapper = mapper;
             _unitOfWork = unitOfWork;

@@ -10,6 +10,10 @@ namespace BabyCare.Core.Utils
     {
         public static int PAGE_SIZE = 10;
 
+        public class Provider
+        {
+            public static string GOOGLE = "Google";
+        }
         public class Role
         {
             public static string ADMIN = "Admin";
