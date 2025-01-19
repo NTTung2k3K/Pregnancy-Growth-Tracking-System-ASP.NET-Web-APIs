@@ -1,27 +1,24 @@
-﻿using BabyCare.Core.Base;
+﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static BabyCare.Core.Utils.SystemConstant;
 
-namespace BabyCare.Contract.Repositories.Entity
+namespace BabyCare.ModelViews.MembershipPackageModelViews.Request
 {
-    public class MembershipPackage : BaseEntity
+    public class CreateMPRequest
     {
         public string PackageName { get; set; }
         public string? Description { get; set; }
         public decimal OriginalPrice { get; set; }
         public int Duration { get; set; }
-        public int? Status { get; set; }
-        public int? PackageLevel { get; set; }
-        public string? ImageUrl { get; set; }
+        public PackageStatus? Status { get; set; }
+        public PackageLevel? PackageLevel { get; set; }
+        public IFormFile? ImageUrl { get; set; }
         public decimal? Discount { get; set; }
-        public decimal? Price { get; set; }
-
         public int? ShowPriority { get; set; }
 
-        public virtual ICollection<UserMembership> UserMemberships { get; set; }
     }
-
 }

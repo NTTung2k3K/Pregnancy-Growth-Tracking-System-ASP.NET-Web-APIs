@@ -10,6 +10,10 @@ namespace BabyCare.Core.Utils
     {
         public static int PAGE_SIZE = 10;
 
+        public class Provider
+        {
+            public static string GOOGLE = "Google";
+        }
         public class Role
         {
             public static string ADMIN = "Admin";
@@ -27,6 +31,19 @@ namespace BabyCare.Core.Utils
         {
             Active = 1,
             InActive = 0
+        }
+        public enum PackageStatus
+        {
+            Active = 1,
+            InActive = 0,
+        }
+        public enum PackageLevel
+        {
+            None = 0,
+            Bronze = 1,
+            Silver = 2,
+            Gold = 3,
+            Premium = 4,
         }
     }
 }

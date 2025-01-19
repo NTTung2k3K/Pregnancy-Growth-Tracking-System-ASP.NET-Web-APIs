@@ -14,6 +14,8 @@ namespace BabyCare.Contract.Services.Interface
 
         #region Authen User
         Task<ApiResult<UserLoginResponseModel>> UserLogin(UserLoginRequestModel request);
+        Task<ApiResult<UserLoginResponseModel>> UserLoginGoogle(UserLoginGoogleRequest request);
+
         Task<ApiResult<object>> UserRegister(UserRegisterRequestModel request);
         Task<ApiResult<object>> ConfirmUserRegister(ConfirmUserRegisterRequest request);
 
@@ -35,11 +37,15 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<UserResponseModel>> GetUserById(Guid Id);
         Task<ApiResult<object>> DeleteUser(DeleteUserRequest request);
         Task<ApiResult<object>> UpdateUserStatus(UpdateUserStatusRequest request);
+        ApiResult<List<UserStatusResponseModel>> GetUserStatus();
+
 
 
         #endregion
 
         #region Admin/Doctor/Employee
+        ApiResult<List<UserStatusResponseModel>> GetEmployeeStatus();
+
         Task<ApiResult<object>> CreateEmployee(CreateEmployeeRequest request);
         Task<ApiResult<object>> UpdateEmployeeProfile(UpdateEmployeeProfileRequest request);
         Task<ApiResult<object>> UpdateEmployeeStatus(UpdateUserStatusRequest request);

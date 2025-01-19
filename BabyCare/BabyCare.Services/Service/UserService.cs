@@ -9,8 +9,10 @@ using BabyCare.Core.Firebase;
 using BabyCare.Core.Utils;
 using BabyCare.ModelViews.AuthModelViews.Request;
 using BabyCare.ModelViews.AuthModelViews.Response;
+using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.UserModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
+using Firebase.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +27,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using static BabyCare.Core.Utils.SystemConstant;
 
 namespace BabyCare.Contract.Services.Implements
 {
@@ -38,7 +41,7 @@ namespace BabyCare.Contract.Services.Implements
 
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
-        public UserService(IConfiguration configuration,IHttpContextAccessor contextAccessor, IUnitOfWork unitOfWork, UserManager<ApplicationUsers> userManager, IMapper mapper, RoleManager<ApplicationRoles> roleManager)
+        public UserService(IConfiguration configuration, IHttpContextAccessor contextAccessor, IUnitOfWork unitOfWork, UserManager<ApplicationUsers> userManager, IMapper mapper, RoleManager<ApplicationRoles> roleManager)
         {
             _configuration = configuration;
             _contextAccessor = contextAccessor;
@@ -64,13 +67,22 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.", System.Net.HttpStatusCode.NotFound);
             }
+            var roles = await _userManager.GetRolesAsync(existingUser);
+            foreach (var role in roles)
+            {
+                if (role != SystemConstant.Role.USER)
+                {
+                    return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.", System.Net.HttpStatusCode.NotFound);
+                }
+            }
             var isConfirmed = await _userManager.IsEmailConfirmedAsync(existingUser);
             if (!isConfirmed)
             {
                 return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.", System.Net.HttpStatusCode.NotFound);
 
             }
-            if(existingUser.Status == ((int)SystemConstant.UserStatus.InActive))
+
+            if (existingUser.Status == ((int)SystemConstant.UserStatus.InActive))
             {
                 return new ApiErrorResult<UserLoginResponseModel>("You cannot access system.", System.Net.HttpStatusCode.NotFound);
 
@@ -192,7 +204,7 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("Cannot send email to " + request.Email);
             }
-            
+
             return new ApiSuccessResult<object>("Please check your gmail to confirm");
         }
 
@@ -251,7 +263,7 @@ namespace BabyCare.Contract.Services.Implements
 
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FormSendEmail", "SendCodeCustomer.html");
             path = Path.GetFullPath(path);
-         
+
 
             if (!System.IO.File.Exists(path))
             {
@@ -295,7 +307,7 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<EmployeeLoginResponseModel>("Username or password is not correct.", System.Net.HttpStatusCode.NotFound);
             }
-            if(existingUser.DeletedBy != null)
+            if (existingUser.DeletedBy != null)
             {
                 return new ApiErrorResult<EmployeeLoginResponseModel>("Username or password is not correct.", System.Net.HttpStatusCode.NotFound);
             }
@@ -345,7 +357,7 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("Không tìm thấy file gửi mail");
             }
-           
+
             var frontEndUrl = _configuration["URL:FrontEnd"];
             var fullForgotPasswordUrl = frontEndUrl + "/reset-password?email=" + email + "&token=" + token;
             string contentCustomer = System.IO.File.ReadAllText(path);
@@ -431,10 +443,21 @@ namespace BabyCare.Contract.Services.Implements
             var data = await users.Skip((currentPage - 1) * currentPage).Take(pageSize).ToListAsync();
             // calculate total page
 
-            var totalPage = (int)Math.Ceiling((double)total / pageSize);
-            var items = _mapper.Map<List<UserResponseModel>>(data).ToList();
-
-            var response = new BasePaginatedList<UserResponseModel>(items, totalPage, currentPage, pageSize);
+            var items = data.Select(x => new UserResponseModel
+            {
+                Address = x.Address,
+                DateOfBirth = x.DateOfBirth,
+                FullName = x.FullName,
+                Gender = x.Gender,
+                Image = x.Image,
+                Id = x.Id,
+                Status = Enum.IsDefined(typeof(EmployeeStatus), x.Status)
+                               ? ((EmployeeStatus)x.Status).ToString()
+                                  : "Unknown",
+                BloodGroup = x.BloodGroup,
+                Email = x.Email,
+            }).ToList();
+            var response = new BasePaginatedList<UserResponseModel>(items, total, currentPage, pageSize);
             // return to client
             return new ApiSuccessResult<BasePaginatedList<UserResponseModel>>(response);
 
@@ -452,13 +475,21 @@ namespace BabyCare.Contract.Services.Implements
             var isValidUser = await _userManager.GetRolesAsync(existingUser);
             foreach (var item in isValidUser)
             {
-                if(item != SystemConstant.Role.USER)
+                if (item != SystemConstant.Role.USER)
                 {
                     return new ApiErrorResult<UserResponseModel>("User is not existed.", System.Net.HttpStatusCode.NotFound);
                 }
             }
             // Response to client
             var response = _mapper.Map<UserResponseModel>(existingUser);
+            if (Enum.IsDefined(typeof(UserStatus), existingUser.Status))
+            {
+                response.Status = ((UserStatus)existingUser.Status).ToString();
+            }
+            else
+            {
+                response.Status = "Unknown";
+            }
             return new ApiSuccessResult<UserResponseModel>(response);
 
         }
@@ -496,7 +527,7 @@ namespace BabyCare.Contract.Services.Implements
             }
 
             // Update status
-            existingUser.Status = request.Status;
+            existingUser.Status = (int)request.Status;
             var result = await _userManager.UpdateAsync(existingUser);
             if (!result.Succeeded)
             {
@@ -523,7 +554,7 @@ namespace BabyCare.Contract.Services.Implements
 
             // Createe user use mapper
             var user = _mapper.Map<ApplicationUsers>(request);
-
+            user.Status = (int)EmployeeStatus.Active;
             if (request.Image != null)
             {
                 user.Image = await BabyCare.Core.Firebase.ImageHelper.Upload(request.Image);
@@ -578,7 +609,7 @@ namespace BabyCare.Contract.Services.Implements
                 return new ApiErrorResult<object>("Status is not correct.", System.Net.HttpStatusCode.BadRequest);
             }
             // Update status
-            existingUser.Status = request.Status;
+            existingUser.Status = (int)request.Status;
             var result = await _userManager.UpdateAsync(existingUser);
             if (!result.Succeeded)
             {
@@ -640,10 +671,26 @@ namespace BabyCare.Contract.Services.Implements
             var data = await users.Skip((currentPage - 1) * currentPage).Take(pageSize).ToListAsync();
             // calculate total page
 
-            var totalPage = (int)Math.Ceiling((double)total / pageSize);
-            var items = _mapper.Map<List<EmployeeResponseModel>>(data).ToList();
+            var items = data.Select(x => new EmployeeResponseModel
+            {
+                Address = x.Address,
+                DateOfBirth = x.DateOfBirth,
+                FullName = x.FullName,
+                Gender = x.Gender,
+                Image = x.Image,
+                Id = x.Id,
+                Status = Enum.IsDefined(typeof(EmployeeStatus), x.Status)
+                               ? ((EmployeeStatus)x.Status).ToString()
+                                  : "Unknown",
+                Role = new ModelViews.RoleModelViews.RoleModelView()
+                {
+                    Id = doctorRole.Id.ToString(),
+                    Name = doctorRole.Name,
+                },
 
-            var response = new BasePaginatedList<EmployeeResponseModel>(items, totalPage, currentPage, pageSize);
+            }).ToList();
+
+            var response = new BasePaginatedList<EmployeeResponseModel>(items, total, currentPage, pageSize);
             // return to client
             return new ApiSuccessResult<BasePaginatedList<EmployeeResponseModel>>(response);
         }
@@ -656,7 +703,7 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<EmployeeResponseModel>("User is not existed.", System.Net.HttpStatusCode.NotFound);
             }
-            if(existingUser.Status == (int)SystemConstant.EmployeeStatus.InActive || existingUser.DeletedBy != null)
+            if (existingUser.Status == (int)SystemConstant.EmployeeStatus.InActive || existingUser.DeletedBy != null)
             {
                 return new ApiErrorResult<EmployeeResponseModel>("User is not existed.", System.Net.HttpStatusCode.NotFound);
 
@@ -670,6 +717,14 @@ namespace BabyCare.Contract.Services.Implements
 
             // Response to client
             var response = _mapper.Map<EmployeeResponseModel>(existingUser);
+            if (Enum.IsDefined(typeof(EmployeeStatus), existingUser.Status))
+            {
+                response.Status = ((EmployeeStatus)existingUser.Status).ToString();
+            }
+            else
+            {
+                response.Status = "Unknown";
+            }
             return new ApiSuccessResult<EmployeeResponseModel>(response);
         }
 
@@ -681,14 +736,154 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("Email is not existed.", System.Net.HttpStatusCode.NotFound);
             }
+
             // Confirm code 
             var result = await _userManager.ConfirmEmailAsync(existingUser, request.Code);
             if (!result.Succeeded)
             {
                 return new ApiErrorResult<object>("Confirm email unsuccessfully", result.Errors.Select(x => x.Description).ToList(), System.Net.HttpStatusCode.BadRequest);
             }
+            existingUser.Status = (int)UserStatus.Active;
+            var rs = await _userManager.UpdateAsync(existingUser);
+
+            if (!rs.Succeeded)
+            {
+                return new ApiErrorResult<object>("Update unsuccessfully", result.Errors.Select(x => x.Description).ToList(), System.Net.HttpStatusCode.BadRequest);
+            }
             return new ApiSuccessResult<object>("Confirm email successfully.");
 
+        }
+
+        public ApiResult<List<UserStatusResponseModel>> GetUserStatus()
+        {
+            var statusList = Enum.GetValues(typeof(UserStatus))
+                        .Cast<UserStatus>()
+                        .Select(status => new UserStatusResponseModel
+                        {
+                            Id = (int)status,
+                            Status = status.ToString()
+                        })
+                        .ToList();
+
+
+            return new ApiSuccessResult<List<UserStatusResponseModel>>(statusList);
+        }
+
+        public ApiResult<List<UserStatusResponseModel>> GetEmployeeStatus()
+        {
+            var statusList = Enum.GetValues(typeof(EmployeeStatus))
+                      .Cast<UserStatus>()
+                      .Select(status => new UserStatusResponseModel
+                      {
+                          Id = (int)status,
+                          Status = status.ToString()
+                      })
+                      .ToList();
+
+
+            return new ApiSuccessResult<List<UserStatusResponseModel>>(statusList);
+        }
+        private async Task<string> _generateGGUsernameAsync()
+        {
+            Random random = new Random();
+            while (true)
+            {
+                string username = "GG_" + random.Next(0, 999999);
+                var usernameCheckExisted = await _userManager.FindByNameAsync(username);
+                if (usernameCheckExisted == null)
+                {
+                    return username;
+                }
+            }
+        }
+        public async Task<ApiResult<UserLoginResponseModel>> UserLoginGoogle(UserLoginGoogleRequest request)
+        {
+            var userCheckExisted = await _userManager.FindByEmailAsync(request.Email);
+            if (userCheckExisted != null)
+            {
+                var updateStatus = await _userManager.UpdateAsync(userCheckExisted);
+                if (!updateStatus.Succeeded)
+                {
+                    var errorAddUser = updateStatus.Errors.Select(x => x.Description).ToList();
+                    return new ApiErrorResult<UserLoginResponseModel>("Login failed.");
+                }
+                var refreshTokenDataLogged = GenerateRefreshToken();
+                var accessTokenDataLogged = await GenerateAccessTokenAsync(userCheckExisted);
+                userCheckExisted.RefreshToken = refreshTokenDataLogged.Item1;
+                userCheckExisted.RefreshTokenExpiryTime = refreshTokenDataLogged.Item2;
+
+                await _userManager.UpdateAsync(userCheckExisted);
+                var responseLogged = _mapper.Map<UserLoginResponseModel>(userCheckExisted);
+                responseLogged.AccessToken = accessTokenDataLogged.Item1;
+                responseLogged.AccessTokenExpiredTime = accessTokenDataLogged.Item2;
+                responseLogged.RefreshToken = refreshTokenDataLogged.Item1;
+                responseLogged.RefreshTokenExpiryTime = refreshTokenDataLogged.Item2;
+
+                return new ApiSuccessResult<UserLoginResponseModel>(responseLogged);
+            }
+
+
+            var userEntity = new ApplicationUsers()
+            {
+                Email = request.Email,
+                EmailConfirmed = request.Email_verified,
+                FullName = $"{request.Family_name} {request.Given_name} {request.Name}",
+                Image = request.Picture,
+                UserName = await _generateGGUsernameAsync(),
+                Status = (int)UserStatus.Active
+            };
+
+            var addUserStatus = await _userManager.CreateAsync(userEntity);
+            if (!addUserStatus.Succeeded)
+            {
+                var errorAddUser = addUserStatus.Errors.Select(x => x.Description).ToList();
+                return new ApiErrorResult<UserLoginResponseModel>("Login failed.",errorAddUser);
+            }
+            
+            var addUserToRoleStatus = await _userManager.AddToRoleAsync(userEntity, SystemConstant.Role.USER);
+            if (!addUserToRoleStatus.Succeeded)
+            {
+                var rollbackResult = await _userManager.DeleteAsync(userEntity);
+                if (!rollbackResult.Succeeded)
+                {
+                    var rollbackErrors = rollbackResult.Errors.Select(x => x.Description).ToList();
+                    return new ApiErrorResult<UserLoginResponseModel>("Login failed and rollback failed.", rollbackErrors);
+                }
+
+                var errorAddUser = addUserToRoleStatus.Errors.Select(x => x.Description).ToList();
+                return new ApiErrorResult<UserLoginResponseModel>("Login failed.", errorAddUser);
+            }
+            var userLoginInfo = new UserLoginInfo(Provider.GOOGLE, request.Sub, Provider.GOOGLE);
+
+            var userLoginGoogle = await _userManager.AddLoginAsync(userEntity, userLoginInfo);
+
+            if (!userLoginGoogle.Succeeded)
+            {
+                var rollbackResult = await _userManager.DeleteAsync(userEntity);
+                if (!rollbackResult.Succeeded)
+                {
+                    var rollbackErrors = rollbackResult.Errors.Select(x => x.Description).ToList();
+                    return new ApiErrorResult<UserLoginResponseModel>("Login failed and rollback failed.", rollbackErrors);
+                }
+
+                var errorAddUser = userLoginGoogle.Errors.Select(x => x.Description).ToList();
+                return new ApiErrorResult<UserLoginResponseModel>("Login failed.", errorAddUser);
+            }
+            var refreshTokenData = GenerateRefreshToken();
+            var accessTokenData = await GenerateAccessTokenAsync(userEntity);
+            userEntity.RefreshToken = refreshTokenData.Item1;
+            userEntity.RefreshTokenExpiryTime = refreshTokenData.Item2;
+
+            await _userManager.UpdateAsync(userEntity);
+            var response = _mapper.Map<UserLoginResponseModel>(userEntity);
+            response.AccessToken = accessTokenData.Item1;
+            response.AccessTokenExpiredTime = accessTokenData.Item2;
+            response.RefreshToken = refreshTokenData.Item1;
+            response.RefreshTokenExpiryTime = refreshTokenData.Item2;
+
+
+
+            return new ApiSuccessResult<UserLoginResponseModel>(response);
         }
         #endregion
 
