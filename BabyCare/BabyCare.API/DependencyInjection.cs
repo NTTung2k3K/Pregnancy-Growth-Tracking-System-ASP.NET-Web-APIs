@@ -13,6 +13,7 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using BabyCare.Core.Utils;
 using BabyCare.Contract.Services.Implements;
+using VNPAY.NET;
 
 namespace BabyCare.API
 {
@@ -60,10 +61,26 @@ namespace BabyCare.API
             services
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<IRoleService, RoleService>()
+                .AddScoped<IVnpay,Vnpay>()
+                .AddHttpContextAccessor()
                 .AddScoped<IMembershipPackageService, MembershipPackageService>();
 
         }
+        public static void AddCorsPolicyBackend(this IServiceCollection services)
+        {
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins("http://localhost:3000") // Chỉ cho phép localhost:3000
+                           .AllowAnyHeader() // Cho phép tất cả các header
+                           .AllowAnyMethod() // Cho phép tất cả các phương thức (GET, POST, PUT, DELETE,...)
+                           .AllowCredentials(); // Cho phép gửi cookie hoặc thông tin xác thực
+                });
+            });
 
+
+        }
         public static void AddSwagger(this IServiceCollection services)
         {
             services.AddSwaggerGen(option =>

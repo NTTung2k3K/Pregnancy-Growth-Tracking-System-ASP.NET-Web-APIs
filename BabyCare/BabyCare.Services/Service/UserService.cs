@@ -34,7 +34,7 @@ namespace BabyCare.Contract.Services.Implements
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly UserManager<ApplicationUsers> _userManager;
+        private readonly UserManager<ApplicationUsers> _userManager;    
         private readonly RoleManager<ApplicationRoles> _roleManager;
 
         private readonly IHttpContextAccessor _contextAccessor;
