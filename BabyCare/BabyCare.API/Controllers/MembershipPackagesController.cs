@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using VNPAY.NET.Utilities;
 using Azure.Core;
+using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 
 namespace BabyCare.API.Controllers
 {
@@ -34,11 +35,11 @@ namespace BabyCare.API.Controllers
             }
         }
         [HttpGet("callbackvnpay")]
-        public async Task<IActionResult> IpnActionAsync()
+        public async Task<IActionResult> IpnActionAsync(VNPayCallbackResponse request)
         {
             try
             {
-                var result = await _membershipPackageService.HandleIpnActionVNpay(Request.Query);
+                var result = await _membershipPackageService.HandleIpnActionVNpay(request);
                 return Ok(result);
             }
             catch (Exception ex)
