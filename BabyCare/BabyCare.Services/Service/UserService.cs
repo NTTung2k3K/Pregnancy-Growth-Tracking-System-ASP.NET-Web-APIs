@@ -199,6 +199,7 @@ namespace BabyCare.Contract.Services.Implements
             }
             var content = File.ReadAllText(path);
             content = content.Replace("{{OTP}}", Uri.EscapeDataString(token));
+            content = content.Replace("{{Name}}", user.Email);
             var resultSendMail = DoingMail.SendMail("BabyCare", "Confirm Email", content, user.Email);
             if (!resultSendMail)
             {
@@ -881,7 +882,15 @@ namespace BabyCare.Contract.Services.Implements
             response.RefreshToken = refreshTokenData.Item1;
             response.RefreshTokenExpiryTime = refreshTokenData.Item2;
 
-
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FormSendEmail", "Welcome.html");
+            path = Path.GetFullPath(path);
+            if (!File.Exists(path))
+            {
+                return new ApiErrorResult<UserLoginResponseModel>("Không tìm thấy file gửi mail");
+            }
+            var content = File.ReadAllText(path);
+            content = content.Replace("{{Name}}", userEntity.FullName);
+            var resultSendMail = DoingMail.SendMail("BabyCare", "Confirm Email", content, userEntity.Email);
 
             return new ApiSuccessResult<UserLoginResponseModel>(response);
         }
