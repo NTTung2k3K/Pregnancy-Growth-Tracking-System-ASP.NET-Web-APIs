@@ -27,6 +27,9 @@
     <None Update="FormSendEmail\SendCodeCustomer.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FormSendEmail\WelcomeGG.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FormSendEmail\Welcome.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
