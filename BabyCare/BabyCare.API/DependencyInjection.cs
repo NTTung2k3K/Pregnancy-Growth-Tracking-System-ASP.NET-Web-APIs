@@ -62,6 +62,10 @@ namespace BabyCare.API
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<IRoleService, RoleService>()
                 .AddScoped<IVnpay, Vnpay>()
+                .AddScoped<IBlogTypeService, BlogTypeService>()
+                .AddScoped<IBlogService, BlogService>()
+                .AddScoped<IChildService, ChildService>()
+                .AddScoped<IVnpay, Vnpay>()
                 .AddHttpContextAccessor()
                 .AddScoped<IMembershipPackageService, MembershipPackageService>()
                 .AddScoped<IAppointmentTemplateService, AppointmentTemplateService>();
@@ -282,6 +286,8 @@ namespace BabyCare.API
                 await dbContext.SaveChangesAsync();
 
             }
+        }
+
         public static void AddConfigJWT(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddAuthentication(options =>

@@ -1,35 +1,31 @@
 ﻿using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
-using BabyCare.Core.Utils;
-using BabyCare.ModelViews.RoleModelViews;
-using Microsoft.AspNetCore.Authorization;
+using BabyCare.ModelViews.BlogModelViews;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BabyCare.API.Controllers
 {
-    //[Authorize(Roles = SystemConstant.Role.ADMIN)]
     [Route("api/[controller]")]
     [ApiController]
-    public class RoleController : ControllerBase
+    public class BlogController : ControllerBase
     {
-        private readonly IRoleService _roleService;
+        private readonly IBlogService _blogService;
 
-        public RoleController(IRoleService roleService)
+        public BlogController(IBlogService blogService)
         {
-            _roleService = roleService;
+            _blogService = blogService;
         }
 
         /// <summary>
-        ///     Get all roles with pagination and optional filters
+        ///     Get all blogs with pagination and optional filters
         /// </summary>
         [HttpGet("all")]
-        public async Task<ActionResult<BasePaginatedList<RoleModelView>>> GetAllRoles
-            ([FromQuery] string? id, [FromQuery] string? name, int pageNumber = 1, int pageSize = 5)
+        public async Task<ActionResult<BasePaginatedList<BlogModelView>>> GetAllBlogs
+            ([FromQuery] int? id, [FromQuery] string? title, [FromQuery] string? status, [FromQuery] bool? isFeatured, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                var result = await _roleService.GetAllRoleAsync(pageNumber, pageSize, id, name);
-
+                var result = await _blogService.GetAllBlogAsync(pageNumber, pageSize, id, title, status, isFeatured);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -39,32 +35,14 @@ namespace BabyCare.API.Controllers
         }
 
         /// <summary>
-        ///     Get a role by ID
+        ///     Get a blog by ID
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<RoleModelView>> GetRoleById(string id)
+        public async Task<ActionResult<BlogModelView>> GetBlogById(int id)
         {
             try
             {
-                var role = await _roleService.GetRoleByIdAsync(id);
-                return Ok(role);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
-            }
-        }
-
-        /// <summary>
-        ///     Create a new role
-        /// </summary>
-        [HttpPost("create")]
-        public async Task<ActionResult<string>> CreateRole([FromQuery] CreateRoleModelView model)
-        {
-            try
-            {
-                var result = await _roleService.AddRoleAsync(model);
-
+                var result = await _blogService.GetBlogByIdAsync(id);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -74,16 +52,20 @@ namespace BabyCare.API.Controllers
         }
 
         /// <summary>
-        ///     Update a role
+        ///     Create a new blog
         /// </summary>
-        [HttpPut("update/{id}")]
-        public async Task<ActionResult<string>> UpdateRole(string id, [FromQuery] UpdatedRoleModelView model)
+        [HttpPost("create")]
+        public async Task<ActionResult<string>> CreateBlog([FromQuery] CreateBlogModelView model)
         {
             try
             {
-                var result = await _roleService.UpdateRoleAsync(id, model);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
 
-                return Ok(new { Message = result });
+                var result = await _blogService.AddBlogAsync(model);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -92,16 +74,32 @@ namespace BabyCare.API.Controllers
         }
 
         /// <summary>
-        ///     Delete a role
+        ///     Update a blog
         /// </summary>
-        [HttpDelete("delete/{id}")]
-        public async Task<ActionResult<string>> DeleteRole(string id)
+        [HttpPut("update/{id}")]
+        public async Task<ActionResult<string>> UpdateBlog(int id, [FromQuery] UpdateBlogModelView model)
         {
             try
             {
-                var result = await _roleService.DeleteRoleAsync(id);
+                var result = await _blogService.UpdateBlogAsync(id, model);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
 
-                return Ok(new { Message = result });
+        /// <summary>
+        ///     Delete a blog
+        /// </summary>
+        [HttpDelete("delete/{id}")]
+        public async Task<ActionResult<string>> DeleteBlog(int id)
+        {
+            try
+            {
+                var result = await _blogService.DeleteBlogAsync(id);
+                return Ok(result);
             }
             catch (Exception ex)
             {
