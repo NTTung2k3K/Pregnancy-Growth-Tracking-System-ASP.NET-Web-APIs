@@ -20,6 +20,8 @@ namespace BabyCare.Contract.Repositories.Entity
         public string? PregnancyStage { get; set; }
         public float? WeightEstimate { get; set; }
         public float? HeightEstimate { get; set; }
+        public DateTime DueDate { get; set; }
+
         public string? DeliveryPlan { get; set; }
         public string? Complications { get; set; }
         public string? PhotoUrl { get; set; }
