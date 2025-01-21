@@ -188,6 +188,12 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
+            if (model.DueDate.HasValue && model.DueDate != existingChild.DueDate)
+            {
+                existingChild.DueDate = model.DueDate.Value;
+                isUpdated = true;
+            }
+
             if (!string.IsNullOrWhiteSpace(model.FetalGender) && model.FetalGender != existingChild.FetalGender)
             {
                 existingChild.FetalGender = model.FetalGender;
@@ -256,7 +262,7 @@ namespace BabyCare.Services.Service
                 return new ApiSuccessResult<object>("Child updated successfully.");
             }
 
-            return new ApiErrorResult<object>("No changes were made to the child record.");
+            return new ApiErrorResult<object>("Child updated successfully.");
         }
 
     }

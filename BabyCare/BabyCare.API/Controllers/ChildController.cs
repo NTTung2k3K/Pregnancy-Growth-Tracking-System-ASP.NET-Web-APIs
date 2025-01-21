@@ -61,7 +61,7 @@ namespace BabyCare.API.Controllers
         ///     Create a new child
         /// </summary>
         [HttpPost("create")]
-        public async Task<ActionResult<string>> CreateChild([FromBody] CreateChildModelView model)
+        public async Task<ActionResult<string>> CreateChild([FromQuery] CreateChildModelView model)
         {
             try
             {
@@ -83,7 +83,7 @@ namespace BabyCare.API.Controllers
         ///     Update a child's details
         /// </summary>
         [HttpPut("update/{id}")]
-        public async Task<ActionResult<string>> UpdateChild(int id, [FromBody] UpdateChildModelView model)
+        public async Task<ActionResult<string>> UpdateChild(int id, [FromQuery] UpdateChildModelView model)
         {
             try
             {

@@ -17,7 +17,6 @@ namespace BabyCare.ModelViews.ChildModelView
         [MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters.")]
         public string Name { get; set; }
 
-        [Required]
         [DataType(DataType.Date, ErrorMessage = "Invalid date format.")]
         public DateTime? DateOfBirth { get; set; }
 
@@ -32,6 +31,9 @@ namespace BabyCare.ModelViews.ChildModelView
 
         [Range(0, float.MaxValue, ErrorMessage = "Height estimate must be a positive number.")]
         public float? HeightEstimate { get; set; }
+
+        [Required]
+        public DateTime DueDate { get; set; }
 
         [MaxLength(100, ErrorMessage = "Delivery plan cannot exceed 100 characters.")]
         public string? DeliveryPlan { get; set; }
