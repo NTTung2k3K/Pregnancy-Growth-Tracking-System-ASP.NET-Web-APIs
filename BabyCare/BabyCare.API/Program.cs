@@ -38,7 +38,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowFrontendLocal");
 app.UseAuthorization();
 
 app.MapControllers();

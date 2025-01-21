@@ -272,13 +272,12 @@ namespace BabyCare.Services.Service
 
         }
 
-        public async Task<ApiResult<object>> HandleIpnActionVNpay(IQueryCollection query)
+        public async Task<ApiResult<object>> HandleIpnActionVNpay(VNPayCallbackResponse request)
         {
 
-            var paymentResult = _vnpay.GetPaymentResult(query);
-            var isSuccess = paymentResult.IsSuccess;
+            var isSuccess = request.IsSuccess;
             _unitOfWork.BeginTransaction();
-            var data = paymentResult.Description.Split("|");
+            var data = request.Description.Split("|");
             var packageId = int.Parse(data.ElementAt(1));
             var package = await _unitOfWork.GetRepository<MembershipPackage>().Entities.FirstOrDefaultAsync(x => x.Id == packageId);  
             var userId = Guid.Parse(data.ElementAt(0));
@@ -297,14 +296,14 @@ namespace BabyCare.Services.Service
 
 
             Payment payment = null;
-            if (paymentResult.IsSuccess)
+            if (isSuccess)
             {
                 payment = new Payment()
                 {
                     CreatedTime = DateTime.Now,
                     CreatedBy = data.ElementAt(0),
                     Amount = package.Price.Value,
-                    PaymentMethod = paymentResult.PaymentMethod,
+                    PaymentMethod = request.PaymentMethod,
                     PaymentDate = DateTime.Now,
                     Status = "Success",
                     Membership = userMembership,
@@ -317,7 +316,7 @@ namespace BabyCare.Services.Service
                     CreatedTime = DateTime.Now,
                     CreatedBy = data.ElementAt(0),
                     Amount = package.Price.Value,
-                    PaymentMethod = paymentResult.PaymentMethod,
+                    PaymentMethod = request.PaymentMethod,
                     PaymentDate = DateTime.Now,
                     Status = "Failed",
                     Membership = userMembership,

@@ -102,6 +102,19 @@ namespace XuongMayBE.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+        [HttpPost("user-login-google")]
+        public async Task<IActionResult> UserLoginGoogle([FromBody] UserLoginGoogleRequest request)
+        {
+            try
+            {
+                var result = await _userService.UserLoginGoogle(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
         #region Auth Employee
         // POST: api/Auth/employee-login
         [HttpPost("employee-login")]
