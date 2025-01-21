@@ -17,7 +17,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<UserLoginResponseModel>> UserLoginGoogle(UserLoginGoogleRequest request);
 
         Task<ApiResult<object>> UserRegister(UserRegisterRequestModel request);
-        Task<ApiResult<object>> ConfirmUserRegister(ConfirmUserRegisterRequest request);
+        Task<ApiResult<UserLoginResponseModel>> ConfirmUserRegister(ConfirmUserRegisterRequest request);
 
         Task<ApiResult<object>> ForgotPassword(ForgotPasswordRequest request);
         Task<ApiResult<object>> ResetPassword(ResetPasswordRequestModel request);
