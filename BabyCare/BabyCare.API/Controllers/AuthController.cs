@@ -103,7 +103,7 @@ namespace XuongMayBE.API.Controllers
             }
         }
         [HttpPost("user-login-google")]
-        public async Task<IActionResult> RefreshToken([FromBody] UserLoginGoogleRequest request)
+        public async Task<IActionResult> UserLoginGoogle([FromBody] UserLoginGoogleRequest request)
         {
             try
             {

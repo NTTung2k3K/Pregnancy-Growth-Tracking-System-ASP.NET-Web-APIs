@@ -70,12 +70,12 @@ namespace BabyCare.API
         {
             services.AddCors(options =>
             {
-                options.AddDefaultPolicy(builder =>
+                options.AddPolicy("AllowFrontendLocal", builder =>
                 {
-                    builder.WithOrigins("http://localhost:3000") // Chỉ cho phép localhost:3000
-                           .AllowAnyHeader() // Cho phép tất cả các header
-                           .AllowAnyMethod() // Cho phép tất cả các phương thức (GET, POST, PUT, DELETE,...)
-                           .AllowCredentials(); // Cho phép gửi cookie hoặc thông tin xác thực
+                    builder.WithOrigins("http://localhost:5173") // Các nguồn được phép
+                           .AllowAnyMethod()  // Cho phép tất cả các phương thức HTTP (GET, POST, PUT, DELETE,...)
+                           .AllowAnyHeader()  // Cho phép tất cả các header
+                           .AllowCredentials(); // Cho phép gửi thông tin xác thực (cookies, headers, v.v.)
                 });
             });
 
