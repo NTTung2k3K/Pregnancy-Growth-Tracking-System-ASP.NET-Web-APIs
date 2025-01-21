@@ -729,29 +729,40 @@ namespace BabyCare.Contract.Services.Implements
             return new ApiSuccessResult<EmployeeResponseModel>(response);
         }
 
-        public async Task<ApiResult<object>> ConfirmUserRegister(ConfirmUserRegisterRequest request)
+        public async Task<ApiResult<UserLoginResponseModel>> ConfirmUserRegister(ConfirmUserRegisterRequest request)
         {
             // Check existed email
             var existingUser = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == request.Email);
             if (existingUser == null)
             {
-                return new ApiErrorResult<object>("Email is not existed.", System.Net.HttpStatusCode.NotFound);
+                return new ApiErrorResult<UserLoginResponseModel>("Email is not existed.", System.Net.HttpStatusCode.NotFound);
             }
 
             // Confirm code 
             var result = await _userManager.ConfirmEmailAsync(existingUser, request.Code);
             if (!result.Succeeded)
             {
-                return new ApiErrorResult<object>("Confirm email unsuccessfully", result.Errors.Select(x => x.Description).ToList(), System.Net.HttpStatusCode.BadRequest);
+                return new ApiErrorResult<UserLoginResponseModel>("Confirm email unsuccessfully", result.Errors.Select(x => x.Description).ToList(), System.Net.HttpStatusCode.BadRequest);
             }
             existingUser.Status = (int)UserStatus.Active;
             var rs = await _userManager.UpdateAsync(existingUser);
 
             if (!rs.Succeeded)
             {
-                return new ApiErrorResult<object>("Update unsuccessfully", result.Errors.Select(x => x.Description).ToList(), System.Net.HttpStatusCode.BadRequest);
+                return new ApiErrorResult<UserLoginResponseModel>("Update unsuccessfully", result.Errors.Select(x => x.Description).ToList(), System.Net.HttpStatusCode.BadRequest);
             }
-            return new ApiSuccessResult<object>("Confirm email successfully.");
+            var refreshTokenData = GenerateRefreshToken();
+            var accessTokenData = await GenerateAccessTokenAsync(existingUser);
+            existingUser.RefreshToken = refreshTokenData.Item1;
+            existingUser.RefreshTokenExpiryTime = refreshTokenData.Item2;
+
+            await _userManager.UpdateAsync(existingUser);
+            var response = _mapper.Map<UserLoginResponseModel>(existingUser);
+            response.AccessToken = accessTokenData.Item1;
+            response.AccessTokenExpiredTime = accessTokenData.Item2;
+            response.RefreshToken = refreshTokenData.Item1;
+            response.RefreshTokenExpiryTime = refreshTokenData.Item2;
+            return new ApiSuccessResult<UserLoginResponseModel>(response, "Register successfully.");
 
         }
 
