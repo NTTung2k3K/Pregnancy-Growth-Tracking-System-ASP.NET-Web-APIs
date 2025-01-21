@@ -123,19 +123,74 @@ namespace BabyCare.API
             var dbContext = serviceProvider.GetRequiredService<DatabaseContext>();
 
             // Seed Roles
-            if (!await roleManager.RoleExistsAsync("Admin"))
+            if (!await roleManager.RoleExistsAsync(SystemConstant.Role.ADMIN))
             {
                 await roleManager.CreateAsync(new ApplicationRoles() { Name = SystemConstant.Role.ADMIN, ConcurrencyStamp = "1", NormalizedName = SystemConstant.Role.ADMIN.ToUpper() });
             }
 
-            if (!await roleManager.RoleExistsAsync("Member"))
+            if (!await roleManager.RoleExistsAsync(SystemConstant.Role.DOCTOR))
             {
                 await roleManager.CreateAsync(new ApplicationRoles() { Name = SystemConstant.Role.DOCTOR, ConcurrencyStamp = "2", NormalizedName = SystemConstant.Role.DOCTOR.ToUpper() });
             }
-            if (!await roleManager.RoleExistsAsync("Guest"))
+            if (!await roleManager.RoleExistsAsync(SystemConstant.Role.USER))
             {
                 await roleManager.CreateAsync(new ApplicationRoles() { Name = SystemConstant.Role.USER, ConcurrencyStamp = "3", NormalizedName = SystemConstant.Role.USER.ToUpper() });
             }
+            // Seed Accounts
+            if (await userManager.FindByEmailAsync("Admin1@") == null)
+            {
+                var adminUser = new ApplicationUsers()
+                {
+                    UserName = "Admin",
+                    Email = "admin@example.com",
+                    EmailConfirmed = true,
+                    LockoutEnabled = false
+                };
+
+                var result = await userManager.CreateAsync(adminUser, "Admin1@");
+
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, SystemConstant.Role.ADMIN);
+                }
+            }
+
+            if (await userManager.FindByEmailAsync("Doctor1@") == null)
+            {
+                var doctorUser = new ApplicationUsers()
+                {
+                    UserName = "Doctor",
+                    Email = "doctor@example.com",
+                    EmailConfirmed = true,
+                    LockoutEnabled = false
+                };
+
+                var result = await userManager.CreateAsync(doctorUser, "Doctor1@");
+
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(doctorUser, SystemConstant.Role.DOCTOR);
+                }
+            }
+
+            if (await userManager.FindByEmailAsync("user@example.com") == null)
+            {
+                var normalUser = new ApplicationUsers()
+                {
+                    UserName = "user",
+                    Email = "user@example.com",
+                    EmailConfirmed = true,
+                    LockoutEnabled = false
+                };
+
+                var result = await userManager.CreateAsync(normalUser, "user@example.com");
+
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(normalUser, SystemConstant.Role.USER);
+                }
+            }
+
         }
         public static void AddConfigJWT(this IServiceCollection services, IConfiguration configuration)
         {
