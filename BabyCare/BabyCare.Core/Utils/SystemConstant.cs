@@ -26,6 +26,15 @@ namespace BabyCare.Core.Utils
             public static string USER = "User";
         }
 
+
+
+        public enum AppointmentTemplatesStatus
+        {
+            Active = 1,
+            InActive = 0,
+
+        }
+
         public enum UserStatus
         {
             Active = 1,
