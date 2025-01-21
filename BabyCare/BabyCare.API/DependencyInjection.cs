@@ -137,11 +137,11 @@ namespace BabyCare.API
                 await roleManager.CreateAsync(new ApplicationRoles() { Name = SystemConstant.Role.USER, ConcurrencyStamp = "3", NormalizedName = SystemConstant.Role.USER.ToUpper() });
             }
             // Seed Accounts
-            if (await userManager.FindByEmailAsync("Admin1@") == null)
+            if (await userManager.FindByNameAsync("Admin1@") == null)
             {
                 var adminUser = new ApplicationUsers()
                 {
-                    UserName = "Admin",
+                    UserName = "Admin1@",
                     Email = "admin@example.com",
                     EmailConfirmed = true,
                     LockoutEnabled = false
@@ -155,11 +155,11 @@ namespace BabyCare.API
                 }
             }
 
-            if (await userManager.FindByEmailAsync("Doctor1@") == null)
+            if (await userManager.FindByNameAsync("Doctor1@") == null)
             {
                 var doctorUser = new ApplicationUsers()
                 {
-                    UserName = "Doctor",
+                    UserName = "Doctor1@",
                     Email = "doctor@example.com",
                     EmailConfirmed = true,
                     LockoutEnabled = false
