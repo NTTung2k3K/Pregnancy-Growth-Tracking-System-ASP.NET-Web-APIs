@@ -61,12 +61,15 @@ namespace BabyCare.API
             services
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<IRoleService, RoleService>()
+                .AddScoped<IVnpay, Vnpay>()
                 .AddScoped<IBlogTypeService, BlogTypeService>()
                 .AddScoped<IBlogService, BlogService>()
                 .AddScoped<IChildService, ChildService>()
-                .AddScoped<IVnpay,Vnpay>()
+                .AddScoped<IVnpay, Vnpay>()
                 .AddHttpContextAccessor()
-                .AddScoped<IMembershipPackageService, MembershipPackageService>();
+                .AddScoped<IMembershipPackageService, MembershipPackageService>()
+                .AddScoped<IAppointmentTemplateService, AppointmentTemplateService>();
+
 
         }
         public static void AddCorsPolicyBackend(this IServiceCollection services)
@@ -193,15 +196,107 @@ namespace BabyCare.API
                     await userManager.AddToRoleAsync(normalUser, SystemConstant.Role.USER);
                 }
             }
+            // Seed Appointment Templates
+            if (!dbContext.AppointmentTemplates.Any())
+            {
+                var templates = new List<AppointmentTemplates>
+        {
+            new AppointmentTemplates
+            {
+                Name = "Khám thai lần đầu",
+                DaysFromBirth = -270, // 270 ngày trước ngày dự sinh (khoảng tuần 6 thai kỳ)
+                Description = "Kiểm tra xác nhận thai, tính tuổi thai và đưa ra dự sinh.",
+                Status = 1,
+                Image = "https://cdn-icons-png.flaticon.com/512/3209/3209960.png"
+            },
+            new AppointmentTemplates
+            {
+                Name = "Siêu âm lần 1",
+                DaysFromBirth = -210, // Khoảng tuần 12 (60 ngày sau lần khám đầu)
+                Description = "Siêu âm để kiểm tra hình thái học của thai nhi lần đầu.",
+                Status = 1,
+                Image = "https://cdn-icons-png.flaticon.com/512/1989/1989553.png"
+            },
+            new AppointmentTemplates
+            {
+                Name = "Xét nghiệm máu lần đầu",
+                DaysFromBirth = -180, // Khoảng tuần 16
+                Description = "Xét nghiệm máu để kiểm tra nguy cơ dị tật di truyền hoặc bất thường.",
+                                Status = 1,
 
+                Image = "https://cdn-icons-png.flaticon.com/512/1055/1055672.png"
+            },
+            new AppointmentTemplates
+            {
+                Name = "Siêu âm dị tật thai nhi",
+                DaysFromBirth = -120, // Khoảng tuần 20
+                Description = "Siêu âm chi tiết để phát hiện dị tật bẩm sinh hoặc vấn đề bất thường.",
+                                Status = 1,
+
+                Image = "https://cdn-icons-png.flaticon.com/512/3209/3209929.png"
+            },
+            new AppointmentTemplates
+            {
+                Name = "Xét nghiệm đường huyết",
+                DaysFromBirth = -90, // Khoảng tuần 24-28
+                Description = "Kiểm tra đường huyết để phát hiện tiểu đường thai kỳ.",
+                                Status = 1,
+
+                Image = "https://cdn-icons-png.flaticon.com/512/2580/2580426.png"
+            },
+            new AppointmentTemplates
+            {
+                Name = "Tiêm phòng uốn ván lần 1",
+                DaysFromBirth = -60, // Khoảng tuần 28
+                Description = "Tiêm phòng uốn ván để bảo vệ mẹ và thai nhi.",
+                                Status = 1,
+
+                Image = "https://cdn-icons-png.flaticon.com/512/4210/4210947.png"
+            },
+            new AppointmentTemplates
+            {
+                Name = "Siêu âm theo dõi sự phát triển",
+                DaysFromBirth = -30, // Khoảng tuần 36
+                Description = "Siêu âm để đánh giá sự phát triển của thai nhi (cân nặng, nước ối).",
+                                Status = 1,
+
+                Image = "https://cdn-icons-png.flaticon.com/512/3209/3209934.png"
+            },
+            new AppointmentTemplates
+            {
+                Name = "Kiểm tra thai kỳ cuối",
+                DaysFromBirth = -7, // Khoảng tuần 39
+                Description = "Kiểm tra sức khỏe mẹ và thai nhi trước khi sinh.",
+                               Status = 1,
+
+                Image = "https://cdn-icons-png.flaticon.com/512/3209/3209970.png"
+            },
+            new AppointmentTemplates
+            {
+                Name = "Kiểm tra sau sinh",
+                DaysFromBirth = 30, // Sau sinh 1 tháng
+                Description = "Kiểm tra tình trạng sức khỏe mẹ và bé sau sinh.",
+                Status = 1,
+
+                Image = "https://cdn-icons-png.flaticon.com/512/2254/2254821.png"
+            }
+        };
+
+                dbContext.AppointmentTemplates.AddRange(templates);
+                await dbContext.SaveChangesAsync();
+
+            }
         }
+
         public static void AddConfigJWT(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddAuthentication(options => {
+            services.AddAuthentication(options =>
+            {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options => {
+            }).AddJwtBearer(options =>
+            {
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
