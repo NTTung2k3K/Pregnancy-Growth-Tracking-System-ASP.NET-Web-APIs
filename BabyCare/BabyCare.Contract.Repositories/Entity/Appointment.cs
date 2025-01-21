@@ -15,15 +15,17 @@ namespace BabyCare.Contract.Repositories.Entity
         [ForeignKey("UserId")]
 
         public Guid DoctorId { get; set; }
-
+        [ForeignKey("AppointmentTemplateId")]
+        public int AppointmentTemplateId { get; set; }
         public string? ClinicAddress { get; set; }
-        public DateTime AppointmentDate { get; set; }
+        public int AppointmentSlot { get; set; }
         public string? AppointmentType { get; set; }
         public string? Status { get; set; }
         public string? Notes { get; set; }
         public int? Duration { get; set; }
         public decimal? Fee { get; set; }
         public bool IsUrgent { get; set; } = false;
+        public virtual AppointmentTemplates AppointmentTemplate { get; set; }
 
         public virtual ApplicationUsers User { get; set; }
         public virtual ApplicationUsers Doctor { get; set; }
