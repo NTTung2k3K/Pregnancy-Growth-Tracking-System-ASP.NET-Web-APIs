@@ -61,6 +61,9 @@ namespace BabyCare.API
             services
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<IRoleService, RoleService>()
+                .AddScoped<IBlogTypeService, BlogTypeService>()
+                .AddScoped<IBlogService, BlogService>()
+                .AddScoped<IChildService, ChildService>()
                 .AddScoped<IVnpay,Vnpay>()
                 .AddHttpContextAccessor()
                 .AddScoped<IMembershipPackageService, MembershipPackageService>();

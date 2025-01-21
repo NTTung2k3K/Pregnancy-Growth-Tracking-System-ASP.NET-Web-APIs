@@ -1,6 +1,9 @@
 using AutoMapper;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.ModelViews.AuthModelViews.Response;
+using BabyCare.ModelViews.BlogModelViews;
+using BabyCare.ModelViews.BlogTypeModelView;
+using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.MembershipPackageModelViews.Request;
 using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.RoleModelViews;
@@ -42,12 +45,21 @@ namespace BabyCare.Repositories.Mapper
 
 
             CreateMap<ApplicationRoles, RoleModelView>().ReverseMap();
-            CreateMap<ApplicationRoles, CreateRoleModelView>();
-            CreateMap<ApplicationRoles, UpdatedRoleModelView>();
-            CreateMap<CreateRoleModelView, ApplicationRoles>();
-            CreateMap<UpdatedRoleModelView, ApplicationRoles>();
+            CreateMap<ApplicationRoles, CreateRoleModelView>().ReverseMap();
+            CreateMap<ApplicationRoles, UpdatedRoleModelView>().ReverseMap();
 
 
+            CreateMap<BlogType, BlogTypeModelView>().ReverseMap();
+            CreateMap<BlogType, CreateBlogTypeModelView>().ReverseMap();
+            CreateMap<BlogType, UpdateBlogTypeModelView>().ReverseMap();
+
+            CreateMap<Blog, BlogModelView>().ReverseMap();
+            CreateMap<Blog, CreateBlogModelView>().ReverseMap();
+            CreateMap<Blog, UpdateBlogModelView>().ReverseMap();
+
+            CreateMap<Child, ChildModelView>().ReverseMap();
+            CreateMap<Child, CreateChildModelView>().ReverseMap();
+            CreateMap<Child, UpdateChildModelView>().ReverseMap();
 
         }
     }
