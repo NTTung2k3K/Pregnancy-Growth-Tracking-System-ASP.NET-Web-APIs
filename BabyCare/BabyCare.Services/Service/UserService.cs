@@ -173,7 +173,6 @@ namespace BabyCare.Contract.Services.Implements
             var user = new ApplicationUsers
             {
                 Email = request.Email,
-                DueDate = request.DueDate,
                 UserName = await _generateUsernameOfGuestAsync(),
             };
             // Save user

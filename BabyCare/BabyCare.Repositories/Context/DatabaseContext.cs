@@ -35,6 +35,8 @@ namespace BabyCare.Repositories.Context
         public virtual DbSet<Alert> Alerts => Set<Alert>();
         public virtual DbSet<Feedback> Feedbacks => Set<Feedback>();
         public virtual DbSet<AppointmentChild> AppointmentChildren => Set<AppointmentChild>();
+        public virtual DbSet<AppointmentTemplates> AppointmentTemplates => Set<AppointmentTemplates>();
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
