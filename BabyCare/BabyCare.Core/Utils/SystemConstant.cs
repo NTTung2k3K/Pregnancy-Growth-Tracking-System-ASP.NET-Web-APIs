@@ -10,6 +10,8 @@ namespace BabyCare.Core.Utils
     {
         public static int PAGE_SIZE = 10;
         public static int MAX_SLOT_AVAILABLE_APPOINTMENT = 4;
+        public static int DURATION_UPDATE_APPOINTMENT = 4;
+
         public class MembershipPackageStatus
         {
             public static string Active = "Active";

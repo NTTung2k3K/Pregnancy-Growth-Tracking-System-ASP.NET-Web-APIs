@@ -64,6 +64,7 @@ namespace BabyCare.API
                 .AddScoped<IVnpay, Vnpay>()
                 .AddScoped<IBlogTypeService, BlogTypeService>()
                 .AddScoped<IBlogService, BlogService>()
+                .AddScoped<IAppointmentService, AppointmentService>()
                 .AddScoped<IChildService, ChildService>()
                 .AddScoped<IVnpay, Vnpay>()
                 .AddHttpContextAccessor()
@@ -179,23 +180,25 @@ namespace BabyCare.API
                 }
             }
 
-            if (await userManager.FindByEmailAsync("user@example.com") == null)
+            if (await userManager.FindByEmailAsync("User1@gmail.com") == null)
             {
                 var normalUser = new ApplicationUsers()
                 {
-                    UserName = "user",
-                    Email = "user@example.com",
+                    UserName = "User1@",
+                    Email = "user@gmail.com",
                     EmailConfirmed = true,
                     LockoutEnabled = false
                 };
 
-                var result = await userManager.CreateAsync(normalUser, "user@example.com");
+                var result = await userManager.CreateAsync(normalUser, "User1@gmail.com");
 
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(normalUser, SystemConstant.Role.USER);
                 }
             }
+            await dbContext.SaveChangesAsync();
+
             // Seed Appointment Templates
             if (!dbContext.AppointmentTemplates.Any())
             {

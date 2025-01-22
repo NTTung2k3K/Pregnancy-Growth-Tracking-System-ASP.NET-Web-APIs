@@ -18,8 +18,9 @@ namespace BabyCare.ModelViews.AppointmentModelViews.Response
         public decimal? Fee { get; set; }
         public string? Notes { get; set; }
         public virtual UserModelViews.Response.UserResponseModel User { get; set; }
+        public virtual List<UserModelViews.Response.EmployeeResponseModel> Doctors { get; set; }
         public virtual ATResponseModel AppointmentTemplate { get; set; }
-        public virtual ChildModelView.ChildModelView Child {  get; set; }
+        public virtual List<ChildModelView.ChildModelView> Childs {  get; set; }
 
         //public virtual Reminder Reminder { get; set; }
     }

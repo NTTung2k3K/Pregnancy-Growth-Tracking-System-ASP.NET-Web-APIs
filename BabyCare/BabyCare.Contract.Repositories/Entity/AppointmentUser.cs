@@ -12,6 +12,8 @@ namespace BabyCare.Contract.Repositories.Entity
     {
 
 
+        public int AppointmentId { get; set; }
+
         [ForeignKey("AppointmentId")]
         public virtual Appointment Appointment { get; set; }
 

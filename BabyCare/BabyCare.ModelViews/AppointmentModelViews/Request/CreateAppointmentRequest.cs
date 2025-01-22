@@ -11,9 +11,10 @@ namespace BabyCare.ModelViews.AppointmentModelViews.Request
     public class CreateAppointmentRequest
     {
         public Guid UserId { get; set; }
+        public string Name { get; set; }
         public int ChildId { get; set; }
         public int AppointmentTemplateId { get; set; }
-        public DateOnly AppointmentDate { get; set; }
+        public DateTime AppointmentDate { get; set; }
         public int AppointmentSlot { get; set; }
         public string? Notes { get; set; }
 

@@ -14,10 +14,13 @@ namespace BabyCare.ModelViews.AppointmentModelViews.Request
         public int Id { get; set; }
         public Guid UserId { get; set; }
         public int ChildId { get; set; }
-        public DateOnly AppointmentDate { get; set; }
+        public string Name { get; set; }
+        public decimal Fee { get; set; }
+        public DateTime AppointmentDate { get; set; }
         public int Status { get; set; }
         public int AppointmentSlot { get; set; }
-        public string? AppointmentType { get; set; }
+        public int AppointmentTemplateId { get; set; }
         public string? Notes { get; set; }
+        public bool IsDoctorUpdate { get; set; }
     }
 }

@@ -14,7 +14,8 @@ namespace BabyCare.Contract.Repositories.Entity
         [ForeignKey("AppointmentTemplateId")]
         public int AppointmentTemplateId { get; set; }
         public int AppointmentSlot { get; set; }
-        public DateOnly AppointmentDate { get; set; }
+        public DateTime AppointmentDate { get; set; }
+        public string Name { get; set; }
         public int? Status { get; set; }
         public decimal? Fee { get; set; }
         public string? Notes { get; set; }

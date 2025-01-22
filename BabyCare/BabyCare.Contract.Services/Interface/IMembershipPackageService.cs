@@ -22,6 +22,8 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<MPResponseModel>> GetMembershipPackageById(int id);
         ApiResult<MPStatusHandleResponseModel> GetMembershipPackageStatusHandler();
         Task<ApiResult<object>> HandleIpnActionVNpay(VNPayCallbackResponse request);
+        Task<ApiResult<string>> HandleIpnActionVNpayBackEnd(IQueryCollection query);
+
 
 
         Task<ApiResult<BuyPackageResponse>> BuyPackage(BuyPackageRequest request,string ipAddress);
