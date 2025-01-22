@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BabyCare.ModelViews.AppointmentModelView
+namespace BabyCare.ModelViews.AppointmentModelViews.Request
 {
-    internal class CreateAppointmentModelView
+    public class AvailableSlotRequest
     {
+        public DateTime Date;
     }
 }

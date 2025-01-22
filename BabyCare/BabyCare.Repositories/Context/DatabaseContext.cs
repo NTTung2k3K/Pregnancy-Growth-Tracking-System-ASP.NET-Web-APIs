@@ -22,6 +22,8 @@ namespace BabyCare.Repositories.Context
 
         // Domain-specific tables
         public virtual DbSet<Appointment> Appointments => Set<Appointment>();
+        public virtual DbSet<AppointmentUser> AppointmentUsers => Set<AppointmentUser>();
+
         public virtual DbSet<Reminder> Reminders => Set<Reminder>();
         public virtual DbSet<BlogType> BlogTypes => Set<BlogType>();
         public virtual DbSet<Blog> Blogs => Set<Blog>();
@@ -57,11 +59,20 @@ namespace BabyCare.Repositories.Context
                     .HasForeignKey(a => a.DoctorId)
                     .OnDelete(DeleteBehavior.Restrict); // Disable cascading delete for Doctor
             });*/
+
+            builder.Entity<AppointmentUser>()
+            .HasKey(au => au.Id); // Đặt Id làm khóa chính
+
+            builder.Entity<AppointmentUser>()
+                .Property(au => au.Id)
+                .ValueGeneratedOnAdd()
+                .UseIdentityColumn(); // Giá trị được sinh tự động khi thêm
+
             builder.Entity<ApplicationUsers>()
-        .HasMany(u => u.AppointmentUsers) // ApplicationUsers có nhiều AppointmentUsers
-        .WithOne(au => au.User) // Một AppointmentUser liên kết tới một ApplicationUser
-        .HasForeignKey(au => au.UserId) // Khóa ngoại
-        .OnDelete(DeleteBehavior.Restrict); // Định nghĩa hành vi xóa
+                .HasMany(u => u.AppointmentUsers) // Một ApplicationUsers có nhiều AppointmentUsers
+                .WithOne(au => au.User)          // Một AppointmentUser liên kết với một ApplicationUser
+                .HasForeignKey(au => au.UserId)  // Khóa ngoại UserId
+                .OnDelete(DeleteBehavior.Restrict); // Hành vi khi xóa // Định nghĩa hành vi xóa
 
             // Cấu hình quan hệ giữa DoctorId trong AppointmentUser với ApplicationUsers
             builder.Entity<AppointmentUser>()

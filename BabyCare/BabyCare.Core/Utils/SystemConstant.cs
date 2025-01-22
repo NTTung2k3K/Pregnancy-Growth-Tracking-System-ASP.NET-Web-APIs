@@ -9,6 +9,9 @@ namespace BabyCare.Core.Utils
     public class SystemConstant
     {
         public static int PAGE_SIZE = 10;
+        public static int MAX_SLOT_AVAILABLE_APPOINTMENT = 4;
+        public static int DURATION_UPDATE_APPOINTMENT = 4;
+
         public class MembershipPackageStatus
         {
             public static string Active = "Active";
@@ -27,7 +30,19 @@ namespace BabyCare.Core.Utils
         }
 
 
+        public enum AppointmentStatus
+        {
+            Pending = 1, 
+            Confirmed = 2, // Đã xác nhận
+            InProgress = 3, // Đang diễn ra
+            Completed = 4, // Đã hoàn thành
+            CancelledByUser = 5, // Hủy bởi người dùng
+            CancelledByDoctor = 6, // Hủy bởi bác sĩ
+            NoShow = 7, // Người dùng không đến
+            Rescheduled = 8, // Đã dời lịch
+            Failed = 9 // Thất bại (do lỗi hệ thống hoặc các lý do khác)
 
+        }
         public enum AppointmentTemplatesStatus
         {
             Active = 1,

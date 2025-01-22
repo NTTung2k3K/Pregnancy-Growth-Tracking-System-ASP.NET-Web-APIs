@@ -12,12 +12,14 @@ namespace BabyCare.Contract.Repositories.Entity
     {
 
 
+        public int AppointmentId { get; set; }
+
         [ForeignKey("AppointmentId")]
         public virtual Appointment Appointment { get; set; }
 
-        public Guid DoctorId { get; set; }
+        public Guid? DoctorId { get; set; }
         [ForeignKey("DoctorId")]
-        public virtual ApplicationUsers Doctor { get; set; }
+        public virtual ApplicationUsers? Doctor { get; set; }
 
 
         public Guid UserId { get; set; }

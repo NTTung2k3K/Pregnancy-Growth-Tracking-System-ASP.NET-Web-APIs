@@ -329,5 +329,67 @@ namespace BabyCare.Services.Service
 
 
         }
+
+        public async Task<ApiResult<string>> HandleIpnActionVNpayBackEnd(IQueryCollection query)
+        {
+            var paymentResult = _vnpay.GetPaymentResult(query);
+
+            var isSuccess = paymentResult.IsSuccess;
+            _unitOfWork.BeginTransaction();
+            var data = paymentResult.Description.Split("|");
+            var packageId = int.Parse(data.ElementAt(1));
+            var package = await _unitOfWork.GetRepository<MembershipPackage>().Entities.FirstOrDefaultAsync(x => x.Id == packageId);
+            var userId = Guid.Parse(data.ElementAt(0));
+            var userMembership = new UserMembership()
+            {
+                PackageId = packageId,
+                UserId = userId,
+                CreatedBy = userId.ToString(),
+                CreatedTime = DateTime.Now,
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(package.Duration),
+                Status = isSuccess ? SystemConstant.MembershipPackageStatus.Active : MembershipPackageStatus.InActive,
+            };
+            await _unitOfWork.GetRepository<UserMembership>().InsertAsync(userMembership);
+            await _unitOfWork.SaveAsync();
+
+            string url;
+            Payment payment = null;
+            if (isSuccess)
+            {
+                payment = new Payment()
+                {
+                    CreatedTime = DateTime.Now,
+                    CreatedBy = data.ElementAt(0),
+                    Amount = package.Price.Value,
+                    PaymentMethod = paymentResult.PaymentMethod,
+                    PaymentDate = DateTime.Now,
+                    Status = "Success",
+                    Membership = userMembership,
+                };
+                url = _configuration["URL:FrontEnd"] + "membershippackages/payment-result?result=true";
+            }
+            else
+            {
+                payment = new Payment()
+                {
+                    CreatedTime = DateTime.Now,
+                    CreatedBy = data.ElementAt(0),
+                    Amount = package.Price.Value,
+                    PaymentMethod = paymentResult.PaymentMethod,
+                    PaymentDate = DateTime.Now,
+                    Status = "Failed",
+                    Membership = userMembership,
+                };
+                url = _configuration["URL:FrontEnd"] + "membershippackages/payment-result?result=false";
+
+            }
+            await _unitOfWork.GetRepository<Payment>().InsertAsync(payment);
+            await _unitOfWork.SaveAsync();
+            _unitOfWork.CommitTransaction();
+
+            return new ApiSuccessResult<string>(url, "Buy successfully.");
+
+        }
     }
 }

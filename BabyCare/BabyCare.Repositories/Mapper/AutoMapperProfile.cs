@@ -1,5 +1,7 @@
 using AutoMapper;
 using BabyCare.Contract.Repositories.Entity;
+using BabyCare.ModelViews.AppointmentModelViews.Request;
+using BabyCare.ModelViews.AppointmentModelViews.Response;
 using BabyCare.ModelViews.AppointmentTemplateModelViews.Request;
 using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
 using BabyCare.ModelViews.AuthModelViews.Response;
@@ -11,6 +13,7 @@ using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.RoleModelViews;
 using BabyCare.ModelViews.UserModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
+using Firebase.Auth;
 
 namespace BabyCare.Repositories.Mapper
 {
@@ -49,7 +52,13 @@ namespace BabyCare.Repositories.Mapper
             CreateMap<UpdateATRequest, AppointmentTemplates>().ReverseMap();
             CreateMap<ATResponseModel, AppointmentTemplates>().ReverseMap();
             #endregion
-
+            #region Appointments
+            CreateMap<CreateAppointmentRequest, Appointment>().ReverseMap();
+            CreateMap<UpdateAppointmentRequest, Appointment>().ReverseMap();
+            CreateMap<AppointmentResponseModel, Appointment>().ReverseMap();
+            // Add
+            CreateMap<ChildModelView, Child>().ReverseMap();
+            #endregion
 
             CreateMap<ApplicationRoles, RoleModelView>().ReverseMap();
             CreateMap<ApplicationRoles, CreateRoleModelView>().ReverseMap();
