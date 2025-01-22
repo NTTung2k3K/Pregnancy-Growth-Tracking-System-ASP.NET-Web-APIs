@@ -13,7 +13,7 @@ namespace BabyCare.ModelViews.AppointmentModelViews.Response
     {
         public int Id { get; set; }
         public int AppointmentSlot { get; set; }
-        public DateOnly AppointmentDate { get; set; }
+        public DateTime AppointmentDate { get; set; }
         public string? Status { get; set; }
         public decimal? Fee { get; set; }
         public string? Notes { get; set; }

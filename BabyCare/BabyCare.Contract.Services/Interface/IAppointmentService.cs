@@ -22,7 +22,7 @@ namespace BabyCare.Contract.Services.Interface
 
         Task<ApiResult<object>> UpdateCancelAppointmentStatusByUser(CancelAppointmentByUser request);
         Task<ApiResult<object>> UpdateNoShowAppointmentStatusByDoctor(NoShowAppointmentByDoctor request);
-        Task<ApiResult<AvailableSlotResponseModel>> GetSlotAvailable(AvailableSlotRequest request);
+        Task<ApiResult<AvailableSlotResponseModel>> GetSlotAvailable(DateTime date);
 
 
     }

@@ -28,6 +28,11 @@ namespace BabyCare.Repositories.UOW
             _dbSet.Remove(entity);
         }
 
+        public void DeleteRange(IList<T> obj)
+        {
+            _dbSet.RemoveRange(obj);
+        }
+
         public IEnumerable<T> GetAll()
         {
             return _dbSet.AsEnumerable();

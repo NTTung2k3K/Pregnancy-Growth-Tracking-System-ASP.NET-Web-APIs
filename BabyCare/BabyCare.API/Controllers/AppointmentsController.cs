@@ -101,11 +101,11 @@ namespace BabyCare.API.Controllers
             }
         }
         [HttpGet("get-available-slot")]
-        public async Task<IActionResult> GetAppointmentPagination([FromQuery] AvailableSlotRequest request)
+        public async Task<IActionResult> GetSlotAvailable([FromQuery] DateTime date)
         {
             try
             {
-                var result = await _appointmentService.GetSlotAvailable(request);
+                var result = await _appointmentService.GetSlotAvailable(date);
                 return Ok(result);
             }
             catch (Exception ex)
