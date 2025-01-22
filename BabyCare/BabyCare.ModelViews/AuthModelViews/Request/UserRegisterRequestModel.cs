@@ -10,6 +10,5 @@ namespace BabyCare.ModelViews.AuthModelViews.Request
     {
         public string Email { get; set; }
         public string Password { get; set; }
-        public DateTime DueDate { get; set; }
     }
 }
