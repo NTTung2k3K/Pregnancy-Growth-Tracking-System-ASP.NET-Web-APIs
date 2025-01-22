@@ -270,7 +270,7 @@ namespace BabyCare.Contract.Services.Implements
                 return new ApiErrorResult<object>("System error, try later", System.Net.HttpStatusCode.NotFound);
             }
             var frontEndUrl = _configuration["URL:FrontEnd"];
-            var fullForgotPasswordUrl = frontEndUrl + "/auth/new-password?email=" + email + "&token=" + token;
+            var fullForgotPasswordUrl = frontEndUrl + "auth/new-password?email=" + email + "&token=" + token;
             string contentCustomer = System.IO.File.ReadAllText(path);
             contentCustomer = contentCustomer.Replace("{{VerifyCode}}", fullForgotPasswordUrl);
             var sendMailResult = DoingMail.SendMail("BabyCare", "Yêu cầu thay đổi mật khẩu", contentCustomer, email);
@@ -288,6 +288,10 @@ namespace BabyCare.Contract.Services.Implements
             if (existingUser == null)
             {
                 return new ApiErrorResult<object>("Email is not existed.", System.Net.HttpStatusCode.NotFound);
+            }
+            if(request.ConfirmPassword != request.Password)
+            {
+                return new ApiErrorResult<object>("Password is not matched.", System.Net.HttpStatusCode.NotFound);
             }
             // Valid token
             var result = await _userManager.ResetPasswordAsync(existingUser, request.Token, request.Password);
@@ -359,7 +363,7 @@ namespace BabyCare.Contract.Services.Implements
             }
 
             var frontEndUrl = _configuration["URL:FrontEnd"];
-            var fullForgotPasswordUrl = frontEndUrl + "/reset-password?email=" + email + "&token=" + token;
+            var fullForgotPasswordUrl = frontEndUrl + "reset-password?email=" + email + "&token=" + token;
             string contentCustomer = System.IO.File.ReadAllText(path);
             contentCustomer = contentCustomer.Replace("{{VerifyCode}}", fullForgotPasswordUrl);
             var sendMailResult = DoingMail.SendMail("BabyCare", "Yêu cầu thay đổi mật khẩu", contentCustomer, email);
