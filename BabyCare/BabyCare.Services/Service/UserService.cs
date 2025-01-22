@@ -259,6 +259,7 @@ namespace BabyCare.Contract.Services.Implements
             var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
             // Send email
             // Correct relative path from current directory to the HTML file
+            var encodedToken = Uri.EscapeDataString(token);
 
 
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FormSendEmail", "SendCodeCustomer.html");
@@ -270,7 +271,7 @@ namespace BabyCare.Contract.Services.Implements
                 return new ApiErrorResult<object>("System error, try later", System.Net.HttpStatusCode.NotFound);
             }
             var frontEndUrl = _configuration["URL:FrontEnd"];
-            var fullForgotPasswordUrl = frontEndUrl + "auth/new-password?email=" + email + "&token=" + token;
+            var fullForgotPasswordUrl = frontEndUrl + "auth/new-password?email=" + email + "&token=" + encodedToken;
             string contentCustomer = System.IO.File.ReadAllText(path);
             contentCustomer = contentCustomer.Replace("{{VerifyCode}}", fullForgotPasswordUrl);
             var sendMailResult = DoingMail.SendMail("BabyCare", "Yêu cầu thay đổi mật khẩu", contentCustomer, email);
