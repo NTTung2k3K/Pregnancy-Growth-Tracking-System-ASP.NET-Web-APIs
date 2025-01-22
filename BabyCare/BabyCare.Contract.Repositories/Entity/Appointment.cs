@@ -10,11 +10,7 @@ namespace BabyCare.Contract.Repositories.Entity
 {
     public class Appointment : BaseEntity
     {
-        public Guid UserId { get; set; }
-
-        [ForeignKey("UserId")]
-
-        public Guid DoctorId { get; set; }
+      
         [ForeignKey("AppointmentTemplateId")]
         public int AppointmentTemplateId { get; set; }
         public string? ClinicAddress { get; set; }
@@ -26,9 +22,7 @@ namespace BabyCare.Contract.Repositories.Entity
         public decimal? Fee { get; set; }
         public bool IsUrgent { get; set; } = false;
         public virtual AppointmentTemplates AppointmentTemplate { get; set; }
-
-        public virtual ApplicationUsers User { get; set; }
-        public virtual ApplicationUsers Doctor { get; set; }
+        public virtual ICollection<AppointmentUser> AppointmentUsers { get; set; }
 
         public virtual Reminder Reminder { get; set; }
 

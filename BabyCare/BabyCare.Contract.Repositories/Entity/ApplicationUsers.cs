@@ -39,12 +39,12 @@ namespace BabyCare.Contract.Repositories.Entity
 
         public virtual ICollection<UserMembership> UserMemberships { get; set; }
 
-        public virtual ICollection<Appointment> Appointments { get; set; }
-
         public virtual ICollection<Blog> Blogs { get; set; }
 
         public virtual ICollection<Child> Children { get; set; }
 
         public virtual ICollection<Feedback> Feedbacks { get; set; }
+        public virtual ICollection<AppointmentUser> AppointmentUsers { get; set; }
+
     }
 }

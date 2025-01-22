@@ -50,14 +50,32 @@ namespace BabyCare.Repositories.Context
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<Appointment>(entity =>
+            /*builder.Entity<Appointment>(entity =>
             {
                 entity.HasOne(a => a.Doctor)
                     .WithMany()
                     .HasForeignKey(a => a.DoctorId)
                     .OnDelete(DeleteBehavior.Restrict); // Disable cascading delete for Doctor
-            });
+            });*/
+            builder.Entity<ApplicationUsers>()
+        .HasMany(u => u.AppointmentUsers) // ApplicationUsers có nhiều AppointmentUsers
+        .WithOne(au => au.User) // Một AppointmentUser liên kết tới một ApplicationUser
+        .HasForeignKey(au => au.UserId) // Khóa ngoại
+        .OnDelete(DeleteBehavior.Restrict); // Định nghĩa hành vi xóa
 
+            // Cấu hình quan hệ giữa DoctorId trong AppointmentUser với ApplicationUsers
+            builder.Entity<AppointmentUser>()
+                .HasOne(au => au.Doctor)
+                .WithMany()
+                .HasForeignKey(au => au.DoctorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Cấu hình quan hệ giữa AppointmentId trong AppointmentUser với Appointment
+            builder.Entity<AppointmentUser>()
+                .HasOne(au => au.Appointment)
+                .WithMany()
+                .HasForeignKey(au => au.Id)
+                .OnDelete(DeleteBehavior.Restrict);
             builder.Entity<Feedback>(entity =>
             {
                 // Define self-referencing relationship for ParentFeedback
