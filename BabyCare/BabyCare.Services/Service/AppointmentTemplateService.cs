@@ -128,7 +128,6 @@ namespace BabyCare.Services.Service
                 DaysFromBirth = x.DaysFromBirth,
                 Name = x.Name,
                 Image = x.Image,
-                
                 Status = Enum.IsDefined(typeof(AppointmentTemplatesStatus), x.Status)
                                  ? ((AppointmentTemplatesStatus)x.Status).ToString()
                                     : "Unknown",
