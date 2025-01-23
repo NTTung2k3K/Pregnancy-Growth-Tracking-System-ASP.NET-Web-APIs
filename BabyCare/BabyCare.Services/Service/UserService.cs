@@ -10,6 +10,7 @@ using BabyCare.Core.Firebase;
 using BabyCare.Core.Utils;
 using BabyCare.ModelViews.AuthModelViews.Request;
 using BabyCare.ModelViews.AuthModelViews.Response;
+using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.UserModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
@@ -474,7 +475,7 @@ namespace BabyCare.Contract.Services.Implements
         public async Task<ApiResult<UserResponseModel>> GetUserById(Guid Id)
         {
             // Check existed user
-            var existingUser = await _userManager.Users.FirstOrDefaultAsync(x => x.Id == Id);
+            var existingUser = await _userManager.Users.Include(x => x.Children).FirstOrDefaultAsync(x => x.Id == Id);
             if (existingUser == null)
             {
                 return new ApiErrorResult<UserResponseModel>("User is not existed.", System.Net.HttpStatusCode.NotFound);
@@ -498,6 +499,10 @@ namespace BabyCare.Contract.Services.Implements
             {
                 response.Status = "Unknown";
             }
+            var userChilds = _mapper.Map<List<ChildModelView>>(existingUser.Children);
+            response.Childs = userChilds;
+
+
             return new ApiSuccessResult<UserResponseModel>(response);
 
         }
@@ -936,6 +941,7 @@ namespace BabyCare.Contract.Services.Implements
                 Address = x.Address,
                 DateOfBirth = x.DateOfBirth,
                 FullName = x.FullName,
+                Email = x.Email,
                 Gender = x.Gender,
                 Image = x.Image,
                 Id = x.Id,
@@ -953,9 +959,49 @@ namespace BabyCare.Contract.Services.Implements
             // return to client
             return new ApiSuccessResult<List<EmployeeResponseModel>>(items);
         }
+
+        public async Task<ApiResult<List<UserResponseModel>>> GetAllUser()
+        {
+            var userRole = await _roleManager.Roles.FirstOrDefaultAsync(r => r.Name == SystemConstant.Role.USER);
+
+
+            // Filter users
+
+            var UserIds = await _unitOfWork.GetRepository<ApplicationUserRoles>().Entities
+        .Where(ur => ur.RoleId == userRole.Id)
+        .Select(ur => ur.UserId)
+        .ToListAsync();
+
+            // Lọc danh sách user theo UserId từ bảng User
+            var users = await _userManager.Users
+                .Where(u => UserIds.Contains(u.Id) && u.DeletedBy == null).ToListAsync();
+
+
+
+            var items = users.Select(x => new UserResponseModel
+            {
+                Address = x.Address,
+                DateOfBirth = x.DateOfBirth,
+                FullName = x.FullName,
+                Gender = x.Gender,
+                Image = x.Image,
+                IsEmailConfirmed = x.EmailConfirmed,
+                Id = x.Id,
+                Status = Enum.IsDefined(typeof(EmployeeStatus), x.Status)
+                               ? ((EmployeeStatus)x.Status).ToString()
+                                  : "Unknown",
+                BloodGroup = x.BloodGroup,
+                CreatedBy = x.CreatedBy.ToString(),
+                Email = x.Email,
+                LastUpdatedBy = x.LastUpdatedBy.ToString()
+
+            }).ToList();
+
+            // return to client
+            return new ApiSuccessResult<List<UserResponseModel>>(items);
+        }
         #endregion
 
-        #region Authen Admin/Doctor/Employee
-        #endregion
+      
     }
 }
