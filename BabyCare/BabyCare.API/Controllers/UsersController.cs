@@ -30,6 +30,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+        [HttpGet("get-all-user")]
+        public async Task<IActionResult> GetAllUser()
+        {
+            try
+            {
+                var result = await _userService.GetAllUser();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<UserResponseModel>>(ex.Message));
+            }
+        }
         // POST: api/Auth/get-user-pagination
         [HttpGet("get-user-pagination")]
         public async Task<IActionResult> GetUserPagination([FromQuery] BaseSearchRequest request)
@@ -44,6 +57,7 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<UserResponseModel>>(ex.Message));
             }
         }
+      
         // POST: api/Auth/get-user-by-id
         [HttpGet("get-user-by-id")]
         public async Task<IActionResult> GetUserById([FromQuery] Guid Id)

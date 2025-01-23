@@ -19,6 +19,8 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> DeleteAppointment(DeleteAppointmentRequest request);
         Task<ApiResult<AppointmentResponseModel>> GetAppointmentById(int id);
         Task<ApiResult<List<AppointmentResponseModel>>> GetAppointmentsByUserId(Guid userId);
+        Task<ApiResult<List<AppointmentResponseModel>>> GetAll();
+
         Task<ApiResult<List<AppointmentResponseModel>>> GetAppointmentsByUserIdInRange(Guid userId,DateTime startDay, DateTime endDate);
 
 

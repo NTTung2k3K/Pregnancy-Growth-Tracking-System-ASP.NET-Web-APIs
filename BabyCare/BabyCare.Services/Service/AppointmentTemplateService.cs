@@ -82,6 +82,30 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<object>("Delete successfully.");
         }
 
+        public async Task<ApiResult<List<ATResponseModel>>> GetAll()
+        {
+            var items = _unitOfWork.GetRepository<AppointmentTemplates>().Entities.Where(x => x.DeletedBy == null);
+
+         
+            var data = await items.OrderBy(x => x.DaysFromBirth).ToListAsync();
+            var res = data.Select(x => new ATResponseModel
+            {
+                Id = x.Id,
+                DaysFromBirth = x.DaysFromBirth,
+                Name = x.Name,
+                Image = x.Image,
+                Status = Enum.IsDefined(typeof(AppointmentTemplatesStatus), x.Status)
+                                 ? ((AppointmentTemplatesStatus)x.Status).ToString()
+                                    : "Unknown",
+
+                Description = x.Description,
+                
+            }).ToList();
+
+            // return to client
+            return new ApiSuccessResult<List<ATResponseModel>>(res);
+        }
+
         public async Task<ApiResult<ATResponseModel>> GetAppointmentTemplateById(int id)
         {
             var repo = _unitOfWork.GetRepository<AppointmentTemplates>();

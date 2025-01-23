@@ -89,6 +89,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
             }
         }
+        [HttpGet("get-all-doctor")]
+        public async Task<IActionResult> GetAllDoctor()
+        {
+            try
+            {
+                var result = await _userService.GetAllDoctor();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<UserResponseModel>>(ex.Message));
+            }
+        }
         [HttpGet("get-employee-status")]
         public IActionResult GetEmployeeStatus()
         {

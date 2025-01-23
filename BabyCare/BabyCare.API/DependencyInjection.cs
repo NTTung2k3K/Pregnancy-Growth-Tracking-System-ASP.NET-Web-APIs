@@ -79,7 +79,7 @@ namespace BabyCare.API
             {
                 options.AddPolicy("AllowFrontendLocal", builder =>
                 {
-                    builder.WithOrigins("http://localhost:5174") // Các nguồn được phép
+                    builder.WithOrigins("http://localhost:5173") // Các nguồn được phép
                            .AllowAnyMethod()  // Cho phép tất cả các phương thức HTTP (GET, POST, PUT, DELETE,...)
                            .AllowAnyHeader()  // Cho phép tất cả các header
                            .AllowCredentials(); // Cho phép gửi thông tin xác thực (cookies, headers, v.v.)
@@ -150,6 +150,7 @@ namespace BabyCare.API
                 {
                     UserName = "Admin1@",
                     Email = "admin@example.com",
+                    Status = (int)SystemConstant.EmployeeStatus.Active,
                     EmailConfirmed = true,
                     LockoutEnabled = false
                 };
@@ -168,6 +169,8 @@ namespace BabyCare.API
                 {
                     UserName = "Doctor1@",
                     Email = "doctor@example.com",
+                    Status = (int)SystemConstant.EmployeeStatus.Active,
+
                     EmailConfirmed = true,
                     LockoutEnabled = false
                 };
@@ -186,6 +189,7 @@ namespace BabyCare.API
                 {
                     UserName = "User1@",
                     Email = "user@gmail.com",
+                    Status = (int)SystemConstant.EmployeeStatus.Active,
                     EmailConfirmed = true,
                     LockoutEnabled = false
                 };

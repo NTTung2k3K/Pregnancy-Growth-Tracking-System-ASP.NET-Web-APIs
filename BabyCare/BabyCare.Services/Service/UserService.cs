@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
@@ -9,6 +10,7 @@ using BabyCare.Core.Firebase;
 using BabyCare.Core.Utils;
 using BabyCare.ModelViews.AuthModelViews.Request;
 using BabyCare.ModelViews.AuthModelViews.Response;
+using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.UserModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
@@ -355,6 +357,8 @@ namespace BabyCare.Contract.Services.Implements
                 return new ApiErrorResult<object>("Email is not existed.", System.Net.HttpStatusCode.NotFound);
             }
             var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
+            var encodedToken = Uri.EscapeDataString(token);
+
             // Correct relative path from current directory to the HTML file
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FormSendEmail", "SendCode.html");
             path = Path.GetFullPath(path);
@@ -364,7 +368,7 @@ namespace BabyCare.Contract.Services.Implements
             }
 
             var frontEndUrl = _configuration["URL:FrontEnd"];
-            var fullForgotPasswordUrl = frontEndUrl + "reset-password?email=" + email + "&token=" + token;
+            var fullForgotPasswordUrl = frontEndUrl + "auth/new-password?email=" + email + "&token=" + encodedToken;
             string contentCustomer = System.IO.File.ReadAllText(path);
             contentCustomer = contentCustomer.Replace("{{VerifyCode}}", fullForgotPasswordUrl);
             var sendMailResult = DoingMail.SendMail("BabyCare", "Yêu cầu thay đổi mật khẩu", contentCustomer, email);
@@ -471,7 +475,7 @@ namespace BabyCare.Contract.Services.Implements
         public async Task<ApiResult<UserResponseModel>> GetUserById(Guid Id)
         {
             // Check existed user
-            var existingUser = await _userManager.Users.FirstOrDefaultAsync(x => x.Id == Id);
+            var existingUser = await _userManager.Users.Include(x => x.Children).FirstOrDefaultAsync(x => x.Id == Id);
             if (existingUser == null)
             {
                 return new ApiErrorResult<UserResponseModel>("User is not existed.", System.Net.HttpStatusCode.NotFound);
@@ -495,6 +499,10 @@ namespace BabyCare.Contract.Services.Implements
             {
                 response.Status = "Unknown";
             }
+            var userChilds = _mapper.Map<List<ChildModelView>>(existingUser.Children);
+            response.Childs = userChilds;
+
+
             return new ApiSuccessResult<UserResponseModel>(response);
 
         }
@@ -909,9 +917,91 @@ namespace BabyCare.Contract.Services.Implements
 
             return new ApiSuccessResult<UserLoginResponseModel>(response);
         }
+
+        public async Task<ApiResult<List<EmployeeResponseModel>>> GetAllDoctor()
+        {
+            var doctorRole = await _roleManager.Roles.FirstOrDefaultAsync(r => r.Name == SystemConstant.Role.DOCTOR);
+
+
+            // Filter users
+
+            var doctorUserIds = await _unitOfWork.GetRepository<ApplicationUserRoles>().Entities
+        .Where(ur => ur.RoleId == doctorRole.Id)
+        .Select(ur => ur.UserId)
+        .ToListAsync();
+
+            // Lọc danh sách user theo UserId từ bảng User
+            var users = await _userManager.Users
+                .Where(u => doctorUserIds.Contains(u.Id) && u.DeletedBy == null).ToListAsync();
+
+           
+
+            var items = users.Select(x => new EmployeeResponseModel
+            {
+                Address = x.Address,
+                DateOfBirth = x.DateOfBirth,
+                FullName = x.FullName,
+                Email = x.Email,
+                Gender = x.Gender,
+                Image = x.Image,
+                Id = x.Id,
+                Status = Enum.IsDefined(typeof(EmployeeStatus), x.Status)
+                               ? ((EmployeeStatus)x.Status).ToString()
+                                  : "Unknown",
+                Role = new ModelViews.RoleModelViews.RoleModelView()
+                {
+                    Id = doctorRole.Id.ToString(),
+                    Name = doctorRole.Name,
+                },
+
+            }).ToList();
+
+            // return to client
+            return new ApiSuccessResult<List<EmployeeResponseModel>>(items);
+        }
+
+        public async Task<ApiResult<List<UserResponseModel>>> GetAllUser()
+        {
+            var userRole = await _roleManager.Roles.FirstOrDefaultAsync(r => r.Name == SystemConstant.Role.USER);
+
+
+            // Filter users
+
+            var UserIds = await _unitOfWork.GetRepository<ApplicationUserRoles>().Entities
+        .Where(ur => ur.RoleId == userRole.Id)
+        .Select(ur => ur.UserId)
+        .ToListAsync();
+
+            // Lọc danh sách user theo UserId từ bảng User
+            var users = await _userManager.Users
+                .Where(u => UserIds.Contains(u.Id) && u.DeletedBy == null).ToListAsync();
+
+
+
+            var items = users.Select(x => new UserResponseModel
+            {
+                Address = x.Address,
+                DateOfBirth = x.DateOfBirth,
+                FullName = x.FullName,
+                Gender = x.Gender,
+                Image = x.Image,
+                IsEmailConfirmed = x.EmailConfirmed,
+                Id = x.Id,
+                Status = Enum.IsDefined(typeof(EmployeeStatus), x.Status)
+                               ? ((EmployeeStatus)x.Status).ToString()
+                                  : "Unknown",
+                BloodGroup = x.BloodGroup,
+                CreatedBy = x.CreatedBy.ToString(),
+                Email = x.Email,
+                LastUpdatedBy = x.LastUpdatedBy.ToString()
+
+            }).ToList();
+
+            // return to client
+            return new ApiSuccessResult<List<UserResponseModel>>(items);
+        }
         #endregion
 
-        #region Authen Admin/Doctor/Employee
-        #endregion
+      
     }
 }

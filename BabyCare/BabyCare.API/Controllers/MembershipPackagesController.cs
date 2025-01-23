@@ -55,6 +55,22 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                //var resultDescription = $"{paymentResult.PaymentResponse.Description}. {paymentResult.TransactionStatus.Description}.";
+
+
+                var result = await _membershipPackageService.GetAll();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
         [HttpPost("buy-package")]
         public async Task<IActionResult> BuyPackage([FromBody] BuyPackageRequest request)
         {

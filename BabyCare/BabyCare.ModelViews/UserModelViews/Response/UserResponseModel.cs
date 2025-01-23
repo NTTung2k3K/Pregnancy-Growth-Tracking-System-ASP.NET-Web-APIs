@@ -1,4 +1,6 @@
-﻿namespace BabyCare.ModelViews.UserModelViews.Response
+﻿using BabyCare.ModelViews.ChildModelView;
+
+namespace BabyCare.ModelViews.UserModelViews.Response
 {
     public class UserResponseModel
     {
@@ -11,8 +13,9 @@
         public string? Gender { get; set; }
         public string? BloodGroup { get; set; }
         public string? Status { get; set; }
-        public DateTime? DueDate { get; set; }
         public string? CreatedBy { get; set; }
+        public bool? IsEmailConfirmed { get; set; }
         public string? LastUpdatedBy { get; set; }
+        public List<ChildModelView.ChildModelView> Childs { get; set; }
     }
 }
