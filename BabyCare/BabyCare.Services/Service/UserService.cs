@@ -364,7 +364,7 @@ namespace BabyCare.Contract.Services.Implements
             }
 
             var frontEndUrl = _configuration["URL:FrontEnd"];
-            var fullForgotPasswordUrl = frontEndUrl + "reset-password?email=" + email + "&token=" + token;
+            var fullForgotPasswordUrl = frontEndUrl + "auth/new-password?email=" + email + "&token=" + token;
             string contentCustomer = System.IO.File.ReadAllText(path);
             contentCustomer = contentCustomer.Replace("{{VerifyCode}}", fullForgotPasswordUrl);
             var sendMailResult = DoingMail.SendMail("BabyCare", "Yêu cầu thay đổi mật khẩu", contentCustomer, email);
