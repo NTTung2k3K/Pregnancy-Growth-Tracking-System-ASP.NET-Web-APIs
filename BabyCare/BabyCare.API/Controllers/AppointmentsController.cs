@@ -101,11 +101,11 @@ namespace BabyCare.API.Controllers
             }
         }
         [HttpGet("get-available-slot")]
-        public async Task<IActionResult> GetAppointmentPagination([FromQuery] AvailableSlotRequest request)
+        public async Task<IActionResult> GetSlotAvailable([FromQuery] DateTime date)
         {
             try
             {
-                var result = await _appointmentService.GetSlotAvailable(request);
+                var result = await _appointmentService.GetSlotAvailable(date);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -132,6 +132,32 @@ namespace BabyCare.API.Controllers
             try
             {
                 var result = await _appointmentService.GetAppointmentById(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+            }
+        }
+        [HttpGet("get-all-by-user-id")]
+        public async Task<IActionResult> GetAppointmentsByUserId([FromQuery] Guid userId)
+        {
+            try
+            {
+                var result = await _appointmentService.GetAppointmentsByUserId(userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+            }
+        }
+        [HttpGet("get-in-range-by-user-id")]
+        public async Task<IActionResult> GetAppointmentsByUserId([FromQuery] Guid userId, [FromQuery] DateTime startDay, [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var result = await _appointmentService.GetAppointmentsByUserIdInRange(userId,startDay,endDate);
                 return Ok(result);
             }
             catch (Exception ex)

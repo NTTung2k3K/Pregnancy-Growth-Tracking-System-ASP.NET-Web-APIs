@@ -60,13 +60,13 @@ namespace BabyCare.Repositories.Context
                     .OnDelete(DeleteBehavior.Restrict); // Disable cascading delete for Doctor
             });*/
 
-            builder.Entity<AppointmentUser>()
-            .HasKey(au => au.Id); // Đặt Id làm khóa chính
+            //builder.Entity<AppointmentUser>()
+            //.HasKey(au => au.Id); // Đặt Id làm khóa chính
 
-            builder.Entity<AppointmentUser>()
-                .Property(au => au.Id)
-                .ValueGeneratedOnAdd()
-                .UseIdentityColumn(); // Giá trị được sinh tự động khi thêm
+            //builder.Entity<AppointmentUser>()
+            //    .Property(au => au.Id)
+            //    .ValueGeneratedOnAdd()
+            //    .UseIdentityColumn(); // Giá trị được sinh tự động khi thêm
 
             builder.Entity<ApplicationUsers>()
                 .HasMany(u => u.AppointmentUsers) // Một ApplicationUsers có nhiều AppointmentUsers
@@ -120,6 +120,7 @@ namespace BabyCare.Repositories.Context
             builder.Entity<ApplicationUsers>().ToTable("Users");
             builder.Entity<ApplicationRoles>().ToTable("Roles");
             builder.Entity<ApplicationUserRoles>().ToTable("UserRoles");
+            builder.Entity<AppointmentUser>().ToTable("AppointmentUsers");
 
             // Define table configurations for other entities if needed
             builder.Entity<Appointment>().ToTable("Appointments");
