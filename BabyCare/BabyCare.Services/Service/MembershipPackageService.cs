@@ -391,5 +391,36 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<string>(url, "Buy successfully.");
 
         }
+
+        public async Task<ApiResult<List<MPResponseModel>>> GetAll()
+        {
+
+            var items = await _unitOfWork.GetRepository<MembershipPackage>().Entities.Where(x => x.DeletedBy == null).OrderBy(x => x.ShowPriority).ToListAsync();
+
+           
+
+            var res = items.Select(x => new MPResponseModel
+            {
+                Id = x.Id,
+                PackageName = x.PackageName,
+                Status = Enum.IsDefined(typeof(PackageStatus), x.Status)
+                                 ? ((PackageStatus)x.Status).ToString()
+                                    : "Unknown",
+                ShowPriority = x.ShowPriority,
+                Discount = x.Discount,
+                Price = x.Price.Value,
+                PackageLevel = Enum.IsDefined(typeof(PackageLevel), x.PackageLevel)
+                                 ? ((PackageLevel)x.PackageLevel).ToString()
+                                    : "Unknown",
+                Description = x.Description,
+                Duration = x.Duration,
+                ImageUrl = x.ImageUrl,
+                OriginalPrice = x.OriginalPrice
+
+            }).ToList();
+
+            // return to client
+            return new ApiSuccessResult<List<MPResponseModel>>(res);
+        }
     }
 }

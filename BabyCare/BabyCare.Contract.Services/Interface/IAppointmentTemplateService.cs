@@ -18,6 +18,8 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<BasePaginatedList<ATResponseModel>>> GetAppointmentTemplatesPagination(BaseSearchRequest request);
         Task<ApiResult<object>> DeleteAppointmentTemplate(DeleteATRequest request);
         Task<ApiResult<ATResponseModel>> GetAppointmentTemplateById(int id);
+        Task<ApiResult<List<ATResponseModel>>> GetAll();
+
         ApiResult<List<ATStatusResponseModel>> GetAppointmentTemplateStatusHandler();
     }
 }

@@ -20,6 +20,8 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<BasePaginatedList<MPResponseModel>>> GetMembershipPackagePagination(BaseSearchRequest request);
         Task<ApiResult<object>> DeleteMembershipPackage(DeleteMPRequest id);
         Task<ApiResult<MPResponseModel>> GetMembershipPackageById(int id);
+        Task<ApiResult<List<MPResponseModel>>> GetAll();
+
         ApiResult<MPStatusHandleResponseModel> GetMembershipPackageStatusHandler();
         Task<ApiResult<object>> HandleIpnActionVNpay(VNPayCallbackResponse request);
         Task<ApiResult<string>> HandleIpnActionVNpayBackEnd(IQueryCollection query);

@@ -52,6 +52,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> DeleteEmployee(DeleteUserRequest request);
         Task<ApiResult<BasePaginatedList<EmployeeResponseModel>>> GetDoctorPagination(BaseSearchRequest request);
         Task<ApiResult<List<EmployeeResponseModel>>> GetAllDoctor();
+        Task<ApiResult<List<UserResponseModel>>> GetAllUser();
 
         Task<ApiResult<EmployeeResponseModel>> GetEmployeeById(Guid Id);
 
