@@ -47,6 +47,9 @@ namespace BabyCare.ModelViews.ChildModelView
 
         [MaxLength(10, ErrorMessage = "Pregnancy week at birth cannot exceed 10 characters.")]
         public string? PregnancyWeekAtBirth { get; set; }
+
+
+        public bool IsGenerateSampleAppointments {  get; set; }
     }
 
 }

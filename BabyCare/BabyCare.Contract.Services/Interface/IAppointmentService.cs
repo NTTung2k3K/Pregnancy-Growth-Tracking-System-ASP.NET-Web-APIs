@@ -18,6 +18,10 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<BasePaginatedList<AppointmentResponseModel>>> GetAppointmentsPagination(BaseSearchRequest request);
         Task<ApiResult<object>> DeleteAppointment(DeleteAppointmentRequest request);
         Task<ApiResult<AppointmentResponseModel>> GetAppointmentById(int id);
+        Task<ApiResult<List<AppointmentResponseModel>>> GetAppointmentsByUserId(Guid userId);
+        Task<ApiResult<List<AppointmentResponseModel>>> GetAppointmentsByUserIdInRange(Guid userId,DateTime startDay, DateTime endDate);
+
+
         ApiResult<List<AppointmentStatusResponseModel>> GetAppointmentStatusHandler();
 
         Task<ApiResult<object>> UpdateCancelAppointmentStatusByUser(CancelAppointmentByUser request);

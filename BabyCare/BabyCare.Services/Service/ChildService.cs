@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
@@ -12,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static BabyCare.Core.Utils.SystemConstant;
 
 namespace BabyCare.Services.Service
 {
@@ -30,34 +32,104 @@ namespace BabyCare.Services.Service
 
         public async Task<ApiResult<object>> AddChildAsync(CreateChildModelView model)
         {
-            // Kiểm tra nếu một đứa trẻ với tên và ngày sinh đã tồn tại
-            var existingChild = await _unitOfWork.GetRepository<Child>()
-                .Entities
-                .FirstOrDefaultAsync(c => c.Name.Equals(model.Name) && c.DateOfBirth == model.DateOfBirth && !c.DeletedTime.HasValue);
-
-            if (existingChild != null)
+            try
             {
-                return new ApiErrorResult<object>("A child with the same name and date of birth already exists.");
+                _unitOfWork.BeginTransaction();
+                // Kiểm tra nếu một đứa trẻ với tên và ngày sinh đã tồn tại
+                var existingChild = await _unitOfWork.GetRepository<Child>()
+                    .Entities
+                    .FirstOrDefaultAsync(c => c.Name.Equals(model.Name) && c.DateOfBirth == model.DateOfBirth && !c.DeletedTime.HasValue);
+
+                if (existingChild != null)
+                {
+                    return new ApiErrorResult<object>("A child with the same name and date of birth already exists.");
+                }
+
+                // Ánh xạ từ CreateChildModelView sang Child entity
+                Child newChild = _mapper.Map<Child>(model);
+                newChild.IsGenerateSampleAppointments = model.IsGenerateSampleAppointments;
+
+                // Upload ảnh nếu có
+                if (model.PhotoUrl != null)
+                {
+                    newChild.PhotoUrl = await BabyCare.Core.Firebase.ImageHelper.Upload(model.PhotoUrl);
+                }
+
+                // Thiết lập các trường còn lại
+                newChild.CreatedTime = DateTimeOffset.UtcNow;
+                newChild.CreatedBy = model.UserId.ToString(); // Hoặc lấy từ hệ thống User nếu có
+
+
+                // Lưu thông tin đứa trẻ vào cơ sở dữ liệu
+                await _unitOfWork.GetRepository<Child>().InsertAsync(newChild);
+                await _unitOfWork.SaveAsync();
+
+
+                // Generate appointment
+                if (newChild.IsGenerateSampleAppointments)
+                {
+                    await GenerateAppointment(model.UserId, newChild, model.DueDate);
+
+                }
+                _unitOfWork.CommitTransaction();
+
+                return new ApiSuccessResult<object>("Child added successfully.");
+            }
+            catch (Exception ex)
+            {
+                _unitOfWork.RollBack();
+                throw new Exception(ex.Message);
             }
 
-            // Ánh xạ từ CreateChildModelView sang Child entity
-            Child newChild = _mapper.Map<Child>(model);
+        }
 
-            // Upload ảnh nếu có
-            if (model.PhotoUrl != null)
+        private async Task GenerateAppointment(Guid userId, Child existingChild, DateTime dueDate)
+        {
+            var appointmentRepo = _unitOfWork.GetRepository<Appointment>();
+            var appointmentUserRepo = _unitOfWork.GetRepository<AppointmentUser>();
+            var appointmentChildRepo = _unitOfWork.GetRepository<AppointmentChild>();
+
+
+
+            var appointmentTemplatesRepo = _unitOfWork.GetRepository<AppointmentTemplates>();
+            var allAT = appointmentTemplatesRepo.GetAll();
+            foreach (var appointmentTemplates in allAT)
             {
-                newChild.PhotoUrl = await BabyCare.Core.Firebase.ImageHelper.Upload(model.PhotoUrl);
+                var appointment = new Appointment()
+                {
+                    AppointmentTemplateId = appointmentTemplates.Id,
+                    Status = (int)AppointmentStatus.Pending,
+                    AppointmentDate = dueDate.AddDays(appointmentTemplates.DaysFromBirth),
+                    Fee = appointmentTemplates.Fee,
+                    Name = appointmentTemplates.Name,
+                };
+                await appointmentRepo.InsertAsync(appointment);
+                await appointmentRepo.SaveAsync();
+                await _unitOfWork.SaveAsync();
+                //var doctorId = await GetRandomDoctorIdAsync();
+                //var auId = await GetNextAppointmentUserIdAsync();
+                var appointmentUser = new AppointmentUser()
+                {
+                    //Id = auId,
+                    AppointmentId = appointment.Id,
+                    Appointment = appointment,
+                    UserId = userId,
+                    //DoctorId = doctorId != null ? doctorId.Value : null,
+                };
+                await appointmentUserRepo.InsertAsync(appointmentUser);
+                await appointmentUserRepo.SaveAsync();
+
+                var appointmentChild = new AppointmentChild()
+                {
+                    Appointment = appointment,
+                    Child = existingChild,
+                    //Description = $"{existingChild.Name}_{request.Name}",
+                };
+                await appointmentChildRepo.InsertAsync(appointmentChild);
+                await appointmentChildRepo.SaveAsync();
             }
 
-            // Thiết lập các trường còn lại
-            newChild.CreatedTime = DateTimeOffset.UtcNow;
-            newChild.CreatedBy = model.UserId.ToString(); // Hoặc lấy từ hệ thống User nếu có
 
-            // Lưu thông tin đứa trẻ vào cơ sở dữ liệu
-            await _unitOfWork.GetRepository<Child>().InsertAsync(newChild);
-            await _unitOfWork.SaveAsync();
-
-            return new ApiSuccessResult<object>("Child added successfully.");
         }
 
         public async Task<ApiResult<object>> DeleteChildAsync(int id)
@@ -249,20 +321,46 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            // Nếu có thay đổi, cập nhật thông tin và lưu vào DB
-            if (isUpdated)
+            try
             {
-                existingChild.LastUpdatedTime = DateTimeOffset.UtcNow;
-                // Bạn có thể sử dụng thông tin userId từ context nếu cần
-                // existingChild.LastUpdatedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
+                _unitOfWork.BeginTransaction();
+                // Nếu có thay đổi, cập nhật thông tin và lưu vào DB
+                if (isUpdated)
+                {
+                    existingChild.LastUpdatedTime = DateTimeOffset.UtcNow;
+                    // Bạn có thể sử dụng thông tin userId từ context nếu cần
+                    // existingChild.LastUpdatedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
 
-                await _unitOfWork.GetRepository<Child>().UpdateAsync(existingChild);
-                await _unitOfWork.SaveAsync();
+                    await _unitOfWork.GetRepository<Child>().UpdateAsync(existingChild);
+                    await _unitOfWork.SaveAsync();
+                }
+                //Generate appointment
+                if (model.UserId == null)
+                {
+                    return new ApiErrorResult<object>("User is not existed.");
+                }
+                if (model.IsGenerateSampleAppointments == true)
+                {
+                    if (existingChild.IsGenerateSampleAppointments == false)
+                    {
+                        await GenerateAppointment(model.UserId.Value, existingChild, existingChild.DueDate);
+                    }
+                    else
+                    {
+                        return new ApiErrorResult<object>("Appointment has been generated.");
+
+                    }
+                }
+                _unitOfWork.CommitTransaction();
 
                 return new ApiSuccessResult<object>("Child updated successfully.");
             }
+            catch (Exception ex)
+            {
+                _unitOfWork.RollBack();
+                throw new Exception(ex.Message);
+            }
 
-            return new ApiErrorResult<object>("Child updated successfully.");
         }
 
     }
