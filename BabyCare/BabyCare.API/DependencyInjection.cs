@@ -79,7 +79,7 @@ namespace BabyCare.API
             {
                 options.AddPolicy("AllowFrontendLocal", builder =>
                 {
-                    builder.WithOrigins("http://localhost:5174") // Các nguồn được phép
+                    builder.WithOrigins("http://localhost:5173") // Các nguồn được phép
                            .AllowAnyMethod()  // Cho phép tất cả các phương thức HTTP (GET, POST, PUT, DELETE,...)
                            .AllowAnyHeader()  // Cho phép tất cả các header
                            .AllowCredentials(); // Cho phép gửi thông tin xác thực (cookies, headers, v.v.)
