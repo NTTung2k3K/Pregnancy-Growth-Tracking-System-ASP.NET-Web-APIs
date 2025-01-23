@@ -44,6 +44,7 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<UserResponseModel>>(ex.Message));
             }
         }
+      
         // POST: api/Auth/get-user-by-id
         [HttpGet("get-user-by-id")]
         public async Task<IActionResult> GetUserById([FromQuery] Guid Id)

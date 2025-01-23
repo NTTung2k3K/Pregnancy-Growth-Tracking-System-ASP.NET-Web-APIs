@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
@@ -910,6 +911,47 @@ namespace BabyCare.Contract.Services.Implements
             var resultSendMail = DoingMail.SendMail("BabyCare", "Confirm Email", content, userEntity.Email);
 
             return new ApiSuccessResult<UserLoginResponseModel>(response);
+        }
+
+        public async Task<ApiResult<List<EmployeeResponseModel>>> GetAllDoctor()
+        {
+            var doctorRole = await _roleManager.Roles.FirstOrDefaultAsync(r => r.Name == SystemConstant.Role.DOCTOR);
+
+
+            // Filter users
+
+            var doctorUserIds = await _unitOfWork.GetRepository<ApplicationUserRoles>().Entities
+        .Where(ur => ur.RoleId == doctorRole.Id)
+        .Select(ur => ur.UserId)
+        .ToListAsync();
+
+            // Lọc danh sách user theo UserId từ bảng User
+            var users = await _userManager.Users
+                .Where(u => doctorUserIds.Contains(u.Id) && u.DeletedBy == null).ToListAsync();
+
+           
+
+            var items = users.Select(x => new EmployeeResponseModel
+            {
+                Address = x.Address,
+                DateOfBirth = x.DateOfBirth,
+                FullName = x.FullName,
+                Gender = x.Gender,
+                Image = x.Image,
+                Id = x.Id,
+                Status = Enum.IsDefined(typeof(EmployeeStatus), x.Status)
+                               ? ((EmployeeStatus)x.Status).ToString()
+                                  : "Unknown",
+                Role = new ModelViews.RoleModelViews.RoleModelView()
+                {
+                    Id = doctorRole.Id.ToString(),
+                    Name = doctorRole.Name,
+                },
+
+            }).ToList();
+
+            // return to client
+            return new ApiSuccessResult<List<EmployeeResponseModel>>(items);
         }
         #endregion
 

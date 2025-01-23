@@ -32,11 +32,9 @@ namespace BabyCare.Services.Service
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly UserManager<ApplicationUsers> _userManager;
-        private readonly DatabaseContext _context;
 
-        public AppointmentService(DatabaseContext context, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
+        public AppointmentService( IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
         {
-            _context = context;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _contextAccessor = contextAccessor;

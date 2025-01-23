@@ -150,6 +150,7 @@ namespace BabyCare.API
                 {
                     UserName = "Admin1@",
                     Email = "admin@example.com",
+                    Status = (int)SystemConstant.EmployeeStatus.Active,
                     EmailConfirmed = true,
                     LockoutEnabled = false
                 };
@@ -168,6 +169,8 @@ namespace BabyCare.API
                 {
                     UserName = "Doctor1@",
                     Email = "doctor@example.com",
+                    Status = (int)SystemConstant.EmployeeStatus.Active,
+
                     EmailConfirmed = true,
                     LockoutEnabled = false
                 };
@@ -186,6 +189,7 @@ namespace BabyCare.API
                 {
                     UserName = "User1@",
                     Email = "user@gmail.com",
+                    Status = (int)SystemConstant.EmployeeStatus.Active,
                     EmailConfirmed = true,
                     LockoutEnabled = false
                 };
