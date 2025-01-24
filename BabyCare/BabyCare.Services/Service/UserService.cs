@@ -335,6 +335,7 @@ namespace BabyCare.Contract.Services.Implements
                 return new ApiErrorResult<EmployeeLoginResponseModel>("You cannot access system.", System.Net.HttpStatusCode.NotFound);
 
             }
+            
             // Generate refresh token
             var refreshTokenData = GenerateRefreshToken();
             var accessTokenData = await GenerateAccessTokenAsync(existingUser);
@@ -345,6 +346,10 @@ namespace BabyCare.Contract.Services.Implements
             var response = _mapper.Map<EmployeeLoginResponseModel>(existingUser);
             response.AccessToken = accessTokenData.Item1;
             response.AccessTokenExpiredTime = accessTokenData.Item2;
+
+            // Take role
+            var roles = await _userManager.GetRolesAsync(existingUser);
+            response.Roles = roles.ToList();
             return new ApiSuccessResult<EmployeeLoginResponseModel>(response, "Login successfully.");
         }
 
@@ -942,7 +947,7 @@ namespace BabyCare.Contract.Services.Implements
             response.RefreshToken = refreshTokenData.Item1;
             response.RefreshTokenExpiryTime = refreshTokenData.Item2;
 
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FormSendEmail", "Welcome.html");
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FormSendEmail", "WelcomeGG.html");
             path = Path.GetFullPath(path);
             if (!File.Exists(path))
             {
@@ -950,7 +955,7 @@ namespace BabyCare.Contract.Services.Implements
             }
             var content = File.ReadAllText(path);
             content = content.Replace("{{Name}}", userEntity.FullName);
-            var resultSendMail = DoingMail.SendMail("BabyCare", "Confirm Email", content, userEntity.Email);
+            var resultSendMail = DoingMail.SendMail("BabyCare", "Welcome", content, userEntity.Email);
 
             return new ApiSuccessResult<UserLoginResponseModel>(response);
         }
