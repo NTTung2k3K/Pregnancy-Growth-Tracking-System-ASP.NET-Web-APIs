@@ -716,7 +716,7 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<EmployeeResponseModel>("User is not existed.", System.Net.HttpStatusCode.NotFound);
             }
-            if (existingUser.Status == (int)SystemConstant.EmployeeStatus.InActive || existingUser.DeletedBy != null)
+            if (existingUser.DeletedBy != null)
             {
                 return new ApiErrorResult<EmployeeResponseModel>("User is not existed.", System.Net.HttpStatusCode.NotFound);
 
