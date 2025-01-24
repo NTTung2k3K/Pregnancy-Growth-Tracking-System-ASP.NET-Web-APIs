@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BabyCare.ModelViews.RoleModelViews;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,5 +20,6 @@ namespace BabyCare.ModelViews.AuthModelViews.Response
         public DateTimeOffset RefreshTokenExpiryTime { get; set; }
         public string AccessToken { get; set; }
         public DateTimeOffset AccessTokenExpiredTime { get; set; }
+        public List<string> Roles { get; set; }
     }
 }
