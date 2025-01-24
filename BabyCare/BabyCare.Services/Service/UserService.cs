@@ -36,7 +36,7 @@ namespace BabyCare.Contract.Services.Implements
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly UserManager<ApplicationUsers> _userManager;    
+        private readonly UserManager<ApplicationUsers> _userManager;
         private readonly RoleManager<ApplicationRoles> _roleManager;
 
         private readonly IHttpContextAccessor _contextAccessor;
@@ -292,7 +292,7 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("Email is not existed.", System.Net.HttpStatusCode.NotFound);
             }
-            if(request.ConfirmPassword != request.Password)
+            if (request.ConfirmPassword != request.Password)
             {
                 return new ApiErrorResult<object>("Password is not matched.", System.Net.HttpStatusCode.NotFound);
             }
@@ -411,6 +411,10 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("User is not existed.", System.Net.HttpStatusCode.NotFound);
             }
+            if (!Enum.IsDefined(typeof(SystemConstant.Gender), request.Gender))
+            {
+                return new ApiErrorResult<object>("Gender is not valid.", System.Net.HttpStatusCode.BadRequest);
+            }
             // Update user profile by mapper
             _mapper.Map(request, existingUser);
             var result = await _userManager.UpdateAsync(existingUser);
@@ -457,12 +461,15 @@ namespace BabyCare.Contract.Services.Implements
                 Address = x.Address,
                 DateOfBirth = x.DateOfBirth,
                 FullName = x.FullName,
-                Gender = x.Gender,
                 Image = x.Image,
                 Id = x.Id,
                 Status = Enum.IsDefined(typeof(EmployeeStatus), x.Status)
                                ? ((EmployeeStatus)x.Status).ToString()
                                   : "Unknown",
+                Gender = Enum.IsDefined(typeof(Gender), x.Gender)
+                               ? ((Gender)x.Gender).ToString()
+                                  : "Unknown",
+
                 BloodGroup = x.BloodGroup,
                 Email = x.Email,
             }).ToList();
@@ -475,7 +482,7 @@ namespace BabyCare.Contract.Services.Implements
         public async Task<ApiResult<UserResponseModel>> GetUserById(Guid Id)
         {
             // Check existed user
-            var existingUser = await _userManager.Users.Include(x => x.Children).FirstOrDefaultAsync(x => x.Id == Id);
+            var existingUser = await _userManager.Users.Include(x => x.Children).FirstOrDefaultAsync(x => x.Id == Id && x.DeletedBy == null);
             if (existingUser == null)
             {
                 return new ApiErrorResult<UserResponseModel>("User is not existed.", System.Net.HttpStatusCode.NotFound);
@@ -498,6 +505,14 @@ namespace BabyCare.Contract.Services.Implements
             else
             {
                 response.Status = "Unknown";
+            }
+            if (Enum.IsDefined(typeof(Gender), existingUser.Gender))
+            {
+                response.Gender = ((Gender)existingUser.Gender).ToString();
+            }
+            else
+            {
+                response.Gender = "Unknown";
             }
             var userChilds = _mapper.Map<List<ChildModelView>>(existingUser.Children);
             response.Childs = userChilds;
@@ -564,10 +579,16 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("Email is existed.", System.Net.HttpStatusCode.Conflict);
             }
+            if (!Enum.IsDefined(typeof(SystemConstant.Gender), request.Gender))
+            {
+                return new ApiErrorResult<object>("Gender is not valid.", System.Net.HttpStatusCode.BadRequest);
+            }
 
             // Createe user use mapper
             var user = _mapper.Map<ApplicationUsers>(request);
             user.Status = (int)EmployeeStatus.Active;
+            user.Gender = request.Gender;
+
             if (request.Image != null)
             {
                 user.Image = await BabyCare.Core.Firebase.ImageHelper.Upload(request.Image);
@@ -595,10 +616,16 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("User is not existed.", System.Net.HttpStatusCode.NotFound);
             }
+            if (!Enum.IsDefined(typeof(SystemConstant.Gender), request.Gender))
+            {
+                return new ApiErrorResult<object>("Gender is not valid.", System.Net.HttpStatusCode.BadRequest);
+            }
+
             // Update user profile by mapper
             _mapper.Map(request, existingUser);
             existingUser.LastUpdatedTime = DateTime.Now;
             existingUser.LastUpdatedBy = Guid.Parse(_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value);
+            existingUser.Gender = request.Gender;
 
             var result = await _userManager.UpdateAsync(existingUser);
             if (!result.Succeeded)
@@ -616,11 +643,11 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("User is not existed.", System.Net.HttpStatusCode.NotFound);
             }
-                // Check status included on enum
-                if (!Enum.IsDefined(typeof(SystemConstant.EmployeeStatus), request.Status))
-                {
-                    return new ApiErrorResult<object>("Status is not correct.", System.Net.HttpStatusCode.BadRequest);
-                }
+            // Check status included on enum
+            if (!Enum.IsDefined(typeof(SystemConstant.EmployeeStatus), request.Status))
+            {
+                return new ApiErrorResult<object>("Status is not correct.", System.Net.HttpStatusCode.BadRequest);
+            }
             // Update status
             existingUser.Status = (int)request.Status;
             var result = await _userManager.UpdateAsync(existingUser);
@@ -689,7 +716,9 @@ namespace BabyCare.Contract.Services.Implements
                 Address = x.Address,
                 DateOfBirth = x.DateOfBirth,
                 FullName = x.FullName,
-                Gender = x.Gender,
+                Gender = Enum.IsDefined(typeof(Gender), x.Gender)
+                               ? ((Gender)x.Gender).ToString()
+                                  : "Unknown",
                 Image = x.Image,
                 Id = x.Id,
                 Status = Enum.IsDefined(typeof(EmployeeStatus), x.Status)
@@ -737,6 +766,14 @@ namespace BabyCare.Contract.Services.Implements
             else
             {
                 response.Status = "Unknown";
+            }
+            if (Enum.IsDefined(typeof(Gender), existingUser.Gender))
+            {
+                response.Gender = ((Gender)existingUser.Gender).ToString();
+            }
+            else
+            {
+                response.Gender = "Unknown";
             }
             return new ApiSuccessResult<EmployeeResponseModel>(response);
         }
@@ -861,9 +898,9 @@ namespace BabyCare.Contract.Services.Implements
             if (!addUserStatus.Succeeded)
             {
                 var errorAddUser = addUserStatus.Errors.Select(x => x.Description).ToList();
-                return new ApiErrorResult<UserLoginResponseModel>("Login failed.",errorAddUser);
+                return new ApiErrorResult<UserLoginResponseModel>("Login failed.", errorAddUser);
             }
-            
+
             var addUserToRoleStatus = await _userManager.AddToRoleAsync(userEntity, SystemConstant.Role.USER);
             if (!addUserToRoleStatus.Succeeded)
             {
@@ -934,7 +971,7 @@ namespace BabyCare.Contract.Services.Implements
             var users = await _userManager.Users
                 .Where(u => doctorUserIds.Contains(u.Id) && u.DeletedBy == null).ToListAsync();
 
-           
+
 
             var items = users.Select(x => new EmployeeResponseModel
             {
@@ -942,7 +979,9 @@ namespace BabyCare.Contract.Services.Implements
                 DateOfBirth = x.DateOfBirth,
                 FullName = x.FullName,
                 Email = x.Email,
-                Gender = x.Gender,
+                Gender = Enum.IsDefined(typeof(Gender), x.Gender)
+                               ? ((Gender)x.Gender).ToString()
+                                  : "Unknown",
                 Image = x.Image,
                 Id = x.Id,
                 Status = Enum.IsDefined(typeof(EmployeeStatus), x.Status)
@@ -983,7 +1022,9 @@ namespace BabyCare.Contract.Services.Implements
                 Address = x.Address,
                 DateOfBirth = x.DateOfBirth,
                 FullName = x.FullName,
-                Gender = x.Gender,
+                Gender = Enum.IsDefined(typeof(Gender), x.Gender)
+                               ? ((Gender)x.Gender).ToString()
+                                  : "Unknown",
                 Image = x.Image,
                 IsEmailConfirmed = x.EmailConfirmed,
                 Id = x.Id,
@@ -1002,6 +1043,6 @@ namespace BabyCare.Contract.Services.Implements
         }
         #endregion
 
-      
+
     }
 }

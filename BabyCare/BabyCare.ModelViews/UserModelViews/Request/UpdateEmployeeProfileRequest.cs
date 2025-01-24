@@ -13,6 +13,7 @@ namespace BabyCare.ModelViews.UserModelViews.Request
         public IFormFile? Image { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? Address { get; set; }
+        public int Gender { get; set; }
 
     }
 }
