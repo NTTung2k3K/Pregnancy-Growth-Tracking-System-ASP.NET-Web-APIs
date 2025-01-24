@@ -294,6 +294,54 @@ namespace BabyCare.API
                 await dbContext.SaveChangesAsync();
 
             }
+            if (!dbContext.MembershipPackages.Any())
+            {
+                var packages = new List<MembershipPackage>
+        {
+            new MembershipPackage
+            {
+                PackageName = "Basic Pregnancy Tracking",
+                Description = "Gói cơ bản giúp theo dõi sự phát triển của thai kỳ, bao gồm lịch hẹn siêu âm, nhắc nhở các mốc quan trọng và các bài viết tư vấn sức khỏe.",
+                OriginalPrice = 199000, // Giá gốc
+                Discount = 0.10m, // 10% giảm giá
+                Price = 179100, // Giá sau khi giảm
+                Duration = 30, // 30 ngày
+                Status = 1, // Active
+                PackageLevel = (int)SystemConstant.PackageLevel.Bronze, // Cấp độ 1 (gói cơ bản)
+                ShowPriority = 1, // Độ ưu tiên hiển thị
+                //ImageUrl = "https://example.com/images/basic-package.png"
+            },
+            new MembershipPackage
+            {
+                PackageName = "Premium Pregnancy Tracking",
+                Description = "Gói cao cấp giúp theo dõi đầy đủ các chỉ số của thai kỳ, lịch tiêm phòng, nhắc nhở xét nghiệm và quyền truy cập vào các bài viết chuyên sâu.",
+                OriginalPrice = 499000,
+                Discount = 0.15m, // 15% giảm giá
+                Price = 424150,
+                Duration = 90, // 90 ngày
+                Status = 1, // Active
+                PackageLevel = (int)SystemConstant.PackageLevel.Silver, // Cấp độ 2 (gói cao cấp)
+                ShowPriority = 2,
+                //ImageUrl = "https://example.com/images/premium-package.png"
+            },
+            new MembershipPackage
+            {
+                PackageName = "Ultimate Pregnancy Care",
+                Description = "Gói toàn diện với tất cả tính năng của hệ thống, hỗ trợ chuyên gia trực tuyến 24/7, theo dõi sức khỏe của mẹ và bé, cùng biểu đồ tăng trưởng chuyên sâu.",
+                OriginalPrice = 999000,
+                Discount = 0.20m, // 20% giảm giá
+                Price = 799200,
+                Duration = 180, // 180 ngày
+                Status = 1, // Active
+                PackageLevel = (int)SystemConstant.PackageLevel.Gold, // Cấp độ 3 (gói toàn diện)
+                ShowPriority = 3,
+                //ImageUrl = "https://example.com/images/ultimate-package.png"
+            }
+        };
+
+                dbContext.MembershipPackages.AddRange(packages);
+                await dbContext.SaveChangesAsync();
+            }
         }
 
         public static void AddConfigJWT(this IServiceCollection services, IConfiguration configuration)

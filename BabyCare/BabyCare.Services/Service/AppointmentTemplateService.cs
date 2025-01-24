@@ -189,9 +189,13 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Appointment template is not existed.");
             }
-
+            // Check status included on enum
+            if (!Enum.IsDefined(typeof(SystemConstant.AppointmentTemplatesStatus), request.Status))
+            {
+                return new ApiErrorResult<object>("Status is not correct.", System.Net.HttpStatusCode.BadRequest);
+            }
             _mapper.Map(request, existingItem);
-          
+            existingItem.Status = (int)request.Status;
             existingItem.LastUpdatedTime = DateTime.Now;
             existingItem.LastUpdatedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
             if (request.Image != null)
