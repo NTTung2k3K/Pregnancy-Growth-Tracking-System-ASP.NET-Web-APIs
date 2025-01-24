@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BabyCare.Core.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,6 @@ namespace BabyCare.ModelViews.UserModelViews.Request
     public class UpdateUserStatusRequest
     {
         public Guid Id { get; set; }
-        public UserStatus Status { get; set; }
+        public int Status { get; set; }
     }
 }

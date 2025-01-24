@@ -616,11 +616,11 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("User is not existed.", System.Net.HttpStatusCode.NotFound);
             }
-            // Check status included on enum
-            if (!Enum.IsDefined(typeof(SystemConstant.EmployeeStatus), request.Status))
-            {
-                return new ApiErrorResult<object>("Status is not correct.", System.Net.HttpStatusCode.BadRequest);
-            }
+                // Check status included on enum
+                if (!Enum.IsDefined(typeof(SystemConstant.EmployeeStatus), request.Status))
+                {
+                    return new ApiErrorResult<object>("Status is not correct.", System.Net.HttpStatusCode.BadRequest);
+                }
             // Update status
             existingUser.Status = (int)request.Status;
             var result = await _userManager.UpdateAsync(existingUser);

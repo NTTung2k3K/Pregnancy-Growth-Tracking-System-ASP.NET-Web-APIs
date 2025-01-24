@@ -16,7 +16,7 @@ namespace BabyCare.ModelViews.MembershipPackageModelViews.Request
         public string? Description { get; set; }
         public decimal OriginalPrice { get; set; }
         public int Duration { get; set; }
-        public PackageStatus? Status { get; set; }
+        public int? Status { get; set; }
         public PackageLevel? PackageLevel { get; set; }
         public IFormFile? ImageUrl { get; set; }
         public decimal? Discount { get; set; }
