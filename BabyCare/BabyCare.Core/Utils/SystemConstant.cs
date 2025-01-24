@@ -28,7 +28,11 @@ namespace BabyCare.Core.Utils
             public static string DOCTOR = "Doctor";
             public static string USER = "User";
         }
-
+        public enum Gender
+        {
+            Female = 0,
+            Male = 1,
+        }
 
         public enum AppointmentStatus
         {

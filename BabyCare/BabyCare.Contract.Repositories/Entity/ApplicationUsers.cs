@@ -16,7 +16,7 @@ namespace BabyCare.Contract.Repositories.Entity
         public string? Image { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? Address { get; set; }
-        public string? Gender { get; set; }
+        public int? Gender { get; set; }
         public string? BloodGroup { get; set; }
         public Guid? CreatedBy { get; set; }
         public Guid? LastUpdatedBy { get; set; }
