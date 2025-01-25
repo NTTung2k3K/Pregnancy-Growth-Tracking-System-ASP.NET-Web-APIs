@@ -212,7 +212,7 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Package is not existed.");
             }
-
+            var existingImage = existingItem.ImageUrl;
             _mapper.Map(request, existingItem);
             existingItem.Price = (request.OriginalPrice - (request.OriginalPrice * (request.Discount / 100)));
             if (existingItem.Price < 0)
@@ -225,6 +225,11 @@ namespace BabyCare.Services.Service
             {
                 existingItem.ImageUrl = await ImageHelper.Upload(request.ImageUrl);
             }
+            else
+            {
+                existingItem.ImageUrl = existingImage;
+            }
+            
             await repo.UpdateAsync(existingItem);
             await repo.SaveAsync();
 

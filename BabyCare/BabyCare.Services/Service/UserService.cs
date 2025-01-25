@@ -420,8 +420,19 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("Gender is not valid.", System.Net.HttpStatusCode.BadRequest);
             }
+            var existingImage = existingUser.Image;
+
             // Update user profile by mapper
             _mapper.Map(request, existingUser);
+
+            if (request.Image != null)
+            {
+                existingUser.Image = await ImageHelper.Upload(request.Image);
+            }
+            else
+            {
+                existingUser.Image = existingImage;
+            }
             var result = await _userManager.UpdateAsync(existingUser);
             if (!result.Succeeded)
             {
@@ -625,13 +636,21 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("Gender is not valid.", System.Net.HttpStatusCode.BadRequest);
             }
+            var existingImage = existingUser.Image;
 
             // Update user profile by mapper
             _mapper.Map(request, existingUser);
             existingUser.LastUpdatedTime = DateTime.Now;
             existingUser.LastUpdatedBy = Guid.Parse(_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value);
             existingUser.Gender = request.Gender;
-
+            if (request.Image != null)
+            {
+                existingUser.Image = await ImageHelper.Upload(request.Image);
+            }
+            else
+            {
+                existingUser.Image = existingImage;
+            }
             var result = await _userManager.UpdateAsync(existingUser);
             if (!result.Succeeded)
             {
