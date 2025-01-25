@@ -194,6 +194,8 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Status is not correct.", System.Net.HttpStatusCode.BadRequest);
             }
+            var existingImage = existingItem.Image;
+
             _mapper.Map(request, existingItem);
             existingItem.Status = (int)request.Status;
             existingItem.LastUpdatedTime = DateTime.Now;
@@ -201,6 +203,11 @@ namespace BabyCare.Services.Service
             if (request.Image != null)
             {
                 existingItem.Image = await ImageHelper.Upload(request.Image);
+            }
+            else
+            {
+                existingItem.Image = existingImage;
+
             }
             await repo.UpdateAsync(existingItem);
             await repo.SaveAsync();
