@@ -17,8 +17,7 @@ namespace BabyCare.ModelViews.ChildModelView
         [MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters.")]
         public string Name { get; set; }
 
-        [DataType(DataType.Date, ErrorMessage = "Invalid date format.")]
-        public DateTime? DateOfBirth { get; set; }
+        
 
         [MaxLength(10, ErrorMessage = "Fetal gender cannot exceed 10 characters.")]
         public string? FetalGender { get; set; }
