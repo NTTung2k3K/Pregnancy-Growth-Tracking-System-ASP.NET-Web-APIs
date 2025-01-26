@@ -23,7 +23,7 @@ namespace BabyCare.API.Controllers
         public async Task<ActionResult<BasePaginatedList<ChildModelView>>> GetAllChildren(
             [FromQuery] int? id,
             [FromQuery] string? name,
-            [FromQuery] DateTime? dateOfBirth,
+            [FromQuery] DateTime? dueDate,
             [FromQuery] string? bloodType,
             [FromQuery] string? pregnancyStage,
             int pageNumber = 1,
@@ -31,7 +31,7 @@ namespace BabyCare.API.Controllers
         {
             try
             {
-                var result = await _childService.GetAllChildAsync(pageNumber, pageSize, id, name, dateOfBirth, bloodType, pregnancyStage);
+                var result = await _childService.GetAllChildAsync(pageNumber, pageSize, id, name, dueDate, bloodType, pregnancyStage);
                 return Ok(result);
             }
             catch (Exception ex)

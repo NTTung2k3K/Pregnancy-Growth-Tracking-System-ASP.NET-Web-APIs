@@ -113,6 +113,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadImage([FromForm] UploadImageRequest request)
+        {
+            try
+            {
+                var result = await _userService.UploadImage(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
 
         #endregion
     }

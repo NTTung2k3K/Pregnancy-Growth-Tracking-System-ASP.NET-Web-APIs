@@ -10,7 +10,9 @@ using BabyCare.ModelViews.BlogTypeModelView;
 using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.MembershipPackageModelViews.Request;
 using BabyCare.ModelViews.MembershipPackageModelViews.Response;
+using BabyCare.ModelViews.PaymentModelView.Response;
 using BabyCare.ModelViews.RoleModelViews;
+using BabyCare.ModelViews.UserMembershipModelView.Response;
 using BabyCare.ModelViews.UserModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
 using Firebase.Auth;
@@ -59,6 +61,14 @@ namespace BabyCare.Repositories.Mapper
             // Add
             CreateMap<ChildModelView, Child>().ReverseMap();
             #endregion
+
+            #region Payment 
+            CreateMap<Payment,PaymentResponseModel>().ReverseMap();
+            #endregion
+            #region Usermembership
+            CreateMap<UserMembership, UserMembershipResponse>().ReverseMap();
+            #endregion
+
 
             CreateMap<ApplicationRoles, RoleModelView>().ReverseMap();
             CreateMap<ApplicationRoles, CreateRoleModelView>().ReverseMap();
