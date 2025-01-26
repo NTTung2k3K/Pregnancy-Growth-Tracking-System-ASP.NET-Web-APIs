@@ -176,6 +176,7 @@ namespace BabyCare.Contract.Services.Implements
             {
                 Email = request.Email,
                 UserName = await _generateUsernameOfGuestAsync(),
+                Gender = (int)Gender.Female,
             };
             // Save user
             var result = await _userManager.CreateAsync(user, request.Password);
