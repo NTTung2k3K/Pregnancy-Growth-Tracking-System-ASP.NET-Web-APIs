@@ -1066,6 +1066,12 @@ namespace BabyCare.Contract.Services.Implements
             // return to client
             return new ApiSuccessResult<List<UserResponseModel>>(items);
         }
+
+        public async Task<ApiResult<UploadImageResponseModel>> UploadImage(UploadImageRequest request)
+        {
+            string res =  await BabyCare.Core.Firebase.ImageHelper.Upload(request.Image);
+            return new ApiSuccessResult<UploadImageResponseModel>(new UploadImageResponseModel { ImageUrl = res });
+        }
         #endregion
 
 

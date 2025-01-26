@@ -38,7 +38,7 @@ namespace BabyCare.Services.Service
                 // Kiểm tra nếu một đứa trẻ với tên và ngày sinh đã tồn tại
                 var existingChild = await _unitOfWork.GetRepository<Child>()
                     .Entities
-                    .FirstOrDefaultAsync(c => c.Name.Equals(model.Name) && c.DateOfBirth == model.DateOfBirth && !c.DeletedTime.HasValue);
+                    .FirstOrDefaultAsync(c => c.Name.Equals(model.Name) && c.DueDate == model.DueDate && !c.DeletedTime.HasValue);
 
                 if (existingChild != null)
                 {
@@ -159,7 +159,7 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<object>("Child successfully deleted.");
         }
 
-        public async Task<ApiResult<BasePaginatedList<ChildModelView>>> GetAllChildAsync(int pageNumber, int pageSize, int? id, string? name, DateTime? dateOfBirth, string? bloodType, string? pregnancyStage)
+        public async Task<ApiResult<BasePaginatedList<ChildModelView>>> GetAllChildAsync(int pageNumber, int pageSize, int? id, string? name, DateTime? dueDate, string? bloodType, string? pregnancyStage)
         {
             // Khởi tạo query cơ bản cho bảng Child
             IQueryable<Child> childQuery = _unitOfWork.GetRepository<Child>().Entities
@@ -173,8 +173,8 @@ namespace BabyCare.Services.Service
             if (!string.IsNullOrWhiteSpace(name))
                 childQuery = childQuery.Where(c => c.Name.Contains(name));
 
-            if (dateOfBirth.HasValue)
-                childQuery = childQuery.Where(c => c.DateOfBirth == dateOfBirth.Value);
+            if (dueDate.HasValue)
+                childQuery = childQuery.Where(c => c.DueDate == dueDate.Value);
 
             if (!string.IsNullOrWhiteSpace(bloodType))
                 childQuery = childQuery.Where(c => c.BloodType.Contains(bloodType));
@@ -254,9 +254,9 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (model.DateOfBirth.HasValue && model.DateOfBirth != existingChild.DateOfBirth)
+            if (model.DueDate.HasValue && model.DueDate != existingChild.DueDate)
             {
-                existingChild.DateOfBirth = model.DateOfBirth.Value;
+                existingChild.DueDate = model.DueDate.Value;
                 isUpdated = true;
             }
 

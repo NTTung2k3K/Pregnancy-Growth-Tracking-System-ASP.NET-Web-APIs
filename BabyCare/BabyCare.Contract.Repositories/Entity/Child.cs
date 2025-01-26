@@ -15,7 +15,6 @@ namespace BabyCare.Contract.Repositories.Entity
         [ForeignKey("UserId")]
 
         public string Name { get; set; }
-        public DateTime? DateOfBirth { get; set; }
         public string? FetalGender { get; set; }
         public string? PregnancyStage { get; set; }
         public float? WeightEstimate { get; set; }

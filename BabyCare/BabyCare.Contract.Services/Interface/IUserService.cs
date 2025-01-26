@@ -55,6 +55,8 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<List<UserResponseModel>>> GetAllUser();
 
         Task<ApiResult<EmployeeResponseModel>> GetEmployeeById(Guid Id);
+        Task<ApiResult<UploadImageResponseModel>> UploadImage(UploadImageRequest  request);
+
 
 
         #endregion
