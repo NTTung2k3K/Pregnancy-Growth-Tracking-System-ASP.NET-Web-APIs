@@ -93,6 +93,10 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Package is not existed.");
             }
+            if (_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+            {
+                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+            }
             existingItem.DeletedTime = DateTime.Now;
             existingItem.DeletedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
 
@@ -211,6 +215,10 @@ namespace BabyCare.Services.Service
             if (existingItem == null)
             {
                 return new ApiErrorResult<object>("Package is not existed.");
+            }
+            if (_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+            {
+                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
             }
             var existingImage = existingItem.ImageUrl;
             _mapper.Map(request, existingItem);
