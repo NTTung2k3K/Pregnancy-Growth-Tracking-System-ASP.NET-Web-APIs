@@ -25,5 +25,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> UpdateChildAsync(int id, UpdateChildModelView model);
         Task<ApiResult<object>> DeleteChildAsync(int id);
         Task<ApiResult<ChildModelView>> GetChildByIdAsync(int id);
+        Task<ApiResult<List<ChildModelView>>> GetChildByUserId(Guid id);
+
     }
 }
