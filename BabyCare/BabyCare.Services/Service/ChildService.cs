@@ -363,5 +363,19 @@ namespace BabyCare.Services.Service
 
         }
 
+        public async Task<ApiResult<List<ChildModelView>>> GetChildByUserId(Guid id)
+        {
+            // Lấy Child từ cơ sở dữ liệu
+            var childEntity =  _unitOfWork.GetRepository<Child>().Entities
+                .AsNoTracking()
+                .Where(child => child.UserId == id && !child.DeletedTime.HasValue);
+
+        
+
+            // Chuyển đổi từ Child sang ChildModelView
+            var childModelView = _mapper.Map<List<ChildModelView>>(childEntity);
+
+            return new ApiSuccessResult<List<ChildModelView>>(childModelView);
+        }
     }
 }

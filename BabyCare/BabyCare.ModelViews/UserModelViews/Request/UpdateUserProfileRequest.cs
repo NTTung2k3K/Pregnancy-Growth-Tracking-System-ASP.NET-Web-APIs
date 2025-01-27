@@ -17,6 +17,5 @@ namespace BabyCare.ModelViews.UserModelViews.Request
         public string? BloodGroup { get; set; }
         public string? PhoneNumber { get; set; }
 
-        public DateTime? DueDate { get; set; }
     }
 }
