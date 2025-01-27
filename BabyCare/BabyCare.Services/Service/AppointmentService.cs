@@ -249,6 +249,10 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Appointment is not existed.");
             }
+            if (_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+            {
+                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+            }
             existingItem.DeletedTime = DateTime.Now;
             existingItem.DeletedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
 
@@ -536,7 +540,10 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Appointment is not existed.");
             }
-
+            if (_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+            {
+                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+            }
             var userId = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
             var checkValid = await _userManager.FindByIdAsync(userId);
             if (checkValid == null)

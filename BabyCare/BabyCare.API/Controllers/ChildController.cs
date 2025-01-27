@@ -61,7 +61,7 @@ namespace BabyCare.API.Controllers
         ///     Create a new child
         /// </summary>
         [HttpPost("create")]
-        public async Task<ActionResult<string>> CreateChild([FromQuery] CreateChildModelView model)
+        public async Task<ActionResult<string>> CreateChild([FromForm] CreateChildModelView model)
         {
             try
             {

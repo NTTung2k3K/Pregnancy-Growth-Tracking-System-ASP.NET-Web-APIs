@@ -637,6 +637,10 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("Gender is not valid.", System.Net.HttpStatusCode.BadRequest);
             }
+            if(_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+            {
+                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+            }
             var existingImage = existingUser.Image;
 
             // Update user profile by mapper
@@ -691,6 +695,10 @@ namespace BabyCare.Contract.Services.Implements
             if (existingUser == null)
             {
                 return new ApiErrorResult<object>("User is not existed.", System.Net.HttpStatusCode.NotFound);
+            }
+            if (_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+            {
+                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
             }
             // Delete user
             existingUser.DeletedBy = Guid.Parse(_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value);
