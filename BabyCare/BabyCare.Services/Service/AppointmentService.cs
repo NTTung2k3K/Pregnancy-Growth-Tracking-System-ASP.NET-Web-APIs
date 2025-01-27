@@ -743,7 +743,7 @@ namespace BabyCare.Services.Service
                 .Include(x => x.AppointmentTemplate)
                 .Include(x => x.AppointmentUsers).ThenInclude(x => x.User)
                 .Include(x => x.AppointmentChildren).ThenInclude(x => x.Child)
-                .Where(x => x.DeletedBy == null) 
+                .Where(x => x.DeletedBy == null && x.Status != (int)AppointmentStatus.Pending) 
                 .OrderBy(x => x.AppointmentDate); // Sắp xếp theo Date tăng dần
 
             // Thực thi truy vấn

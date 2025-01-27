@@ -1,6 +1,8 @@
 ﻿using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.ModelViews.ChildModelView;
+using BabyCare.ModelViews.UserModelViews.Response;
+using BabyCare.Services.Service;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BabyCare.API.Controllers
@@ -39,7 +41,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
-
+        [HttpGet("get-child-by-user-id")]
+        public async Task<IActionResult> GetChildByUserId([FromQuery]Guid id)
+        {
+            try
+            {
+                var result = await _childService.GetChildByUserId(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+            }
+        }
         /// <summary>
         ///     Get a child by ID
         /// </summary>
