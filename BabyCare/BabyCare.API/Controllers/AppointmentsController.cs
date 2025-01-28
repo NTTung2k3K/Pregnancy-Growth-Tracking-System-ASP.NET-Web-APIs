@@ -48,6 +48,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+        [HttpPut("update-by-doctor")]
+        public async Task<IActionResult> UpdateByDoctorAppointment([FromBody] UpdateAppointmentByDoctorRequest request)
+        {
+            try
+            {
+                var result = await _appointmentService.UpdateByDoctorAppointment(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
         [HttpPatch("cancel-appointment-by-user")]
         public async Task<IActionResult> UpdateAppointment([FromBody] CancelAppointmentByUser request)
         {
@@ -113,7 +126,7 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
             }
         }
-        [HttpGet("get-membership-package-status-handler")]
+        [HttpGet("get-appointment-status-handler")]
         public  IActionResult GetAppointmentStatusHandler()
         {
             try
@@ -178,5 +191,6 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
             }
         }
+      
     }
 }

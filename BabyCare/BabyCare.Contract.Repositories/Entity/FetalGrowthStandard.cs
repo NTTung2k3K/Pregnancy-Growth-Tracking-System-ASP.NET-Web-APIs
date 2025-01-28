@@ -18,6 +18,8 @@ namespace BabyCare.Contract.Repositories.Entity
         public float AverageHeight { get; set; }
         public float HeadCircumference { get; set; }
         public float AbdominalCircumference { get; set; }
+        public int? FetalHeartRate { get; set; }
+
 
         public virtual ICollection<FetalGrowthRecord> FetalGrowthRecords { get; set; }
     }

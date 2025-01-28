@@ -8,6 +8,8 @@ using BabyCare.ModelViews.AuthModelViews.Response;
 using BabyCare.ModelViews.BlogModelViews;
 using BabyCare.ModelViews.BlogTypeModelView;
 using BabyCare.ModelViews.ChildModelView;
+using BabyCare.ModelViews.FetalGrowthRecordModelView;
+using BabyCare.ModelViews.FetalGrowthStandardModelView;
 using BabyCare.ModelViews.MembershipPackageModelViews.Request;
 using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.PaymentModelView.Response;
@@ -58,8 +60,23 @@ namespace BabyCare.Repositories.Mapper
             CreateMap<CreateAppointmentRequest, Appointment>().ReverseMap();
             CreateMap<UpdateAppointmentRequest, Appointment>().ReverseMap();
             CreateMap<AppointmentResponseModel, Appointment>().ReverseMap();
+            CreateMap<AppointmentResponseModelV2, Appointment>().ReverseMap();
+
             // Add
             CreateMap<ChildModelView, Child>().ReverseMap();
+            CreateMap<ChildModelViewAddeRecords, Child>().ReverseMap();
+            CreateMap<FetalGrowthStandardModelView, FetalGrowthStandard>().ReverseMap();
+            CreateMap<FetalGrowthRecordModelViewAddedStandards, FetalGrowthRecord>().ReverseMap();
+            CreateMap<Child, ChildModelViewAddeRecords>();
+
+            // Mapping cho FetalGrowthRecord
+            CreateMap<FetalGrowthRecord, FetalGrowthRecordModelViewAddedStandards>()
+                .ForMember(dest => dest.FetalGrowthStandardModelView,
+                           opt => opt.MapFrom(src => src.FetalGrowthStandard));
+
+            // Mapping cho FetalGrowthStandard
+            CreateMap<FetalGrowthStandard, FetalGrowthStandardModelView>();
+
             #endregion
 
             #region Payment 
