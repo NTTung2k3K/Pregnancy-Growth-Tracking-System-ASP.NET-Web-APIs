@@ -18,17 +18,23 @@ namespace BabyCare.Contract.Repositories.Entity
         public float Weight { get; set; }
         public float Height { get; set; }
         public DateTime RecordedAt { get; set; }
-        public int? GrowChartsID { get; set; }
-
         [ForeignKey("GrowChartsID")]
+        public int? GrowChartsID { get; set; }
+        [ForeignKey("FetalGrowthStandard")]
+        public int? FetalGrowthStandardId { get; set; }
+        public float? HeadCircumference { get; set; }
+        public float? AbdominalCircumference { get; set; }
+        public int? FetalHeartRate { get; set; }
+
+      
 
         public string? HealthCondition { get; set; }
 
         public virtual Child Child { get; set; }
         public virtual FetalGrowthStandard FetalGrowthStandard { get; set; }
-        public virtual GrowthChart GrowthChart { get; set; }
+        public virtual GrowthChart? GrowthChart { get; set; }
 
-        public virtual Alert Alert { get; set; }
+        public virtual Alert? Alert { get; set; }
     }
 
 }

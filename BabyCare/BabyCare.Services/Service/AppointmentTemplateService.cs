@@ -103,7 +103,7 @@ namespace BabyCare.Services.Service
                                     : "Unknown",
 
                 Description = x.Description,
-                
+                Fee = x.Fee
             }).ToList();
 
             // return to client
@@ -161,7 +161,8 @@ namespace BabyCare.Services.Service
                                     : "Unknown",
                 
                 Description = x.Description,
-                
+                Fee = x.Fee
+
             }).ToList();
 
             var response = new BasePaginatedList<ATResponseModel>(res, total, currentPage, pageSize);

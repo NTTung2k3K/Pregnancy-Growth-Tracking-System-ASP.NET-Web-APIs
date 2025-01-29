@@ -10,5 +10,9 @@
         public DateTime RecordedAt { get; set; }
         public int? GrowChartsID { get; set; }
         public string? HealthCondition { get; set; }
+        public float? HeadCircumference { get; set; }
+        public float? AbdominalCircumference { get; set; }
+        public int? FetalHeartRate { get; set; }
+
     }
 }

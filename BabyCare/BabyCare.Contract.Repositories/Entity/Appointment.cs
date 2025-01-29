@@ -19,6 +19,8 @@ namespace BabyCare.Contract.Repositories.Entity
         public int? Status { get; set; }
         public decimal? Fee { get; set; }
         public string? Notes { get; set; }
+        public string? Description { get; set; }
+        public string? Result { get; set; }
         public virtual AppointmentTemplates AppointmentTemplate { get; set; }
         public virtual ICollection<AppointmentUser> AppointmentUsers { get; set; }
 

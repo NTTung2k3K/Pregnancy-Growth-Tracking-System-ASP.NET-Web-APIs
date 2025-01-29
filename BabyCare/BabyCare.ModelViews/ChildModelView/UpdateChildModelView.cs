@@ -23,5 +23,6 @@ namespace BabyCare.ModelViews.ChildModelView
         public string? PregnancyWeekAtBirth { get; set; }
         public bool IsGenerateSampleAppointments { get; set; }
 
+
     }
 }
