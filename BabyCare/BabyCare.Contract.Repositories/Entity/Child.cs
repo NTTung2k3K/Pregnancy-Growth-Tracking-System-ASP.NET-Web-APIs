@@ -32,7 +32,7 @@ namespace BabyCare.Contract.Repositories.Entity
 
         public virtual ICollection<AppointmentChild> AppointmentChildren { get; set; }
 
-        public virtual ICollection<FetalGrowthRecord> FetalGrowthRecords { get; set; }
+        public virtual ICollection<FetalGrowthRecord>? FetalGrowthRecords { get; set; }
     }
 
 }

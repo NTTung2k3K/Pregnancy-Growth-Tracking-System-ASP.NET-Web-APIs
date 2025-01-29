@@ -12,6 +12,7 @@ using BabyCare.ModelViews.AppointmentModelViews.Response;
 using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
 using BabyCare.ModelViews.AuthModelViews.Response;
 using BabyCare.ModelViews.ChildModelView;
+using BabyCare.ModelViews.FetalGrowthRecordModelView;
 using BabyCare.ModelViews.UserModelViews.Response;
 using BabyCare.Repositories.Context;
 using Microsoft.AspNetCore.Http;
@@ -32,9 +33,13 @@ namespace BabyCare.Services.Service
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly UserManager<ApplicationUsers> _userManager;
+        private readonly IFetalGrowthRecordService _fetalGrowthRecordService;
 
-        public AppointmentService( IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
+
+
+        public AppointmentService(IFetalGrowthRecordService fetalGrowthRecordService,IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
         {
+            _fetalGrowthRecordService = fetalGrowthRecordService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
@@ -60,6 +65,10 @@ namespace BabyCare.Services.Service
 
         public async Task<ApiResult<object>> CreateAppointment(CreateAppointmentRequest request)
         {
+            if (_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+            {
+                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+            }
             var repoAppointment = _unitOfWork.GetRepository<Appointment>();
             var repoAppointmentUser = _unitOfWork.GetRepository<AppointmentUser>();
             var repoChild = _unitOfWork.GetRepository<Child>();
@@ -76,11 +85,11 @@ namespace BabyCare.Services.Service
                 return new ApiErrorResult<object>("User is not existed.", System.Net.HttpStatusCode.NotFound);
             }
             // Check child is existed
-            var existingChild = await repoChild.GetByIdAsync(request.ChildId);
-            if (existingChild == null)
-            {
-                return new ApiErrorResult<object>("Child is not existed.", System.Net.HttpStatusCode.NotFound);
-            }
+            //var existingChild = await repoChild.GetByIdAsync(request.ChildId);
+            //if (existingChild == null)
+            //{
+            //    return new ApiErrorResult<object>("Child is not existed.", System.Net.HttpStatusCode.NotFound);
+            //}
             // Check appointment template is existed
             var existingAT = await repoAT.GetByIdAsync(request.AppointmentTemplateId);
             if (existingAT == null)
@@ -101,79 +110,6 @@ namespace BabyCare.Services.Service
                 );
             }
 
-            //try
-            //{
-            //    // Bắt đầu giao dịch từ _context
-            //    using (var transaction = await _context.Database.BeginTransactionAsync())
-            //    {
-            //        // Tạo Appointment mới
-            //        var appointment = new Appointment()
-            //        {
-            //            AppointmentTemplateId = request.AppointmentTemplateId,
-            //            AppointmentSlot = request.AppointmentSlot,
-            //            AppointmentDate = request.AppointmentDate,
-            //            Status = (int)AppointmentStatus.Confirmed,
-            //            Fee = existingAT.Fee,
-            //            Notes = request.Notes,
-            //            Name = request.Name,
-            //        };
-
-            //        // Thêm Appointment vào DbContext và lưu vào database
-            //        await _context.Appointments.AddAsync(appointment);
-            //        await _context.SaveChangesAsync();  // Lưu Appointment vào database
-
-            //        // Kiểm tra lại xem Appointment.Id đã có giá trị hợp lệ
-            //        if (appointment.Id <= 0)
-            //        {
-            //            throw new Exception("Appointment was not saved correctly, Id is invalid.");
-            //        }
-
-            //        // Lấy DoctorId từ hàm GetRandomDoctorIdAsync
-            //        var doctorId = await GetRandomDoctorIdAsync();
-
-            //        // Lấy AppointmentUserId tiếp theo
-            //        var auId = await GetNextAppointmentUserIdAsync();
-
-            //        // Tạo AppointmentUser mới
-            //        var appointmentUser = new AppointmentUser()
-            //        {
-            //            Appointment = appointment,
-            //            AppointmentId = appointment.Id,
-            //            CreatedTime = DateTime.Now,
-            //            Description = $"{existingAT.Name}_{appointment.AppointmentDate.ToString()}_Slot:{appointment.AppointmentSlot}_Estimate Cost:{appointment.Fee}",
-            //            UserId = request.UserId,
-            //            DoctorId = doctorId != null ? doctorId.Value : null,
-            //        };
-
-            //        // Thêm AppointmentUser vào DbContext và lưu vào database
-            //        await _context.AppointmentUsers.AddAsync(appointmentUser);
-            //        await _context.SaveChangesAsync();  // Lưu AppointmentUser vào database
-
-            //        // Tạo AppointmentChild mới
-            //        var appointmentChild = new AppointmentChild()
-            //        {
-            //            Appointment = appointment,
-            //            Child = existingChild,
-            //            Description = $"{existingChild.Name}_{request.Name}",
-            //        };
-
-            //        // Thêm AppointmentChild vào DbContext và lưu vào database
-            //        await _context.AppointmentChildren.AddAsync(appointmentChild);
-            //        await _context.SaveChangesAsync();  // Lưu AppointmentChild vào database
-
-            //        // Commit giao dịch sau khi tất cả các thao tác đã hoàn thành
-            //        await transaction.CommitAsync();
-
-            //        return new ApiSuccessResult<object>("Create successfully.");
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    // Rollback giao dịch nếu có lỗi
-            //    //await transaction.RollbackAsync();
-            //    throw new Exception("Transaction failed.", ex);
-            //}
-
 
             try
             {
@@ -184,14 +120,15 @@ namespace BabyCare.Services.Service
                     AppointmentSlot = request.AppointmentSlot,
                     AppointmentDate = request.AppointmentDate,
                     Status = (int)AppointmentStatus.Confirmed,
-                    Fee = existingAT.Fee,
+                    Fee = existingAT.Fee * request.ChildIds.Count,
                     Notes = request.Notes,
                     Name = request.Name,
+                    Description = request.Description,
                 };
                 await repoAppointment.InsertAsync(appointment);
                 await repoAppointment.SaveAsync();
                 await _unitOfWork.SaveAsync();
-                var doctorId = await GetRandomDoctorIdAsync();
+                var doctorId = request.IsDoctorCreate ? Guid.Parse(_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value) : await GetRandomDoctorIdAsync();
                 //var auId = await GetNextAppointmentUserIdAsync();
                 var appointmentUser = new AppointmentUser()
                 {
@@ -206,13 +143,23 @@ namespace BabyCare.Services.Service
                 await repoAppointmentUser.InsertAsync(appointmentUser);
                 await repoAppointmentUser.SaveAsync();
 
-                var appointmentChild = new AppointmentChild()
+                foreach (var childId in request.ChildIds)
                 {
-                    Appointment = appointment,
-                    Child = existingChild,
-                    Description = $"{existingChild.Name}_{request.Name}",
-                };
-                await repoAC.InsertAsync(appointmentChild);
+                    var existingChild = await repoChild.GetByIdAsync(childId);
+                    if (existingChild == null)
+                    {
+                        return new ApiErrorResult<object>("Child is not existed.", System.Net.HttpStatusCode.NotFound);
+                    }
+                    var appointmentChild = new AppointmentChild()
+                    {
+                        Appointment = appointment,
+                        Child = existingChild,
+                        Description = $"{existingChild.Name}_{request.Name}",
+
+                    };
+                    await repoAC.InsertAsync(appointmentChild);
+                }
+
                 await repoAC.SaveAsync();
 
 
@@ -262,11 +209,15 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<object>("Delete successfully.");
         }
 
-        public async Task<ApiResult<AppointmentResponseModel>> GetAppointmentById(int id)
+        public async Task<ApiResult<AppointmentResponseModelV2>> GetAppointmentById(int id)
         {
             var repo = _unitOfWork.GetRepository<Appointment>();
             var repoChild = _unitOfWork.GetRepository<Child>();
             var repoAT = _unitOfWork.GetRepository<AppointmentTemplates>();
+            var repoFGR = _unitOfWork.GetRepository<FetalGrowthRecord>();
+            var repoFGSD = _unitOfWork.GetRepository<FetalGrowthStandard>();
+
+
 
             // Check mp is existed
             var existingItem = await repo.Entities.Include(x => x.AppointmentTemplate).Include(x => x.AppointmentUsers).ThenInclude(x => x.User)
@@ -274,9 +225,9 @@ namespace BabyCare.Services.Service
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (existingItem == null || existingItem.DeletedBy != null)
             {
-                return new ApiErrorResult<AppointmentResponseModel>("Appointment is not existed.");
+                return new ApiErrorResult<AppointmentResponseModelV2>("Appointment is not existed.");
             }
-            var response = _mapper.Map<AppointmentResponseModel>(existingItem);
+            var response = _mapper.Map<AppointmentResponseModelV2>(existingItem);
 
 
             if (Enum.IsDefined(typeof(AppointmentStatus), existingItem.Status))
@@ -306,13 +257,25 @@ namespace BabyCare.Services.Service
             response.Childs = new();
             foreach (var child in existingItem.AppointmentChildren)
             {
-                var childCheck = repoChild.GetById(child.ChildId);
-                var childModel = _mapper.Map<ChildModelView>(childCheck);
+                // Map Child entity sang ChildModelViewAddeRecords
+                var childModel = _mapper.Map<ChildModelViewAddeRecords>(child.Child);
+
+                // Lấy các FGR liên quan và map cùng tiêu chuẩn
+                var fgrs = await repoFGR.Entities
+                    .Include(x => x.FetalGrowthStandard) // Đảm bảo include dữ liệu liên quan
+                    .Where(x => x.ChildId == child.ChildId)
+                    .ToListAsync();
+
+                // Map danh sách FGR sang ModelView
+                childModel.FetalGrowthRecordModelViews = _mapper.Map<List<FetalGrowthRecordModelViewAddedStandards>>(fgrs);
+
+                // Thêm vào response
                 response.Childs.Add(childModel);
             }
 
 
-            return new ApiSuccessResult<AppointmentResponseModel>(response);
+
+            return new ApiSuccessResult<AppointmentResponseModelV2>(response);
         }
 
         public async Task<ApiResult<BasePaginatedList<AppointmentResponseModel>>> GetAppointmentsPagination(BaseSearchRequest request)
@@ -395,6 +358,9 @@ namespace BabyCare.Services.Service
                         Id = (int)status,
                         Status = status.ToString()
                     })
+                   .Where(x => x.Id != (int)AppointmentStatus.Pending &&
+                        x.Id != (int)AppointmentStatus.CancelledByUser
+                   )
                     .ToList();
 
 
@@ -563,25 +529,35 @@ namespace BabyCare.Services.Service
 
         public async Task<ApiResult<AvailableSlotResponseModel>> GetSlotAvailable(DateTime date)
         {
+            var doctorId = _contextAccessor.HttpContext?.User?.FindFirst("userId");
+            if (doctorId == null)
+            {
+                return new ApiErrorResult<AvailableSlotResponseModel>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+            }
             int MAX_SLOT_AVAILABLE_APPOINTMENT = SystemConstant.MAX_SLOT_AVAILABLE_APPOINTMENT;
-            var repo = _unitOfWork.GetRepository<Appointment>();
+            var repo = _unitOfWork.GetRepository<AppointmentUser>();
+            var doctorRawId = Guid.Parse(doctorId.Value);
 
+            // Lấy danh sách các slot đã được đặt bởi bác sĩ cụ thể vào ngày được chọn
             var slotsBookedOnDay = await repo.Entities
-                .Where(x => x.AppointmentDate == date)
-                .Select(x => x.AppointmentSlot)
+                .Where(x => x.DoctorId == doctorRawId && x.Appointment.AppointmentDate == date && x.Appointment.Status != (int)AppointmentStatus.Pending)
+                .Select(x => x.Appointment.AppointmentSlot)
                 .ToListAsync();
 
+            // Tạo danh sách tất cả các slot trong ngày
             var allSlots = Enumerable.Range(1, MAX_SLOT_AVAILABLE_APPOINTMENT).ToList();
 
+            // Tìm các slot còn trống
             var availableSlots = allSlots.Except(slotsBookedOnDay).ToList();
 
+            // Tạo phản hồi
             var response = new AvailableSlotResponseModel
             {
                 Date = date,
                 Slots = availableSlots
             };
 
-            return new ApiSuccessResult<AvailableSlotResponseModel>(response);
+            return new ApiSuccessResult<AvailableSlotResponseModel>(response, "Take successfully");
         }
 
         public async Task<ApiResult<List<AppointmentResponseModel>>> GetAppointmentsByUserId(Guid userId)
@@ -740,10 +716,7 @@ namespace BabyCare.Services.Service
             var repoAT = _unitOfWork.GetRepository<AppointmentTemplates>();
 
             var appointmentsQuery = repo.Entities
-                .Include(x => x.AppointmentTemplate)
-                .Include(x => x.AppointmentUsers).ThenInclude(x => x.User)
-                .Include(x => x.AppointmentChildren).ThenInclude(x => x.Child)
-                .Where(x => x.DeletedBy == null && x.Status != (int)AppointmentStatus.Pending) 
+                .Where(x => x.DeletedBy == null && x.Status != (int)AppointmentStatus.Pending)
                 .OrderBy(x => x.AppointmentDate); // Sắp xếp theo Date tăng dần
 
             // Thực thi truy vấn
@@ -799,5 +772,72 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<List<AppointmentResponseModel>>(responseList);
         }
 
+        public async Task<ApiResult<object>> UpdateByDoctorAppointment(UpdateAppointmentByDoctorRequest request)
+        {
+            var repo = _unitOfWork.GetRepository<Appointment>();
+            var repoChild = _unitOfWork.GetRepository<Child>();
+            var repoAT = _unitOfWork.GetRepository<AppointmentTemplates>();
+            var repoAC = _unitOfWork.GetRepository<AppointmentChild>();
+
+            //_unitOfWork.BeginTransaction();
+            // Check appointment is existed
+            var existingItem = await repo.Entities.FirstOrDefaultAsync(x => x.Id == request.Id);
+            if (existingItem == null || existingItem.DeletedBy != null)
+            {
+                return new ApiErrorResult<object>("Appointment is not existed.");
+            }
+            var doctorId = _contextAccessor.HttpContext?.User?.FindFirst("userId");
+            if (doctorId == null)
+            {
+                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+            }
+            var doctorRawId = Guid.Parse(doctorId.Value);
+            //Check existing doctor
+            var existingDoctor = await _userManager.FindByIdAsync(doctorRawId.ToString());
+            if (existingDoctor == null)
+            {
+                return new ApiErrorResult<object>("Doctor is not existed.");
+            }
+            //Check valid doctor
+            var validRole = await _userManager.GetRolesAsync(existingDoctor);
+            if (!validRole.Any(x => x.Contains(SystemConstant.Role.DOCTOR)))
+            {
+                return new ApiErrorResult<object>("User is not authorization to access.", System.Net.HttpStatusCode.Forbidden);
+            }
+            // Update fields
+            existingItem.Notes = request.Notes;
+            existingItem.Status = request.Status;
+            existingItem.Name = request.Name;
+            existingItem.Fee = request.Fee;
+            existingItem.Description = request.Description;
+            existingItem.Result = request.Result;
+            // Update Childs
+            foreach (var item in request.ChildsUpdated)
+            {
+              
+                var createItem = new CreateFetalGrowthRecordModelView()
+                {
+                    AbdominalCircumference = item.AbdominalCircumference,
+                    HeadCircumference = item.HeadCircumference,
+                    ChildId = item.ChildId,
+                    FetalHeartRate = item.FetalHeartRate,
+                    HealthCondition = item.HealthCondition,
+                    Height = item.Height,
+                    RecordedAt = DateTime.Now,
+                    WeekOfPregnancy = item.WeekOfPregnancy,
+                    Weight = item.Weight,
+                };
+                var resultRecord = await _fetalGrowthRecordService.AddFetalGrowthRecordAsync(createItem);
+                if (resultRecord.IsSuccessed == false)
+                {
+                    //_unitOfWork.RollBack();
+                    return new ApiErrorResult<object>(resultRecord.Message);
+                }
+            }
+            await _unitOfWork.SaveAsync();
+            //_unitOfWork.CommitTransaction();
+            return new ApiSuccessResult<object>("Appointment updated successfully.");
+
+        }
     }
 }

@@ -12,5 +12,7 @@
         public float AverageHeight { get; set; }
         public float HeadCircumference { get; set; }
         public float AbdominalCircumference { get; set; }
+        public int? FetalHeartRate { get; set; }
+
     }
 }

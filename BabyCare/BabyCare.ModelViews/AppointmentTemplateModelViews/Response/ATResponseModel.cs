@@ -15,5 +15,7 @@ namespace BabyCare.ModelViews.AppointmentTemplateModelViews.Response
         public string Description { get; set; }
         public string Status { get; set; }
         public string Image { get; set; }
+        public decimal? Fee { get; set; }
+
     }
 }

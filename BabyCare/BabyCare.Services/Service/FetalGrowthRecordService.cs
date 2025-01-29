@@ -44,6 +44,9 @@ namespace BabyCare.Services.Service
             newRecord.CreatedBy = model.ChildId.ToString();  // Assuming CreatedBy is ChildId for this example
             newRecord.CreatedTime = DateTimeOffset.UtcNow;
 
+            var standart = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities.Where(x => x.Week == model.WeekOfPregnancy).FirstOrDefaultAsync();
+            newRecord.FetalGrowthStandardId = standart.Id;
+
             await _unitOfWork.GetRepository<FetalGrowthRecord>().InsertAsync(newRecord);
             await _unitOfWork.SaveAsync();
 
