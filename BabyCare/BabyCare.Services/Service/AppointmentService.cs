@@ -21,9 +21,11 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using static BabyCare.Core.Utils.SystemConstant;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BabyCare.Services.Service
 {
@@ -838,6 +840,116 @@ namespace BabyCare.Services.Service
             //_unitOfWork.CommitTransaction();
             return new ApiSuccessResult<object>("Appointment updated successfully.");
 
+        }
+        private string NormalizePropertyName(string propertyName)
+        {
+            if (string.IsNullOrEmpty(propertyName))
+                return propertyName;
+
+            return char.ToUpper(propertyName[0]) + propertyName.Substring(1);
+        }
+        private bool PropertyExists(string propertyName, Type entityType)
+        {
+            // Kiểm tra nếu thuộc tính tồn tại trong entity
+            var property = entityType.GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+            return property != null;
+        }
+
+        public async Task<ApiResult<BasePaginatedList<AppointmentResponseModel>>> GetAppointmentsByUserIdPagination(SearchAppointmentByUserId request)
+        {
+            var query = _unitOfWork.GetRepository<Appointment>().Entities.AsQueryable();
+            query = query.Where(x => x.AppointmentUsers.Any(x => x.UserId == request.userId));
+            // 1. Áp dụng bộ lọc (Filtering)
+            if (!string.IsNullOrEmpty(request.SearchValue))
+            {
+                query = query.Where(a => a.Name.Contains(request.SearchValue) ||
+                                         a.AppointmentChildren.Any(x => x.Child.Name.Contains(request.SearchValue)));
+            }
+            if (request.FromDate.HasValue)
+            {
+                query = query.Where(a => a.AppointmentDate >= request.FromDate.Value);
+            }
+            if (request.ToDate.HasValue)
+            {
+                query = query.Where(a => a.AppointmentDate <= request.ToDate.Value);
+            }
+            if (request.Status != null)
+            {
+                query = query.Where(a => a.Status == request.Status);
+            }
+
+            // 2. Áp dụng sắp xếp (Sorting)
+            var normalizedSortBy = NormalizePropertyName(request.SortBy);
+            if (!PropertyExists(normalizedSortBy, typeof(Appointment)))
+            {
+                // Nếu không tồn tại, bạn có thể xử lý lỗi, hoặc chọn một thuộc tính mặc định
+                throw new ArgumentException($"Property '{request.SortBy}' does not exist on the Appointment entity.");
+            }
+            if (!string.IsNullOrEmpty(request.SortBy))
+            {
+                query = request.IsDescending
+       ? query.OrderByDescending(a => EF.Property<object>(a, normalizedSortBy).ToString().ToLower())
+       : query.OrderBy(a => EF.Property<object>(a, normalizedSortBy).ToString().ToLower());
+
+            }
+            else
+            {
+                query = query.OrderBy(a => a.AppointmentDate); // Mặc định sắp xếp theo ngày hẹn
+            }
+
+            // 3. Tổng số bản ghi
+            var totalRecords = await query.CountAsync();
+            var currentPage = request.PageIndex ?? 1;
+            var pageSize = request.PageSize ?? SystemConstant.PAGE_SIZE;
+            var total = await query.CountAsync();
+            // 4. Áp dụng phân trang (Pagination)
+            var data = await query
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+
+            var res = new List<AppointmentResponseModel>();
+            foreach (var existingItem in data)
+            {
+                var added = _mapper.Map<AppointmentResponseModel>(existingItem);
+
+
+                if (Enum.IsDefined(typeof(AppointmentStatus), existingItem.Status))
+                {
+                    added.Status = ((AppointmentStatus)existingItem.Status).ToString();
+                }
+                else
+                {
+                    added.Status = "Unknown";
+                }
+                var user = await _userManager.FindByIdAsync(existingItem.AppointmentUsers.FirstOrDefault().UserId.ToString());
+
+                added.User = _mapper.Map<UserResponseModel>(user);
+                added.Doctors = new();
+                foreach (var doctor in existingItem.AppointmentUsers)
+                {
+                    if (doctor.Doctor == null)
+                    {
+                        continue;
+                    }
+                    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
+                    var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
+                    added.Doctors.Add(doctorModel);
+                }
+                added.AppointmentTemplate = _mapper.Map<ATResponseModel>(existingItem.AppointmentTemplate);
+                added.Childs = new();
+                foreach (var child in existingItem.AppointmentChildren)
+                {
+                    var childModel = _mapper.Map<ChildModelView>(child.Child);
+                    added.Childs.Add(childModel);
+                }
+                res.Add(added);
+            }
+
+            var response = new BasePaginatedList<AppointmentResponseModel>(res, total, currentPage, pageSize);
+            // return to client
+            return new ApiSuccessResult<BasePaginatedList<AppointmentResponseModel>>(response);
         }
     }
 }

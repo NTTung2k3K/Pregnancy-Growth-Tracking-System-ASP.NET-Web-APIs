@@ -113,6 +113,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
             }
         }
+        [HttpGet("get-pagination-by-user-id")]
+        public async Task<IActionResult> GetAppointmentsByUserIdPagination([FromQuery] SearchAppointmentByUserId request)
+        {
+            try
+            {
+                var result = await _appointmentService.GetAppointmentsByUserIdPagination(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+            }
+        }
         [HttpGet("get-available-slot")]
         public async Task<IActionResult> GetSlotAvailable([FromQuery] DateTime date)
         {
