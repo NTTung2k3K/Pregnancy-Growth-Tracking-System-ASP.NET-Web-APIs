@@ -12,6 +12,7 @@ using BabyCare.ModelViews.AppointmentModelViews.Response;
 using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
 using BabyCare.ModelViews.AuthModelViews.Response;
 using BabyCare.ModelViews.ChildModelView;
+using BabyCare.ModelViews.FetalGrowthRecordModelView;
 using BabyCare.ModelViews.UserModelViews.Response;
 using BabyCare.Repositories.Context;
 using Microsoft.AspNetCore.Http;
@@ -32,16 +33,17 @@ namespace BabyCare.Services.Service
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly UserManager<ApplicationUsers> _userManager;
-        private readonly IChildService _childService;
+        private readonly IFetalGrowthRecordService _fetalGrowthRecordService;
 
 
-        public AppointmentService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager, IChildService childService)
+
+        public AppointmentService(IFetalGrowthRecordService fetalGrowthRecordService,IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
         {
+            _fetalGrowthRecordService = fetalGrowthRecordService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
             _userManager = userManager;
-            _childService = childService;
         }
         public async Task<Guid?> GetRandomDoctorIdAsync()
         {
@@ -121,6 +123,7 @@ namespace BabyCare.Services.Service
                     Fee = existingAT.Fee * request.ChildIds.Count,
                     Notes = request.Notes,
                     Name = request.Name,
+                    Description = request.Description,
                 };
                 await repoAppointment.InsertAsync(appointment);
                 await repoAppointment.SaveAsync();
@@ -776,7 +779,7 @@ namespace BabyCare.Services.Service
             var repoAT = _unitOfWork.GetRepository<AppointmentTemplates>();
             var repoAC = _unitOfWork.GetRepository<AppointmentChild>();
 
-            _unitOfWork.BeginTransaction();
+            //_unitOfWork.BeginTransaction();
             // Check appointment is existed
             var existingItem = await repo.Entities.FirstOrDefaultAsync(x => x.Id == request.Id);
             if (existingItem == null || existingItem.DeletedBy != null)
@@ -811,15 +814,28 @@ namespace BabyCare.Services.Service
             // Update Childs
             foreach (var item in request.ChildsUpdated)
             {
-               var result =  await _childService.UpdateChildAsync(item.Id,item);
-                if(result.IsSuccessed == false)
+              
+                var createItem = new CreateFetalGrowthRecordModelView()
                 {
-                    _unitOfWork.RollBack();
-                    return new ApiErrorResult<object>(result.Message);
+                    AbdominalCircumference = item.AbdominalCircumference,
+                    HeadCircumference = item.HeadCircumference,
+                    ChildId = item.ChildId,
+                    FetalHeartRate = item.FetalHeartRate,
+                    HealthCondition = item.HealthCondition,
+                    Height = item.Height,
+                    RecordedAt = DateTime.Now,
+                    WeekOfPregnancy = item.WeekOfPregnancy,
+                    Weight = item.Weight,
+                };
+                var resultRecord = await _fetalGrowthRecordService.AddFetalGrowthRecordAsync(createItem);
+                if (resultRecord.IsSuccessed == false)
+                {
+                    //_unitOfWork.RollBack();
+                    return new ApiErrorResult<object>(resultRecord.Message);
                 }
             }
-
-            _unitOfWork.CommitTransaction();
+            await _unitOfWork.SaveAsync();
+            //_unitOfWork.CommitTransaction();
             return new ApiSuccessResult<object>("Appointment updated successfully.");
 
         }

@@ -79,6 +79,10 @@ namespace BabyCare.Repositories.Mapper
 
             #endregion
 
+            #region Record
+            CreateMap<FetalGrowthRecord, CreateFetalGrowthRecordModelView>().ReverseMap();
+            #endregion
+
             #region Payment 
             CreateMap<Payment,PaymentResponseModel>().ReverseMap();
             #endregion
