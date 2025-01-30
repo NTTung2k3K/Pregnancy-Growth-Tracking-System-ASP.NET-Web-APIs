@@ -492,6 +492,10 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("User is valid to cancel.");
             }
+            if (existingItem.CreatedTime <= DateTime.Now.AddHours(-1))
+            {
+                return new ApiErrorResult<object>("Appointment cannot cancel because out of time.");
+            }
             existingItem.Status = (int)SystemConstant.AppointmentStatus.CancelledByUser;
             await repo.UpdateAsync(existingItem);
             await repo.SaveAsync();
@@ -813,6 +817,7 @@ namespace BabyCare.Services.Service
             existingItem.Fee = request.Fee;
             existingItem.Description = request.Description;
             existingItem.Result = request.Result;
+            existingItem.AppointmentDate = DateTime.Now;
             // Update Childs
             foreach (var item in request.ChildsUpdated)
             {
@@ -858,7 +863,7 @@ namespace BabyCare.Services.Service
         public async Task<ApiResult<BasePaginatedList<AppointmentResponseModel>>> GetAppointmentsByUserIdPagination(SearchAppointmentByUserId request)
         {
             var query = _unitOfWork.GetRepository<Appointment>().Entities.AsQueryable();
-            query = query.Where(x => x.AppointmentUsers.Any(x => x.UserId == request.userId));
+            query = query.Where(x => x.AppointmentUsers.Any(x => x.UserId == request.userId) && x.Status != (int)AppointmentStatus.Pending);
             // 1. Áp dụng bộ lọc (Filtering)
             if (!string.IsNullOrEmpty(request.SearchValue))
             {
@@ -867,11 +872,11 @@ namespace BabyCare.Services.Service
             }
             if (request.FromDate.HasValue)
             {
-                query = query.Where(a => a.AppointmentDate >= request.FromDate.Value);
+                query = query.Where(a => a.AppointmentDate.Date >= request.FromDate.Value.Date);
             }
             if (request.ToDate.HasValue)
             {
-                query = query.Where(a => a.AppointmentDate <= request.ToDate.Value);
+                query = query.Where(a => a.AppointmentDate.Date <= request.ToDate.Value.Date);
             }
             if (request.Status != null)
             {
