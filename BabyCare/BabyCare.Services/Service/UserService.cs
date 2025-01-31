@@ -211,24 +211,24 @@ namespace BabyCare.Contract.Services.Implements
             return new ApiSuccessResult<object>("Please check your gmail to confirm");
         }
 
-        public async Task<ApiResult<UserLoginResponseModel>> RefreshToken(NewRefreshTokenRequestModel request)
+        public async Task<ApiResult<EmployeeLoginResponseModel>> RefreshToken(NewRefreshTokenRequestModel request)
         {
 
             // Check existed user
             var existingUser = await _userManager.Users.FirstOrDefaultAsync(x => x.Id == request.Id);
             if (existingUser == null)
             {
-                return new ApiErrorResult<UserLoginResponseModel>("User is not existed.", System.Net.HttpStatusCode.NotFound);
+                return new ApiErrorResult<EmployeeLoginResponseModel>("User is not existed.", System.Net.HttpStatusCode.NotFound);
             }
             // Check refresh token
             if (existingUser.RefreshToken != request.RefreshToken)
             {
-                return new ApiErrorResult<UserLoginResponseModel>("Refresh token is not correct.", System.Net.HttpStatusCode.BadRequest);
+                return new ApiErrorResult<EmployeeLoginResponseModel>("Refresh token is not correct.", System.Net.HttpStatusCode.BadRequest);
             }
             // Check expired time
             if (existingUser.RefreshTokenExpiryTime < DateTime.Now)
             {
-                return new ApiErrorResult<UserLoginResponseModel>("Refresh token is expired.", System.Net.HttpStatusCode.BadRequest);
+                return new ApiErrorResult<EmployeeLoginResponseModel>("Refresh token is expired.", System.Net.HttpStatusCode.BadRequest);
             }
             // Generate new refresh token
             var refreshTokenData = GenerateRefreshToken();
@@ -237,10 +237,14 @@ namespace BabyCare.Contract.Services.Implements
             existingUser.RefreshTokenExpiryTime = refreshTokenData.Item2;
             await _userManager.UpdateAsync(existingUser);
             // Response to client
-            var response = _mapper.Map<UserLoginResponseModel>(existingUser);
+            var response = _mapper.Map<EmployeeLoginResponseModel>(existingUser);
             response.AccessToken = accessTokenData.Item1;
             response.AccessTokenExpiredTime = accessTokenData.Item2;
-            return new ApiSuccessResult<UserLoginResponseModel>(response, "Refresh token successfully.");
+
+            // Take role
+            var roles = await _userManager.GetRolesAsync(existingUser);
+            response.Roles = roles.ToList();
+            return new ApiSuccessResult<EmployeeLoginResponseModel>(response, "Refresh token successfully.");
         }
 
         public async Task<ApiResult<object>> ForgotPassword(ForgotPasswordRequest request)

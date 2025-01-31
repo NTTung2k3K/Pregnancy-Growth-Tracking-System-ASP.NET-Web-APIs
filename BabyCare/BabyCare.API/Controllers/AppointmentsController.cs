@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using VNPAY.NET.Utilities;
 using Azure.Core;
 using BabyCare.ModelViews.AppointmentModelViews.Response;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BabyCare.API.Controllers
 {
@@ -106,6 +107,19 @@ namespace BabyCare.API.Controllers
             try
             {
                 var result = await _appointmentService.GetAppointmentsPagination(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+            }
+        }
+        [HttpGet("get-pagination-by-user-id")]
+        public async Task<IActionResult> GetAppointmentsByUserIdPagination([FromQuery] SearchAppointmentByUserId request)
+        {
+            try
+            {
+                var result = await _appointmentService.GetAppointmentsByUserIdPagination(request);
                 return Ok(result);
             }
             catch (Exception ex)

@@ -16,6 +16,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> CreateAppointment(CreateAppointmentRequest request);
         Task<ApiResult<object>> UpdateAppointment(UpdateAppointmentRequest request);
         Task<ApiResult<object>> UpdateByDoctorAppointment(UpdateAppointmentByDoctorRequest request);
+        Task<ApiResult<BasePaginatedList<AppointmentResponseModel>>> GetAppointmentsByUserIdPagination(SearchAppointmentByUserId request);
 
         Task<ApiResult<BasePaginatedList<AppointmentResponseModel>>> GetAppointmentsPagination(BaseSearchRequest request);
         Task<ApiResult<object>> DeleteAppointment(DeleteAppointmentRequest request);

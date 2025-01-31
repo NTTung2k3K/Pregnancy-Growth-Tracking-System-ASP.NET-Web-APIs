@@ -10,7 +10,7 @@ namespace BabyCare.Contract.Services.Interface
 {
     public interface IUserService
     {
-        Task<ApiResult<UserLoginResponseModel>> RefreshToken(NewRefreshTokenRequestModel request);
+        Task<ApiResult<EmployeeLoginResponseModel>> RefreshToken(NewRefreshTokenRequestModel request);
 
         #region Authen User
         Task<ApiResult<UserLoginResponseModel>> UserLogin(UserLoginRequestModel request);
