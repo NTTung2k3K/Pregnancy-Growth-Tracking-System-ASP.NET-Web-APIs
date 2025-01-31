@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using VNPAY.NET.Utilities;
 using Azure.Core;
 using BabyCare.ModelViews.AppointmentModelViews.Response;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BabyCare.API.Controllers
 {

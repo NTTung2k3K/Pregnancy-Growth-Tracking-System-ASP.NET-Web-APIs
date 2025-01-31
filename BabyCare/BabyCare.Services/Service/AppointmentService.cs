@@ -67,9 +67,13 @@ namespace BabyCare.Services.Service
 
         public async Task<ApiResult<object>> CreateAppointment(CreateAppointmentRequest request)
         {
-            if (_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+            if (request.IsDoctorCreate)
             {
-                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+
+                if (_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+                {
+                    return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+                }
             }
             var repoAppointment = _unitOfWork.GetRepository<Appointment>();
             var repoAppointmentUser = _unitOfWork.GetRepository<AppointmentUser>();
