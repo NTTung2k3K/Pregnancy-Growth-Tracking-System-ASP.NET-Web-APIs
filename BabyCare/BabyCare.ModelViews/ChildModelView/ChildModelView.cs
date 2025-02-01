@@ -22,5 +22,6 @@ namespace BabyCare.ModelViews.ChildModelView
         public string? PhotoUrl { get; set; }
         public string? BloodType { get; set; }
         public string? PregnancyWeekAtBirth { get; set; }
+
     }
 }

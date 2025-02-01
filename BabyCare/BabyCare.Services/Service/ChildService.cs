@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using Azure;
 using Azure.Core;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.Core.APIResponse;
+using BabyCare.ModelViews.AppointmentModelViews.Response;
 using BabyCare.ModelViews.ChildModelView;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -204,11 +206,11 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<BasePaginatedList<ChildModelView>>(result);
         }
 
-        public async Task<ApiResult<ChildModelView>> GetChildByIdAsync(int id)
+        public async Task<ApiResult<ChildModelViewAddeRecords>> GetChildByIdAsync(int id)
         {
             if (id <= 0)
             {
-                return new ApiErrorResult<ChildModelView>("Please provide a valid Child ID.");
+                return new ApiErrorResult<ChildModelViewAddeRecords>("Please provide a valid Child ID.");
             }
 
             // Lấy Child từ cơ sở dữ liệu
@@ -218,13 +220,30 @@ namespace BabyCare.Services.Service
 
             if (childEntity == null)
             {
-                return new ApiErrorResult<ChildModelView>("Child not found or has been deleted.");
+                return new ApiErrorResult<ChildModelViewAddeRecords>("Child not found or has been deleted.");
             }
 
             // Chuyển đổi từ Child sang ChildModelView
-            ChildModelView childModelView = _mapper.Map<ChildModelView>(childEntity);
+            ChildModelViewAddeRecords childModelView = _mapper.Map<ChildModelViewAddeRecords>(childEntity);
+            foreach (var child in childEntity.FetalGrowthRecords)
+            {
+                // Map Child entity sang ChildModelViewAddeRecords
+                var childModel = _mapper.Map<ChildModelViewAddeRecords>(child.Child);
 
-            return new ApiSuccessResult<ChildModelView>(childModelView);
+                // Lấy các FGR liên quan và map cùng tiêu chuẩn
+                var fgrs = await _unitOfWork.GetRepository<FetalGrowthRecord>().Entities
+                    .Include(x => x.FetalGrowthStandard) // Đảm bảo include dữ liệu liên quan
+                    .Where(x => x.ChildId == child.ChildId)
+                    .ToListAsync();
+
+                // Map danh sách FGR sang ModelView
+                childModelView.FetalGrowthRecordModelViews = _mapper.Map<List<FetalGrowthRecordModelViewAddedStandards>>(fgrs);
+
+                //// Thêm vào response
+                //response.Childs.Add(childModel);
+            }
+
+            return new ApiSuccessResult<ChildModelViewAddeRecords>(childModelView);
         }
 
         public async Task<ApiResult<object>> UpdateChildAsync(int id, UpdateChildModelView model)
