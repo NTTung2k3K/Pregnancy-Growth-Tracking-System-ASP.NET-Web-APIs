@@ -6,13 +6,19 @@ using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.Core.APIResponse;
+using BabyCare.Core.Utils;
+using BabyCare.ModelViews.AppointmentModelViews.Request;
 using BabyCare.ModelViews.AppointmentModelViews.Response;
+using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
 using BabyCare.ModelViews.ChildModelView;
+using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using static BabyCare.Core.Utils.SystemConstant;
@@ -381,20 +387,96 @@ namespace BabyCare.Services.Service
             }
 
         }
+        private string NormalizePropertyName(string propertyName)
+        {
+            if (string.IsNullOrEmpty(propertyName))
+                return propertyName;
+
+            return char.ToUpper(propertyName[0]) + propertyName.Substring(1);
+        }
+        private bool PropertyExists(string propertyName, Type entityType)
+        {
+            // Kiểm tra nếu thuộc tính tồn tại trong entity
+            var property = entityType.GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+            return property != null;
+        }
 
         public async Task<ApiResult<List<ChildModelView>>> GetChildByUserId(Guid id)
         {
             // Lấy Child từ cơ sở dữ liệu
-            var childEntity =  _unitOfWork.GetRepository<Child>().Entities
+            var childEntity = _unitOfWork.GetRepository<Child>().Entities
                 .AsNoTracking()
                 .Where(child => child.UserId == id && !child.DeletedTime.HasValue);
 
-        
+
 
             // Chuyển đổi từ Child sang ChildModelView
             var childModelView = _mapper.Map<List<ChildModelView>>(childEntity);
 
             return new ApiSuccessResult<List<ChildModelView>>(childModelView);
+        }
+
+        public async Task<ApiResult<BasePaginatedList<ChildModelView>>> GetChildByUserIdPagination(SearchChildByUserId request)
+        {
+            var query = _unitOfWork.GetRepository<Child>().Entities.AsQueryable();
+            query = query.Where(x => x.UserId == request.userId && x.DeletedBy == null);
+            // 1. Áp dụng bộ lọc (Filtering)
+            if (!string.IsNullOrEmpty(request.SearchValue))
+            {
+                query = query.Where(a => a.Name.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                       (a.BloodType != null && a.BloodType.ToLower().Contains(request.SearchValue.ToLower())) ||
+                                        (a.PregnancyWeekAtBirth != null && a.PregnancyWeekAtBirth.ToLower().Contains(request.SearchValue.ToLower()))
+                                         );
+            }
+            if (request.FromDate.HasValue)
+            {
+                query = query.Where(a => a.DueDate.Date >= request.FromDate.Value.Date);
+            }
+            if (request.ToDate.HasValue)
+            {
+                query = query.Where(a => a.DueDate.Date <= request.ToDate.Value.Date);
+            }
+
+            // 2. Áp dụng sắp xếp (Sorting)
+            if (request.SortBy != null)
+            {
+                var normalizedSortBy = NormalizePropertyName(request.SortBy);
+                if (!PropertyExists(normalizedSortBy, typeof(Child)))
+                {
+                    // Nếu không tồn tại, bạn có thể xử lý lỗi, hoặc chọn một thuộc tính mặc định
+                    throw new ArgumentException($"Property '{request.SortBy}' does not exist on the Appointment entity.");
+                }
+                if (!string.IsNullOrEmpty(request.SortBy))
+                {
+                    query = request.IsDescending
+           ? query.OrderByDescending(a => EF.Property<object>(a, normalizedSortBy).ToString().ToLower())
+           : query.OrderBy(a => EF.Property<object>(a, normalizedSortBy).ToString().ToLower());
+
+                }
+            }
+
+            else
+            {
+                query = query.OrderBy(a => a.DueDate); // Mặc định sắp xếp theo ngày hẹn
+            }
+
+            // 3. Tổng số bản ghi
+            var totalRecords = await query.CountAsync();
+            var currentPage = request.PageIndex ?? 1;
+            var pageSize = request.PageSize ?? SystemConstant.PAGE_SIZE;
+            var total = await query.CountAsync();
+            // 4. Áp dụng phân trang (Pagination)
+            var data = await query
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+
+            var res = _mapper.Map<List<ChildModelView>>(data);
+
+            var response = new BasePaginatedList<ChildModelView>(res, total, currentPage, pageSize);
+            // return to client
+            return new ApiSuccessResult<BasePaginatedList<ChildModelView>>(response);
         }
     }
 }

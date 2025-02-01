@@ -240,6 +240,7 @@ namespace BabyCare.Contract.Services.Implements
             var response = _mapper.Map<EmployeeLoginResponseModel>(existingUser);
             response.AccessToken = accessTokenData.Item1;
             response.AccessTokenExpiredTime = accessTokenData.Item2;
+            response.FullName = existingUser.FullName ?? "Unknown";
 
             // Take role
             var roles = await _userManager.GetRolesAsync(existingUser);
@@ -351,7 +352,7 @@ namespace BabyCare.Contract.Services.Implements
             var response = _mapper.Map<EmployeeLoginResponseModel>(existingUser);
             response.AccessToken = accessTokenData.Item1;
             response.AccessTokenExpiredTime = accessTokenData.Item2;
-
+            response.FullName = existingUser.FullName ?? "Unknown";
             // Take role
             var roles = await _userManager.GetRolesAsync(existingUser);
             response.Roles = roles.ToList();
@@ -848,6 +849,8 @@ namespace BabyCare.Contract.Services.Implements
             response.AccessTokenExpiredTime = accessTokenData.Item2;
             response.RefreshToken = refreshTokenData.Item1;
             response.RefreshTokenExpiryTime = refreshTokenData.Item2;
+            response.FullName = existingUser.FullName ?? "Unknown";
+
             return new ApiSuccessResult<UserLoginResponseModel>(response, "Register successfully.");
 
         }

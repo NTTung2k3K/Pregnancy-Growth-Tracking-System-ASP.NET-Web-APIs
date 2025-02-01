@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.AppointmentModelViews.Response;
+using BabyCare.ModelViews.AppointmentModelViews.Request;
 
 namespace BabyCare.Contract.Services.Interface
 {
@@ -27,6 +28,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> DeleteChildAsync(int id);
         Task<ApiResult<ChildModelViewAddeRecords>> GetChildByIdAsync(int id);
         Task<ApiResult<List<ChildModelView>>> GetChildByUserId(Guid id);
+        Task<ApiResult<BasePaginatedList<ChildModelView>>> GetChildByUserIdPagination(SearchChildByUserId request);
 
     }
 }
