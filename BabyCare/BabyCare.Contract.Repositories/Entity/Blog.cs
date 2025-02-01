@@ -12,6 +12,7 @@ namespace BabyCare.Contract.Repositories.Entity
     {
         public string Title { get; set; }
         public string Content { get; set; }
+        public int? Week { get; set; }
         public Guid AuthorId { get; set; }
 
         [ForeignKey("AuthorId")]

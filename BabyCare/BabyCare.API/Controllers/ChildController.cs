@@ -71,6 +71,19 @@ namespace BabyCare.API.Controllers
             }
         }
 
+        [HttpGet("get-child-pagination-by-user-id")]
+        public async Task<ActionResult<ChildModelView>> GetChildByUserIdPagination([FromQuery]SearchChildByUserId request)
+        {
+            try
+            {
+                var result = await _childService.GetChildByUserIdPagination(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
         /// <summary>
         ///     Create a new child
         /// </summary>
