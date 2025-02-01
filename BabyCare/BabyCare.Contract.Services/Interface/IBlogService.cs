@@ -23,5 +23,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> UpdateBlogAsync(int id, UpdateBlogModelView model);
         Task<ApiResult<object>> DeleteBlogAsync(int id);
         Task<ApiResult<BlogModelView>> GetBlogByIdAsync(int id);
+        Task<ApiResult<List<BlogModelViewAddedType>>> GetBlogByWeekAsync(int week);
+
     }
 }

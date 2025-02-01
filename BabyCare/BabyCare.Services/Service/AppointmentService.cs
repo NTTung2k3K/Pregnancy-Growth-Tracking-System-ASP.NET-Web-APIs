@@ -39,7 +39,7 @@ namespace BabyCare.Services.Service
 
 
 
-        public AppointmentService(IFetalGrowthRecordService fetalGrowthRecordService,IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
+        public AppointmentService(IFetalGrowthRecordService fetalGrowthRecordService, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
         {
             _fetalGrowthRecordService = fetalGrowthRecordService;
             _unitOfWork = unitOfWork;
@@ -825,7 +825,7 @@ namespace BabyCare.Services.Service
             // Update Childs
             foreach (var item in request.ChildsUpdated)
             {
-              
+
                 var createItem = new CreateFetalGrowthRecordModelView()
                 {
                     AbdominalCircumference = item.AbdominalCircumference,
@@ -871,8 +871,8 @@ namespace BabyCare.Services.Service
             // 1. Áp dụng bộ lọc (Filtering)
             if (!string.IsNullOrEmpty(request.SearchValue))
             {
-                query = query.Where(a => a.Name.Contains(request.SearchValue) ||
-                                         a.AppointmentChildren.Any(x => x.Child.Name.Contains(request.SearchValue)));
+                query = query.Where(a => a.Name.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                         a.AppointmentChildren.Any(x => x.Child.Name.ToLower().Contains(request.SearchValue.ToLower())));
             }
             if (request.FromDate.HasValue)
             {
@@ -887,19 +887,22 @@ namespace BabyCare.Services.Service
                 query = query.Where(a => a.Status == request.Status);
             }
 
-            // 2. Áp dụng sắp xếp (Sorting)
-            var normalizedSortBy = NormalizePropertyName(request.SortBy);
-            if (!PropertyExists(normalizedSortBy, typeof(Appointment)))
+            if (request.SortBy != null)
             {
-                // Nếu không tồn tại, bạn có thể xử lý lỗi, hoặc chọn một thuộc tính mặc định
-                throw new ArgumentException($"Property '{request.SortBy}' does not exist on the Appointment entity.");
-            }
-            if (!string.IsNullOrEmpty(request.SortBy))
-            {
-                query = request.IsDescending
-       ? query.OrderByDescending(a => EF.Property<object>(a, normalizedSortBy).ToString().ToLower())
-       : query.OrderBy(a => EF.Property<object>(a, normalizedSortBy).ToString().ToLower());
+                // 2. Áp dụng sắp xếp (Sorting)
+                var normalizedSortBy = NormalizePropertyName(request.SortBy);
+                if (!PropertyExists(normalizedSortBy, typeof(Appointment)))
+                {
+                    // Nếu không tồn tại, bạn có thể xử lý lỗi, hoặc chọn một thuộc tính mặc định
+                    throw new ArgumentException($"Property '{request.SortBy}' does not exist on the Appointment entity.");
+                }
+                if (!string.IsNullOrEmpty(request.SortBy))
+                {
+                    query = request.IsDescending
+           ? query.OrderByDescending(a => EF.Property<object>(a, normalizedSortBy).ToString().ToLower())
+           : query.OrderBy(a => EF.Property<object>(a, normalizedSortBy).ToString().ToLower());
 
+                }
             }
             else
             {

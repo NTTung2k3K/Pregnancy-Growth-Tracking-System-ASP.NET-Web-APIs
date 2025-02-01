@@ -160,6 +160,30 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<BlogModelView>(blogModelView);
         }
 
+        public async Task<ApiResult<List<BlogModelViewAddedType>>> GetBlogByWeekAsync(int week)
+        {
+            IQueryable<Blog> blogQuery = _unitOfWork.GetRepository<Blog>().Entities
+                .AsNoTracking()
+                .Where(b => !b.DeletedTime.HasValue && (b.Week!= null && b.Week  == week)); // Loại bỏ các bản ghi đã bị xóa
+
+            // Áp dụng bộ lọc theo id, title, status, và isFeatured nếu có
+            
+
+            // Sắp xếp theo thời gian tạo giảm dần
+            blogQuery = blogQuery.OrderByDescending(b => b.CreatedTime);
+
+            // Lấy tổng số lượng bản ghi
+
+            // Lấy dữ liệu phân trang
+            List<Blog> paginatedBlogs = await blogQuery.ToListAsync();
+
+            // Chuyển đổi từ Blog sang BlogModelView
+            List<BlogModelViewAddedType> blogModelViews = _mapper.Map<List<BlogModelViewAddedType>>(paginatedBlogs);
+
+            // Tạo đối tượng phân trang
+            return new ApiSuccessResult<List<BlogModelViewAddedType>>(blogModelViews,"Blog updated successfully.");
+
+        }
 
         public async Task<ApiResult<object>> UpdateBlogAsync(int id, UpdateBlogModelView model)
         {
@@ -239,6 +263,11 @@ namespace BabyCare.Services.Service
             if (model.IsFeatured.HasValue && model.IsFeatured != existingBlog.IsFeatured)
             {
                 existingBlog.IsFeatured = model.IsFeatured.Value;
+                isUpdated = true;
+            }
+            if (model.Week.HasValue && model.Week != existingBlog.Week)
+            {
+                existingBlog.Week = model.Week.Value;
                 isUpdated = true;
             }
 

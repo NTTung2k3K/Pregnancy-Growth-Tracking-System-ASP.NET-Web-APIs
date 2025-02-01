@@ -13,6 +13,8 @@ namespace BabyCare.ModelViews.BlogModelViews
         public Guid? AuthorId { get; set; }
         public int? LikesCount { get; set; }
         public int? ViewCount { get; set; }
+        public int? Week { get; set; }
+
         public string? Status { get; set; }
         public string? Sources { get; set; }
         public string? Thumbnail { get; set; }

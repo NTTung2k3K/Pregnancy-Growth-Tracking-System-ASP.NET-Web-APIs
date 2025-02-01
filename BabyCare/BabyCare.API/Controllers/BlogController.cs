@@ -51,6 +51,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+        [HttpGet("get-by-week")]
+        public async Task<ActionResult<BlogModelView>> GetBlogByWeekAsync([FromQuery]int week)
+        {
+            try
+            {
+                var result = await _blogService.GetBlogByWeekAsync(week);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
 
         /// <summary>
         ///     Create a new blog

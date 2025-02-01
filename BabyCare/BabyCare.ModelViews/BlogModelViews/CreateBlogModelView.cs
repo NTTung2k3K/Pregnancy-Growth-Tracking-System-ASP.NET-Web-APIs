@@ -22,6 +22,7 @@ namespace BabyCare.ModelViews.BlogModelViews
 
         public int? LikesCount { get; set; } = 0;
 
+        public int? Week { get; set; }
         public int? ViewCount { get; set; } = 0;
 
         public string? Status { get; set; }
