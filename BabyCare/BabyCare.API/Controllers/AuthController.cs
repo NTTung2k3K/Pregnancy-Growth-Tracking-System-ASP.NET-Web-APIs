@@ -24,6 +24,11 @@ namespace XuongMayBE.API.Controllers
             {
 
                 var result = await _userService.UserLogin(request);
+                if (!result.IsSuccessed)
+                {
+                    return StatusCode((int)result.StatusCode, result);
+                }
+
                 return Ok(result);
 
             }
