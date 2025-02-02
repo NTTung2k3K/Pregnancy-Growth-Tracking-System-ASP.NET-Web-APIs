@@ -95,11 +95,7 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (model.GrowChartsID.HasValue && model.GrowChartsID != existingRecord.GrowChartsID)
-            {
-                existingRecord.GrowChartsID = model.GrowChartsID.Value;
-                isUpdated = true;
-            }
+            
 
             if (!string.IsNullOrWhiteSpace(model.HealthCondition) && model.HealthCondition != existingRecord.HealthCondition)
             {

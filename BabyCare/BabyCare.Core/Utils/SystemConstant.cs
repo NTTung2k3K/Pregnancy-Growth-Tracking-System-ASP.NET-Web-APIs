@@ -18,6 +18,12 @@ namespace BabyCare.Core.Utils
             public static string InActive = "InActive";
 
         }
+        public enum GrowthChartStatus
+        {
+            Unshared = 0,
+            Shared = 1,
+            Blocking = 2,
+        }
         public class Provider
         {
             public static string GOOGLE = "Google";
