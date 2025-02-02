@@ -21,7 +21,7 @@ namespace BabyCare.Contract.Repositories.Entity
         public int ViewCount { get; set; } = 0;
         public string? Status { get; set; }
         public string? Sources { get; set; }
-        public string? Thumbnail { get; set; }
+        public string Thumbnail { get; set; }
         public int BlogTypeId { get; set; }
 
         [ForeignKey("BlogTypeId")]

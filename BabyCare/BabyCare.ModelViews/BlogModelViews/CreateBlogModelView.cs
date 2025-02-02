@@ -29,7 +29,7 @@ namespace BabyCare.ModelViews.BlogModelViews
 
         public string? Sources { get; set; }
 
-        public IFormFile? Thumbnail { get; set; }
+        public IFormFile Thumbnail { get; set; }
 
         [Required(ErrorMessage = "BlogTypeId is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "BlogTypeId must be a positive integer.")]

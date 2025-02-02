@@ -29,6 +29,7 @@ namespace BabyCare.Contract.Repositories.Entity
         public bool IsGenerateSampleAppointments { get; set; }
 
         public virtual ApplicationUsers User { get; set; }
+        public virtual ICollection<GrowthChart> GrowthCharts { get; set; }
 
         public virtual ICollection<AppointmentChild> AppointmentChildren { get; set; }
 

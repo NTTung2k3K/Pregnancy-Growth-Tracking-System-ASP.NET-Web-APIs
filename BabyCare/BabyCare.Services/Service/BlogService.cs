@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.Core.APIResponse;
+using BabyCare.Core.Firebase;
 using BabyCare.ModelViews.BlogModelViews;
 using BabyCare.ModelViews.BlogTypeModelView;
 using Microsoft.AspNetCore.Http;
@@ -202,6 +204,7 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Blog not found or has been deleted.");
             }
+            var existingImage = existingBlog.Thumbnail;
 
             // Cập nhật các trường nếu có sự thay đổi
             bool isUpdated = false;
@@ -248,11 +251,7 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (!string.IsNullOrWhiteSpace(model.Thumbnail) && model.Thumbnail != existingBlog.Thumbnail)
-            {
-                existingBlog.Thumbnail = model.Thumbnail;
-                isUpdated = true;
-            }
+            
 
             if (model.BlogTypeId.HasValue && model.BlogTypeId != existingBlog.BlogTypeId)
             {
@@ -270,14 +269,24 @@ namespace BabyCare.Services.Service
                 existingBlog.Week = model.Week.Value;
                 isUpdated = true;
             }
-
+            if(model.Thumbnail != null)
+            {
+                isUpdated = true;
+            }
             // Nếu có thay đổi, cập nhật thông tin và lưu vào DB
             if (isUpdated)
             {
                 existingBlog.LastUpdatedTime = DateTimeOffset.UtcNow;
                 // Bạn có thể sử dụng thông tin userId từ context nếu cần
                 // existingBlog.LastUpdatedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
-
+                if (model.Thumbnail != null)
+                {
+                    existingBlog.Thumbnail = await ImageHelper.Upload(model.Thumbnail);
+                }
+                else
+                {
+                    existingBlog.Thumbnail = existingImage;
+                }
                 await _unitOfWork.GetRepository<Blog>().UpdateAsync(existingBlog);
                 await _unitOfWork.SaveAsync();
 
