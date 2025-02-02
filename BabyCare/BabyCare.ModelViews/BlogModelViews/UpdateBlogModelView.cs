@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +18,7 @@ namespace BabyCare.ModelViews.BlogModelViews
 
         public string? Status { get; set; }
         public string? Sources { get; set; }
-        public string? Thumbnail { get; set; }
+        public IFormFile? Thumbnail { get; set; }
         public int? BlogTypeId { get; set; }
         public bool? IsFeatured
         {

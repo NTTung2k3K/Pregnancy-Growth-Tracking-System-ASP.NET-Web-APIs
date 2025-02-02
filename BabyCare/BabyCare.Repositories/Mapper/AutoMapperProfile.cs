@@ -8,8 +8,10 @@ using BabyCare.ModelViews.AuthModelViews.Response;
 using BabyCare.ModelViews.BlogModelViews;
 using BabyCare.ModelViews.BlogTypeModelView;
 using BabyCare.ModelViews.ChildModelView;
+using BabyCare.ModelViews.FeedbackModelView;
 using BabyCare.ModelViews.FetalGrowthRecordModelView;
 using BabyCare.ModelViews.FetalGrowthStandardModelView;
+using BabyCare.ModelViews.GrowthChartModelView;
 using BabyCare.ModelViews.MembershipPackageModelViews.Request;
 using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.PaymentModelView.Response;
@@ -107,6 +109,14 @@ namespace BabyCare.Repositories.Mapper
             CreateMap<Child, ChildModelView>().ReverseMap();
             CreateMap<Child, CreateChildModelView>().ReverseMap();
             CreateMap<Child, UpdateChildModelView>().ReverseMap();
+
+            CreateMap<GrowthChart, GrowthChartModelView>().ReverseMap();
+            CreateMap<GrowthChart, CreateGrowthChartModelView>().ReverseMap();
+            CreateMap<GrowthChart, UpdateGrowthChartModelView>().ReverseMap();
+
+            CreateMap<Feedback, FeedbackModelView>().ReverseMap();
+            CreateMap<Feedback, CreateFeedbackModelView>().ReverseMap();
+            CreateMap<Feedback, UpdateFeedbackModelView>().ReverseMap();
 
         }
     }
