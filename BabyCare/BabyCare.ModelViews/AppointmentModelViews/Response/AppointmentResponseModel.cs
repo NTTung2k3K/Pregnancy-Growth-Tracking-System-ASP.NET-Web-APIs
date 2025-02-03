@@ -44,7 +44,7 @@ namespace BabyCare.ModelViews.AppointmentModelViews.Response
         public virtual List<UserModelViews.Response.EmployeeResponseModel> Doctors { get; set; }
         public virtual ATResponseModel AppointmentTemplate { get; set; }
         public virtual List<ChildModelViewAddeRecords> Childs {  get; set; }
-
+         
         //public virtual Reminder Reminder { get; set; }
     }
     public class ChildModelViewAddeRecords : ChildModelView.ChildModelView

@@ -66,6 +66,7 @@ namespace BabyCare.API
                 .AddScoped<IBlogService, BlogService>()
                 .AddScoped<IAppointmentService, AppointmentService>()
                 .AddScoped<IFetalGrowthRecordService, FetalGrowthRecordService>()
+                .AddScoped<IGrowthChartService, GrowthChartService>()
                 .AddScoped<IChildService, ChildService>()
                 .AddScoped<IPaymentService, PaymentService>()
                 .AddScoped<IVnpay, Vnpay>()
