@@ -1,13 +1,16 @@
-﻿namespace BabyCare.ModelViews.GrowthChartModelView
+﻿using BabyCare.ModelViews.FeedbackModelView;
+
+namespace BabyCare.ModelViews.GrowthChartModelView
 {
     public class GrowthChartModelView
     {
         public int Id { get; set; }
         public string Status { get; set; }
-        public bool IsShared { get; set; }
-        public DateTime StartDay { get; set; }
-        public DateTime EndDay { get; set; }
+        public string Topic { get; set; }
+
         public string? Question { get; set; }
-        public int ViewCount { get; set; }
+        public int ViewCount { get; set; } 
+        public AppointmentModelViews.Response.ChildModelViewAddeRecords childModelView { get; set; }
+        public List<FeedbackModelView.FeedbackModelView> feedbackModelViews { get; set; }
     }
 }

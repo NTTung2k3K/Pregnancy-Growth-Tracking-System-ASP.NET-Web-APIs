@@ -22,7 +22,8 @@ namespace BabyCare.Core.Utils
         {
             Unshared = 0,
             Shared = 1,
-            Blocking = 2,
+            Blocked = 2,
+            Answered = 3,
         }
         public class Provider
         {

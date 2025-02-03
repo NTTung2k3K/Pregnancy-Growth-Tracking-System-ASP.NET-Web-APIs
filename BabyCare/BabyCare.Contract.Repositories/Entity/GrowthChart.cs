@@ -10,10 +10,8 @@ namespace BabyCare.Contract.Repositories.Entity
 {
     public class GrowthChart : BaseEntity
     {
-        public string Status { get; set; }
-        public DateTime StartDay { get; set; }
-        public DateTime EndDay { get; set; }
-        public string? Question { get; set; }
+        public int Status { get; set; }
+        public string Question { get; set; }
         public string Topic { get; set; }
 
         public int ViewCount { get; set; }
