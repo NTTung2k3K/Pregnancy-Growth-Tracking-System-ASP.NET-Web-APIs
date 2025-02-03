@@ -87,15 +87,14 @@ namespace BabyCare.Repositories.Context
                 .WithMany()
                 .HasForeignKey(au => au.Id)
                 .OnDelete(DeleteBehavior.Restrict);
-            builder.Entity<Feedback>(entity =>
-            {
-                // Define self-referencing relationship for ParentFeedback
-                entity.HasOne(f => f.ParentFeedback)
-                    .WithMany()
-                    .HasForeignKey(f => f.ParentFeedbackID)
-                    .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
+            builder.Entity<Feedback>().HasOne(x => x.User).WithMany(x => x.Feedbacks).HasForeignKey(x => x.UserId).IsRequired().OnDelete(DeleteBehavior.Restrict);
 
-            });
+            builder.Entity<Feedback>().HasOne(x => x.GrowthChart).WithMany(x => x.Feedbacks).HasForeignKey(x => x.GrowthChartsID).IsRequired().OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<Feedback>().HasOne(x => x.ResponseFeedback)
+                .WithMany(x => x.ResponseFeedbacks)
+                .HasForeignKey(x => x.ResponseFeedbackId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<ApplicationUserLogins>()
                 .HasKey(login => new { login.UserId, login.LoginProvider, login.ProviderKey });

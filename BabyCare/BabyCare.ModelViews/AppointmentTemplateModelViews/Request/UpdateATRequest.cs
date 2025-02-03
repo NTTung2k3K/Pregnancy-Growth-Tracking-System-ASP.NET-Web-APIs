@@ -16,6 +16,6 @@ namespace BabyCare.ModelViews.AppointmentTemplateModelViews.Request
         public int DaysFromBirth { get; set; }
         public int Status { get; set; }
         public string Description { get; set; }
-        public IFormFile  Image { get; set; }
+        public IFormFile?  Image { get; set; }
     }
 }

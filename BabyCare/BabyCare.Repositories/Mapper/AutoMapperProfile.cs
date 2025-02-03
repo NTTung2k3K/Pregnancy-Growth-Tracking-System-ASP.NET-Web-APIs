@@ -113,6 +113,9 @@ namespace BabyCare.Repositories.Mapper
             CreateMap<GrowthChart, GrowthChartModelView>().ReverseMap();
             CreateMap<GrowthChart, CreateGrowthChartModelView>().ReverseMap();
             CreateMap<GrowthChart, UpdateGrowthChartModelView>().ReverseMap();
+            CreateMap<GrowthChart, UpdateGrowChartByAdmin>().ReverseMap();
+            CreateMap<GrowthChart, UpdateGrowChartByUser>().ReverseMap();
+
 
             CreateMap<Feedback, FeedbackModelView>().ReverseMap();
             CreateMap<Feedback, CreateFeedbackModelView>().ReverseMap();

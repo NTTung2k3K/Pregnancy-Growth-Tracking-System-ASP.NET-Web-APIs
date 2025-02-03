@@ -70,7 +70,7 @@ namespace BabyCare.Services.Service
             if (request.IsDoctorCreate)
             {
 
-                if (_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+                if (_contextAccessor.HttpContext?.User?.FindFirst("userId") == null)
                 {
                     return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
                 }
@@ -319,7 +319,7 @@ namespace BabyCare.Services.Service
                 if (Enum.IsDefined(typeof(AppointmentStatus), existingItem.Status))
                 {
                     added.Status = ((AppointmentStatus)existingItem.Status).ToString();
-                }
+                }                            
                 else
                 {
                     added.Status = "Unknown";
