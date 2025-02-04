@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using BabyCare.ModelViews.UserModelViews.Response;
 using BabyCare.ModelViews.GrowthChartModelView;
 using static BabyCare.Core.Utils.SystemConstant;
+using System.Linq;
+using BabyCare.Core.Utils;
 
 namespace BabyCare.Services.Service
 {
@@ -226,6 +228,115 @@ namespace BabyCare.Services.Service
             }
 
             return new ApiErrorResult<object>("No changes were made");
+        }
+
+
+        public async Task<ApiResult<object>> GetFeedbacksWithPaginationAdmin(int growthChartId, int? pageIndex, int? pageSize)
+        {
+            var feedbacks = await _unitOfWork.GetRepository<Feedback>().Entities
+     .Where(f => f.GrowthChartsID == growthChartId && f.DeletedBy == null)
+     .OrderByDescending(f => f.CreatedTime)
+     .ToListAsync();
+
+            // Ánh xạ sang FeedbackModelView
+            var feedbackModelViews = _mapper.Map<List<FeedbackModelView>>(feedbacks);
+            pageIndex = pageIndex ?? 0;
+            pageSize = pageSize ?? SystemConstant.MAX_PER_COMMENT;
+
+            // Lọc các feedback cha (không có ParentFeedbackID)
+            var parentFeedbacks = feedbackModelViews
+                .Where(f => !feedbacks.Any(fb => fb.Id == f.Id && fb.ResponseFeedbackId.HasValue))
+                .Skip((int)((pageIndex - 1) * pageSize)) // Bỏ qua những trang trước đó
+                .Take((int)pageSize) // Lấy số lượng feedback theo pageSize
+                .ToList();
+            bool hasMore = feedbackModelViews.Count > pageIndex * pageSize;
+
+            foreach (var feedback in parentFeedbacks)
+            {
+                // Chuyển đổi Status từ Enum
+                var feedbackEntity = feedbacks.FirstOrDefault(f => f.Id == feedback.Id);
+                feedback.Status = feedbackEntity != null && Enum.IsDefined(typeof(FeedbackStatus), feedbackEntity.Status)
+                    ? ((FeedbackStatus)feedbackEntity.Status).ToString()
+                    : "Unknown";
+
+                feedback.User = _mapper.Map<UserResponseModel>(feedbackEntity?.User);
+
+                // Tìm các feedback con có ParentFeedbackID = feedback.Id
+                feedback.ResponseFeedbacks = _mapper.Map<List<FeedbackModelView>>(
+                    feedbacks.Where(f => f.ResponseFeedbackId == feedback.Id).ToList()
+                );
+
+                // Chuyển đổi Status của các feedback con
+                foreach (var childFeedback in feedback.ResponseFeedbacks)
+                {
+                    var childEntity = feedbacks.FirstOrDefault(f => f.Id == childFeedback.Id);
+                    childFeedback.Status = childEntity != null && Enum.IsDefined(typeof(FeedbackStatus), childEntity.Status)
+                        ? ((FeedbackStatus)childEntity.Status).ToString()
+                        : "Unknown";
+
+                    childFeedback.User = _mapper.Map<UserResponseModel>(childEntity?.User);
+                }
+            }
+
+            return new ApiSuccessResult<object>(new
+            {
+                Feedbacks = parentFeedbacks,
+                HasMore = hasMore
+            });
+        }
+
+        public async Task<ApiResult<object>> GetFeedbacksWithPagination(int growthChartId, int? pageIndex, int? pageSize)
+        {
+            var feedbacks = await _unitOfWork.GetRepository<Feedback>().Entities
+     .Where(f => f.GrowthChartsID == growthChartId && f.DeletedBy == null && f.Status == (int)FeedbackStatus.Active)
+     .OrderByDescending(f => f.CreatedTime)
+     .ToListAsync();
+
+            // Ánh xạ sang FeedbackModelView
+            var feedbackModelViews = _mapper.Map<List<FeedbackModelView>>(feedbacks);
+            pageIndex = pageIndex ?? 0;
+            pageSize = pageSize ?? SystemConstant.MAX_PER_COMMENT;
+
+            // Lọc các feedback cha (không có ParentFeedbackID)
+            var parentFeedbacks = feedbackModelViews
+                .Where(f => !feedbacks.Any(fb => fb.Id == f.Id && fb.ResponseFeedbackId.HasValue))
+                .Skip((int)((pageIndex - 1) * pageSize)) // Bỏ qua những trang trước đó
+                .Take((int)pageSize) // Lấy số lượng feedback theo pageSize
+                .ToList();
+            bool hasMore = feedbackModelViews.Count > pageIndex * pageSize;
+
+            foreach (var feedback in parentFeedbacks)
+            {
+                // Chuyển đổi Status từ Enum
+                var feedbackEntity = feedbacks.FirstOrDefault(f => f.Id == feedback.Id);
+                feedback.Status = feedbackEntity != null && Enum.IsDefined(typeof(FeedbackStatus), feedbackEntity.Status)
+                    ? ((FeedbackStatus)feedbackEntity.Status).ToString()
+                    : "Unknown";
+
+                feedback.User = _mapper.Map<UserResponseModel>(feedbackEntity?.User);
+
+                // Tìm các feedback con có ParentFeedbackID = feedback.Id
+                feedback.ResponseFeedbacks = _mapper.Map<List<FeedbackModelView>>(
+                    feedbacks.Where(f => f.ResponseFeedbackId == feedback.Id).ToList()
+                );
+
+                // Chuyển đổi Status của các feedback con
+                foreach (var childFeedback in feedback.ResponseFeedbacks)
+                {
+                    var childEntity = feedbacks.FirstOrDefault(f => f.Id == childFeedback.Id);
+                    childFeedback.Status = childEntity != null && Enum.IsDefined(typeof(FeedbackStatus), childEntity.Status)
+                        ? ((FeedbackStatus)childEntity.Status).ToString()
+                        : "Unknown";
+
+                    childFeedback.User = _mapper.Map<UserResponseModel>(childEntity?.User);
+                }
+            }
+
+            return new ApiSuccessResult<object>(new
+            {
+                Feedbacks = parentFeedbacks,
+                HasMore = hasMore
+            });
         }
     }
 }

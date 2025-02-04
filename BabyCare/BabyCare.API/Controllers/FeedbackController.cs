@@ -53,6 +53,32 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+        [HttpGet("get-feedback-pagination")]
+        public async Task<IActionResult> GetFeedbacksWithPagination([FromQuery] int growthChartId, [FromQuery] int? pageIndex, [FromQuery] int? pageSize)
+        {
+            try
+            {
+                var result = await _feedbackService.GetFeedbacksWithPagination(growthChartId,pageIndex,pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+        [HttpGet("get-feedback-pagination-admin")]
+        public async Task<IActionResult> GetFeedbacksWithPaginationAdmin([FromQuery] int growthChartId, [FromQuery] int? pageIndex, [FromQuery] int? pageSize)
+        {
+            try
+            {
+                var result = await _feedbackService.GetFeedbacksWithPaginationAdmin(growthChartId, pageIndex, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
 
         [HttpPost("create")]
         public async Task<ActionResult<object>> CreateFeedback([FromBody] CreateFeedbackModelView model)

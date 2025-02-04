@@ -2,6 +2,7 @@
 using BabyCare.Contract.Services.Implements;
 using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
+using BabyCare.ModelViews.AppointmentModelViews.Request;
 using BabyCare.ModelViews.GrowthChartModelView;
 using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +71,20 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<UserResponseModel>>(ex.Message));
             }
         }
+        [HttpGet("get-my-growth-chart-pagination")]
+        public async Task<IActionResult> GetMyGrowthChartPagination([FromQuery] SearchAppointmentByUserId request)
+        {
+            try
+            {
+                var result = await _growthChartService.GetMyGrowthChartPagination(request);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<UserResponseModel>>(ex.Message));
+            }
+        }
         [HttpPut("update-growth-chart-by-admin")]
         public async Task<IActionResult> UpdateGrowthChartStatusByAdminAsync([FromBody]UpdateGrowChartByAdmin request)
         {
@@ -98,7 +113,20 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<UserResponseModel>>(ex.Message));
             }
         }
+        [HttpPut("update-view")]
+        public async Task<IActionResult> UpdateGrowthChartStatusByUserAsync([FromBody] UpdateViewRequest request )
+        {
+            try
+            {
+                var result = await _growthChartService.UpdateView(request);
 
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<UserResponseModel>>(ex.Message));
+            }
+        }
 
         [HttpGet("get-by-id")]
         public async Task<IActionResult> GetGrowthChartById([FromQuery]int id)

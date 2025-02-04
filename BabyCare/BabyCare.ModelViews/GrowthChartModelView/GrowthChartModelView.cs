@@ -7,6 +7,8 @@ namespace BabyCare.ModelViews.GrowthChartModelView
         public int Id { get; set; }
         public string Status { get; set; }
         public string Topic { get; set; }
+        public DateTimeOffset CreatedTime { get; set; }
+
 
         public string? Question { get; set; }
         public int ViewCount { get; set; } 
