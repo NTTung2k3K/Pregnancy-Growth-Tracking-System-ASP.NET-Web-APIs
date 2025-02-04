@@ -25,6 +25,7 @@ using BabyCare.ModelViews.UserModelViews.Response;
 using System.Reflection;
 using BabyCare.ModelViews.FeedbackModelView;
 using BabyCare.ModelViews.MembershipPackageModelViews.Response;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BabyCare.Services.Service
 {
@@ -56,6 +57,111 @@ namespace BabyCare.Services.Service
             var property = entityType.GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
             return property != null;
         }
+        public async Task<ApiResult<BasePaginatedList<GrowthChartModelView>>> GetMyGrowthChartPagination(ModelViews.AppointmentModelViews.Request.SearchAppointmentByUserId request)
+        {
+            var query = _unitOfWork.GetRepository<GrowthChart>().Entities.AsQueryable();
+            query = query.Where(x => (x.Status == (int)GrowthChartStatus.Shared || x.Status == (int)GrowthChartStatus.Answered) && x.DeletedBy == null && x.Child.UserId == request.userId);
+            // 1. Áp dụng bộ lọc (Filtering)
+            if (!string.IsNullOrEmpty(request.SearchValue))
+            {
+                query = query.Where(a => a.Topic.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                        a.Question.ToLower().Contains(request.SearchValue.ToLower())
+                                        );
+            }
+            if (request.FromDate.HasValue)
+            {
+                query = query.Where(a => a.CreatedTime.Date >= request.FromDate.Value.Date);
+            }
+            if (request.ToDate.HasValue)
+            {
+                query = query.Where(a => a.CreatedTime.Date <= request.ToDate.Value.Date);
+            }
+            if (request.Status != null)
+            {
+                query = query.Where(a => a.Status == request.Status);
+            }
+
+            if (request.SortBy != null)
+            {
+                var normalizedSortBy = NormalizePropertyName(request.SortBy);
+
+                if (!PropertyExists(normalizedSortBy, typeof(GrowthChart)))
+                {
+                    throw new ArgumentException($"Property '{request.SortBy}' does not exist on the GrowthChart entity.");
+                }
+
+                if (!string.IsNullOrEmpty(request.SortBy))
+                {
+                    if (normalizedSortBy == "ViewCount")
+                    {
+                        // 🔥 Sort đúng kiểu dữ liệu (int)
+                        query = request.IsDescending
+                            ? query.OrderByDescending(a => a.ViewCount)
+                            : query.OrderBy(a => a.ViewCount);
+                    }
+                    else
+                    {
+                        // 🔥 Sort các field khác (vẫn giữ logic cũ)
+                        query = request.IsDescending
+                            ? query.OrderByDescending(a => EF.Property<object>(a, normalizedSortBy))
+                            : query.OrderBy(a => EF.Property<object>(a, normalizedSortBy));
+                    }
+                }
+            }
+            else
+            {
+                query = query.OrderByDescending(a => a.CreatedTime);
+            }
+
+            // 3. Tổng số bản ghi
+            var totalRecords = await query.CountAsync();
+            var currentPage = request.PageIndex ?? 1;
+            var pageSize = request.PageSize ?? SystemConstant.PAGE_SIZE;
+            var total = await query.CountAsync();
+            // 4. Áp dụng phân trang (Pagination)
+            var data = await query
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+
+
+
+            var res = new List<GrowthChartModelView>();
+            foreach (var existingItem in data)
+            {
+
+
+                var added = _mapper.Map<GrowthChartModelView>(existingItem);
+
+                if (Enum.IsDefined(typeof(GrowthChartStatus), existingItem.Status))
+                {
+                    added.Status = ((GrowthChartStatus)existingItem.Status).ToString();
+                }
+                else
+                {
+                    added.Status = "Unknown";
+                }
+                // Map Child entity sang ChildModelViewAddeRecords
+                added.childModelView = _mapper.Map<ChildModelViewAddeRecords>(existingItem.Child);
+
+                // Lấy các FGR liên quan và map cùng tiêu chuẩn
+                var fgrs = await _unitOfWork.GetRepository<FetalGrowthRecord>().Entities
+                    .Include(x => x.FetalGrowthStandard) // Đảm bảo include dữ liệu liên quan
+                    .Where(x => x.ChildId == existingItem.ChildId)
+                    .ToListAsync();
+
+                // Map danh sách FGR sang ModelView
+                added.childModelView.FetalGrowthRecordModelViews = _mapper.Map<List<FetalGrowthRecordModelViewAddedStandards>>(fgrs);
+
+                res.Add(added);
+            }
+
+            var response = new BasePaginatedList<GrowthChartModelView>(res, total, currentPage, pageSize);
+            // return to client
+            return new ApiSuccessResult<BasePaginatedList<GrowthChartModelView>>(response);
+        }
+
         public async Task<ApiResult<BasePaginatedList<GrowthChartModelView>>> GetGrowthChartPagination(ModelViews.AppointmentModelViews.Request.SearchOptimizeRequest request)
         {
             var query = _unitOfWork.GetRepository<GrowthChart>().Entities.AsQueryable();
@@ -82,24 +188,34 @@ namespace BabyCare.Services.Service
 
             if (request.SortBy != null)
             {
-                // 2. Áp dụng sắp xếp (Sorting)
                 var normalizedSortBy = NormalizePropertyName(request.SortBy);
-                if (!PropertyExists(normalizedSortBy, typeof(Appointment)))
+
+                if (!PropertyExists(normalizedSortBy, typeof(GrowthChart)))
                 {
-                    // Nếu không tồn tại, bạn có thể xử lý lỗi, hoặc chọn một thuộc tính mặc định
-                    throw new ArgumentException($"Property '{request.SortBy}' does not exist on the Appointment entity.");
+                    throw new ArgumentException($"Property '{request.SortBy}' does not exist on the GrowthChart entity.");
                 }
+
                 if (!string.IsNullOrEmpty(request.SortBy))
                 {
-                    query = request.IsDescending
-           ? query.OrderByDescending(a => EF.Property<object>(a, normalizedSortBy).ToString().ToLower())
-           : query.OrderBy(a => EF.Property<object>(a, normalizedSortBy).ToString().ToLower());
-
+                    if (normalizedSortBy == "ViewCount")
+                    {
+                        // 🔥 Sort đúng kiểu dữ liệu (int)
+                        query = request.IsDescending
+                            ? query.OrderByDescending(a => a.ViewCount)
+                            : query.OrderBy(a => a.ViewCount);
+                    }
+                    else
+                    {
+                        // 🔥 Sort các field khác (vẫn giữ logic cũ)
+                        query = request.IsDescending
+                            ? query.OrderByDescending(a => EF.Property<object>(a, normalizedSortBy))
+                            : query.OrderBy(a => EF.Property<object>(a, normalizedSortBy));
+                    }
                 }
             }
             else
             {
-                query = query.OrderByDescending(a => a.CreatedTime); // Mặc định sắp xếp theo ngày hẹn
+                query = query.OrderByDescending(a => a.CreatedTime);
             }
 
             // 3. Tổng số bản ghi
@@ -166,6 +282,23 @@ namespace BabyCare.Services.Service
                 new BasePaginatedList<GrowthChartModelView>(modelList, totalCount, pageNumber, pageSize));
         }
 
+
+        public async Task<ApiResult<object>> UpdateView(UpdateViewRequest request)
+        {
+            var feedback = await _unitOfWork.GetRepository<GrowthChart>().GetByIdAsync(request.Id);
+            if (feedback == null)
+            {
+                return new ApiErrorResult<object>("Growth chart not found");
+            }
+
+            feedback.ViewCount += 1;
+            _unitOfWork.GetRepository<GrowthChart>().Update(feedback);
+            await _unitOfWork.SaveAsync();
+
+            return new ApiSuccessResult<object>("Success");
+        }
+
+
         public async Task<ApiResult<GrowthChartModelView>> GetGrowthChartByIdAsync(int id)
         {
 
@@ -201,34 +334,94 @@ namespace BabyCare.Services.Service
             model.childModelView.FetalGrowthRecordModelViews = _mapper.Map<List<FetalGrowthRecordModelViewAddedStandards>>(fgrs);
 
 
-            // Retrieve related Feedbacks
+            // Retrieve related Feedbacks DETAIL: for independent
+            //    var feedbacks = await _unitOfWork.GetRepository<Feedback>().Entities
+            //.Where(f => f.GrowthChartsID == entity.Id)
+            //.ToListAsync();
+
+            //    var feedbackModelViews = _mapper.Map<List<FeedbackModelView>>(feedbacks);
+
+            //    foreach (var feedback in feedbackModelViews)
+            //    {
+            //        if (Enum.IsDefined(typeof(FeedbackStatus), feedbacks.First(f => f.Id == feedback.Id).Status))
+            //        {
+            //            feedback.Status = ((FeedbackStatus)feedbacks.First(f => f.Id == feedback.Id).Status).ToString();
+            //        }
+            //        else
+            //        {
+            //            feedback.Status = "Unknown";
+            //        }
+            //        feedback.User = _mapper.Map<UserResponseModel>(feedbacks.FirstOrDefault(f => f.Id == feedback.Id)?.User);
+            //        feedback.ResponseFeedbacks = _mapper.Map<List<FeedbackModelView>>(feedbacks.Where(f => f.ResponseFeedback?.Id == feedback.Id).ToList());
+            //    }
+
+            //    model.feedbackModelViews = feedbackModelViews;
+
+
             var feedbacks = await _unitOfWork.GetRepository<Feedback>().Entities
-        .Include(f => f.User) // Include User details
-        .Include(f => f.ResponseFeedbacks) // Include child responses
-        .Where(f => f.GrowthChartsID == entity.Id)
-        .ToListAsync();
+    .Where(f => f.GrowthChartsID == entity.Id)
+    .ToListAsync();
 
             var feedbackModelViews = _mapper.Map<List<FeedbackModelView>>(feedbacks);
 
-            foreach (var feedback in feedbackModelViews)
+            // Tạo danh sách feedback cha (không có ParentFeedbackID)
+            var parentFeedbacks = feedbackModelViews.Where(f => !feedbacks.Any(fb => fb.Id == f.Id && fb.ResponseFeedbackId.HasValue))
+                .OrderByDescending(x => x.CreatedTime)
+                 .Take(SystemConstant.MAX_PER_COMMENT)
+                .ToList();
+
+
+            foreach (var feedback in parentFeedbacks)
             {
+                // Chuyển đổi Status từ Enum
+                var feedbackEntity = feedbacks.FirstOrDefault(f => f.Id == feedback.Id);
+                if (feedbackEntity != null && Enum.IsDefined(typeof(FeedbackStatus), feedbackEntity.Status))
+                {
+                    feedback.Status = ((FeedbackStatus)feedbackEntity.Status).ToString();
+                }
+                else
+                {
+                    feedback.Status = "Unknown";
+                }
+
                 feedback.User = _mapper.Map<UserResponseModel>(feedbacks.FirstOrDefault(f => f.Id == feedback.Id)?.User);
-                feedback.ResponseFeedbacks = _mapper.Map<List<FeedbackModelView>>(feedbacks.Where(f => f.ResponseFeedback?.Id == feedback.Id).ToList());
+
+                // Tìm các feedback con có ParentFeedbackID = feedback.Id
+                feedback.ResponseFeedbacks = _mapper.Map<List<FeedbackModelView>>(
+                    feedbacks.Where(f => f.ResponseFeedbackId == feedback.Id).ToList()
+                );
+
+                // Chuyển đổi Status của các feedback con
+                foreach (var childFeedback in feedback.ResponseFeedbacks)
+                {
+                    var childEntity = feedbacks.FirstOrDefault(f => f.Id == childFeedback.Id);
+                    if (childEntity != null && Enum.IsDefined(typeof(FeedbackStatus), childEntity.Status))
+                    {
+                        childFeedback.Status = ((FeedbackStatus)childEntity.Status).ToString();
+                    }
+                    else
+                    {
+                        childFeedback.Status = "Unknown";
+                    }
+
+                    childFeedback.User = _mapper.Map<UserResponseModel>(feedbacks.FirstOrDefault(f => f.Id == childFeedback.Id)?.User);
+                }
             }
 
-            model.feedbackModelViews = feedbackModelViews;
+            model.feedbackModelViews = parentFeedbacks;
+
 
 
             return new ApiSuccessResult<GrowthChartModelView>(model);
         }
 
-        public async Task<ApiResult<object>> AddGrowthChartAsync(CreateGrowthChartModelView model)
+        public async Task<ApiResult<GrowthChartCreateResponse>> AddGrowthChartAsync(CreateGrowthChartModelView model)
         {
             // Check 
             var existingChild = await _unitOfWork.GetRepository<Child>().GetByIdAsync(model.ChildId);
             if (existingChild == null)
             {
-                return new ApiErrorResult<object>("Child is not existed.", System.Net.HttpStatusCode.NotFound);
+                return new ApiErrorResult<GrowthChartCreateResponse>("Child is not existed.", System.Net.HttpStatusCode.NotFound);
             }
             var entity = _mapper.Map<GrowthChart>(model);
             entity.ChildId = existingChild.Id;
@@ -238,7 +431,7 @@ namespace BabyCare.Services.Service
             await _unitOfWork.GetRepository<GrowthChart>().InsertAsync(entity);
             await _unitOfWork.SaveAsync();
 
-            return new ApiSuccessResult<object>("Growth chart created successfully.");
+            return new ApiSuccessResult<GrowthChartCreateResponse>(new GrowthChartCreateResponse() { Id = entity.Id},"Growth chart created successfully.");
         }
         public async Task<ApiResult<object>> UpdateGrowthChartStatusByUserAsync(UpdateGrowChartByUser model)
         {
