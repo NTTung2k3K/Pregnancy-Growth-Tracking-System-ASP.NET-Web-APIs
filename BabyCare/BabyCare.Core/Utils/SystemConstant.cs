@@ -18,6 +18,11 @@ namespace BabyCare.Core.Utils
             public static string InActive = "InActive";
 
         }
+        public enum FeedbackStatus
+        {
+            BANNED = 0,
+            Active = 1,
+        }
         public enum GrowthChartStatus
         {
             Unshared = 0,
