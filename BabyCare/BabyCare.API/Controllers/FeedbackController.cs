@@ -1,4 +1,6 @@
-﻿using BabyCare.Contract.Services.Interface;
+﻿using Azure.Core;
+using BabyCare.Contract.Services.Implements;
+using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.ModelViews.BlogTypeModelView;
 using BabyCare.ModelViews.FeedbackModelView;
@@ -17,26 +19,53 @@ namespace BabyCare.API.Controllers
         {
             _feedbackService = feedbackService;
         }
+        [HttpGet("get-all-admin")]
+        public async Task<IActionResult> GetAllFeedbackAdminAsync()
+        {
+            try
+            {
+                var result = await _feedbackService.GetAllFeedbackAdminAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
 
         [HttpGet("all")]
-        public async Task<ActionResult<BasePaginatedList<FeedbackModelView>>> GetAllFeedbacks([FromQuery] int? growthChartsID, [FromQuery] string? status=null, int pageNumber = 1, int pageSize = 5)
+        public async Task<ActionResult<BasePaginatedList<FeedbackModelView>>> GetAllFeedbacks([FromQuery] int? growthChartsID, [FromQuery] string? status = null, int pageNumber = 1, int pageSize = 5)
         {
             var result = await _feedbackService.GetAllFeedbackAsync(pageNumber, pageSize, growthChartsID, status);
             return Ok(result);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<FeedbackModelView>> GetFeedbackById(int id)
+        [HttpGet("get-by-id")]
+        public async Task<IActionResult> GetFeedbackById([FromQuery] int id)
         {
-            var result = await _feedbackService.GetFeedbackByIdAsync(id);
-            return Ok(result);
+            try
+            {
+                var result = await _feedbackService.GetFeedbackByIdAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
         }
 
         [HttpPost("create")]
         public async Task<ActionResult<object>> CreateFeedback([FromBody] CreateFeedbackModelView model)
         {
-            var result = await _feedbackService.AddFeedbackAsync(model);
-            return Ok(result);
+            try
+            {
+                var result = await _feedbackService.AddFeedbackAsync(model);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
         }
 
         [HttpPut("update/{id}")]
@@ -46,11 +75,34 @@ namespace BabyCare.API.Controllers
             return Ok(result);
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<ActionResult<object>> DeleteFeedback(int id)
+        [HttpDelete("delete")]
+        public async Task<ActionResult<object>> DeleteFeedback([FromQuery]int id)
         {
+            try
+            {
             var result = await _feedbackService.DeleteFeedbackAsync(id);
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+
+        }
+
+        [HttpPut("ban-feedback")]
+        public async Task<IActionResult> BlockFeedbackAsync([FromBody] BanFeedbackRequest request)
+        {
+            try
+            {
+                var result = await _feedbackService.BlockFeedbackAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+
         }
     }
 }

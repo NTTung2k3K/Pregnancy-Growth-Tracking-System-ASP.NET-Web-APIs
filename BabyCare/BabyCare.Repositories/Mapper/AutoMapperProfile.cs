@@ -118,6 +118,9 @@ namespace BabyCare.Repositories.Mapper
 
 
             CreateMap<Feedback, FeedbackModelView>().ReverseMap();
+            
+            CreateMap<Feedback, FeedbackModelViewForAdmin>().ReverseMap();
+
             CreateMap<Feedback, CreateFeedbackModelView>().ReverseMap();
             CreateMap<Feedback, UpdateFeedbackModelView>().ReverseMap();
 

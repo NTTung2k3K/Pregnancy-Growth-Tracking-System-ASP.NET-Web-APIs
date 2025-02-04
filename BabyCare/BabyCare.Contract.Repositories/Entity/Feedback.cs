@@ -20,7 +20,7 @@ namespace BabyCare.Contract.Repositories.Entity
 
         public int Rating { get; set; }
         public string? FeedbackType { get; set; }
-        public string? Status { get; set; }
+        public int Status { get; set; }
         public bool IsAnonymous { get; set; } = false;
 
         public virtual ApplicationUsers User { get; set; }

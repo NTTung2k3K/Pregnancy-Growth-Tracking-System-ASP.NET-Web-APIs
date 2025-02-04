@@ -36,7 +36,7 @@ namespace BabyCare.Services.Service
         private readonly IHttpContextAccessor _contextAccessor;
 
 
-        public GrowthChartService(IHttpContextAccessor httpContextAccessor,IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUsers> userManager)
+        public GrowthChartService(IHttpContextAccessor httpContextAccessor, IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUsers> userManager)
         {
             _contextAccessor = httpContextAccessor;
             _userManager = userManager;
@@ -114,7 +114,7 @@ namespace BabyCare.Services.Service
                 .ToListAsync();
 
 
-           
+
 
             var res = new List<GrowthChartModelView>();
             foreach (var existingItem in data)
@@ -180,7 +180,7 @@ namespace BabyCare.Services.Service
             var model = _mapper.Map<GrowthChartModelView>(entity);
 
 
-            if (Enum.IsDefined(typeof(GrowthChartStatus),  entity.Status))
+            if (Enum.IsDefined(typeof(GrowthChartStatus), entity.Status))
             {
                 model.Status = ((GrowthChartStatus)entity.Status).ToString();
             }
@@ -191,11 +191,11 @@ namespace BabyCare.Services.Service
             // Map Child entity sang ChildModelViewAddeRecords
             model.childModelView = _mapper.Map<ChildModelViewAddeRecords>(entity.Child);
 
-                // Lấy các FGR liên quan và map cùng tiêu chuẩn
-                var fgrs = await _unitOfWork.GetRepository<FetalGrowthRecord>().Entities
-                    .Include(x => x.FetalGrowthStandard) // Đảm bảo include dữ liệu liên quan
-                    .Where(x => x.ChildId == entity.ChildId)
-                    .ToListAsync();
+            // Lấy các FGR liên quan và map cùng tiêu chuẩn
+            var fgrs = await _unitOfWork.GetRepository<FetalGrowthRecord>().Entities
+                .Include(x => x.FetalGrowthStandard) // Đảm bảo include dữ liệu liên quan
+                .Where(x => x.ChildId == entity.ChildId)
+                .ToListAsync();
 
             // Map danh sách FGR sang ModelView
             model.childModelView.FetalGrowthRecordModelViews = _mapper.Map<List<FetalGrowthRecordModelViewAddedStandards>>(fgrs);
@@ -250,7 +250,7 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Growth chart not found.");
             }
-            if(entity.Status == (int)GrowthChartStatus.Blocked)
+            if (entity.Status == (int)GrowthChartStatus.Blocked)
             {
                 return new ApiErrorResult<object>("Growth chart post has been blocked");
             }
@@ -275,7 +275,7 @@ namespace BabyCare.Services.Service
                 return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
             }
             var existingUser = await _userManager.FindByIdAsync(_contextAccessor.HttpContext?.User?.FindFirst("userId").Value);
-            if(existingUser == null)
+            if (existingUser == null)
             {
                 return new ApiErrorResult<object>("Account is not found.", System.Net.HttpStatusCode.NotFound);
             }
@@ -337,7 +337,7 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<object>("Growth chart deleted successfully.");
         }
 
-   
+
 
         public async Task<ApiResult<List<GrowthChartModelView>>> GetAllGrowthChartsAdminAsync()
         {
@@ -349,7 +349,17 @@ namespace BabyCare.Services.Service
             int totalCount = await query.CountAsync();
 
             var list = await query.ToListAsync();
-            var modelList = _mapper.Map<List<GrowthChartModelView>>(list);
+            var modelList = list.Select(x => new GrowthChartModelView()
+            {
+                Id = x.Id,
+                Question = x.Question,
+                Topic = x.Topic,
+                Status = (Enum.IsDefined(typeof(GrowthChartStatus), x.Status)) ? ((GrowthChartStatus)x.Status).ToString() : "Unknown",
+                ViewCount = x.ViewCount,
+                childModelView = _mapper.Map<ChildModelViewAddeRecords>(x.Child)
+            }).ToList();
+
+           
 
             return new ApiSuccessResult<List<GrowthChartModelView>>(modelList);
         }
@@ -382,7 +392,7 @@ namespace BabyCare.Services.Service
             }
 
             return new ApiSuccessResult<List<GrowthChartStatusResponse>>(statusList);
-              
+
         }
     }
 }
