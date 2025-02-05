@@ -20,12 +20,13 @@ namespace BabyCare.ModelViews.BlogModelViews
         [Required(ErrorMessage = "AuthorId is required.")]
         public Guid AuthorId { get; set; }
 
-        public int? LikesCount { get; set; } = 0;
+
+        //public int? LikesCount { get; set; } = 0;
 
         public int? Week { get; set; }
-        public int? ViewCount { get; set; } = 0;
+        //public int? ViewCount { get; set; } = 0;
 
-        public string? Status { get; set; }
+        public int Status { get; set; }
 
         public string? Sources { get; set; }
 
@@ -35,6 +36,6 @@ namespace BabyCare.ModelViews.BlogModelViews
         [Range(1, int.MaxValue, ErrorMessage = "BlogTypeId must be a positive integer.")]
         public int BlogTypeId { get; set; }
 
-        public bool IsFeatured { get; set; }
+        //public bool IsFeatured { get; set; }
     }
 }

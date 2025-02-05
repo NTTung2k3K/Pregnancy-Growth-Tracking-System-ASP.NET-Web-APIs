@@ -11,7 +11,7 @@ namespace BabyCare.Core.Utils
         public static int PAGE_SIZE = 10;
         public static int MAX_SLOT_AVAILABLE_APPOINTMENT = 4;
         public static int DURATION_UPDATE_APPOINTMENT = 4;
-        public static int MAX_PER_COMMENT= 10;
+        public static int MAX_PER_COMMENT = 10;
 
 
         public class MembershipPackageStatus
@@ -19,6 +19,11 @@ namespace BabyCare.Core.Utils
             public static string Active = "Active";
             public static string InActive = "InActive";
 
+        }
+        public enum BlogStatus
+        {
+            InActive = 0,
+            Active = 1,
         }
         public enum FeedbackStatus
         {
@@ -50,7 +55,7 @@ namespace BabyCare.Core.Utils
 
         public enum AppointmentStatus
         {
-            Pending = 1, 
+            Pending = 1,
             Confirmed = 2, // Đã xác nhận
             InProgress = 3, // Đang diễn ra
             Completed = 4, // Đã hoàn thành

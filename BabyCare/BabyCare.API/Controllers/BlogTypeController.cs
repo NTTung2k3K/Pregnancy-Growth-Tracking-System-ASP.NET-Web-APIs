@@ -55,7 +55,7 @@ namespace BabyCare.API.Controllers
         ///     Create a new blog type
         /// </summary>
         [HttpPost("create")]
-        public async Task<ActionResult<string>> CreateBlogType([FromQuery] CreateBlogTypeModelView model)
+        public async Task<ActionResult<string>> CreateBlogType([FromForm] CreateBlogTypeModelView model)
         {
             try
             {
@@ -72,7 +72,7 @@ namespace BabyCare.API.Controllers
         ///     Update a blog type
         /// </summary>
         [HttpPut("update/{id}")]
-        public async Task<ActionResult<string>> UpdateBlogType(int id, [FromQuery] UpdateBlogTypeModelView model)
+        public async Task<ActionResult<string>> UpdateBlogType(int id, [FromForm] UpdateBlogTypeModelView model)
         {
             try
             {
