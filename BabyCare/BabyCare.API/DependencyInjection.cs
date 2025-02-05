@@ -88,6 +88,14 @@ namespace BabyCare.API
                            .AllowAnyHeader()  // Cho phép tất cả các header
                            .AllowCredentials(); // Cho phép gửi thông tin xác thực (cookies, headers, v.v.)
                 });
+                options.AddPolicy("AllowFrontendVercel", builder =>
+                {
+                    builder.WithOrigins("https://baby-care-theta.vercel.app") // Các nguồn được phép
+                           .AllowAnyMethod()  // Cho phép tất cả các phương thức HTTP (GET, POST, PUT, DELETE,...)
+                           .AllowAnyHeader()  // Cho phép tất cả các header
+                           .SetPreflightMaxAge(TimeSpan.FromMinutes(10))
+                           .AllowCredentials(); // Cho phép gửi thông tin xác thực (cookies, headers, v.v.)
+                });
             });
 
 

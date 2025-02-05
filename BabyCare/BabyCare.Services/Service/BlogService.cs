@@ -6,15 +6,24 @@ using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.Core.APIResponse;
 using BabyCare.Core.Firebase;
+using BabyCare.Core.Utils;
+using BabyCare.ModelViews.AppointmentModelViews.Request;
+using BabyCare.ModelViews.AppointmentModelViews.Response;
 using BabyCare.ModelViews.BlogModelViews;
 using BabyCare.ModelViews.BlogTypeModelView;
+using BabyCare.ModelViews.GrowthChartModelView;
+using BabyCare.ModelViews.MembershipPackageModelViews.Response;
+using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using static BabyCare.Core.Utils.SystemConstant;
+
 
 namespace BabyCare.Services.Service
 {
@@ -57,8 +66,10 @@ namespace BabyCare.Services.Service
             newBlog.CreatedBy = model.AuthorId.ToString();  // Hoặc lấy từ một hệ thống User ID nếu có
 
             // Chỉnh sửa các thông tin mặc định
-            newBlog.LikesCount = model.LikesCount ?? 0;
-            newBlog.ViewCount = model.ViewCount ?? 0;
+            newBlog.LikesCount = 0;
+            newBlog.ViewCount = 0;
+            newBlog.Status = model.Status;
+            
 
             // Lưu Blog vào cơ sở dữ liệu
             await _unitOfWork.GetRepository<Blog>().InsertAsync(newBlog);
@@ -67,9 +78,24 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<object>("Blog added successfully.");
         }
 
-
+        public ApiResult<object> GetBlogStatusHandler()
+        {
+            var statusList = Enum.GetValues(typeof(BlogStatus))
+                     .Cast<BlogStatus>()
+                     .Select(status => new MPStatusResponseModel
+                     {
+                         Id = (int)status,
+                         Status = status.ToString()
+                     })
+                     .ToList();
+            return new ApiSuccessResult<object>(statusList);
+        }
         public async Task<ApiResult<object>> DeleteBlogAsync(int id)
         {
+            if (_contextAccessor.HttpContext?.User?.FindFirst("userId") == null)
+            {
+                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+            }
             // Kiểm tra sự tồn tại của blog
             var blog = await _unitOfWork.GetRepository<Blog>()
                 .Entities
@@ -81,11 +107,12 @@ namespace BabyCare.Services.Service
                 return new ApiErrorResult<object>("Blog not found or already deleted.");
             }
 
+
             // Đánh dấu thời gian xóa (soft delete)
             blog.DeletedTime = DateTimeOffset.UtcNow;
 
             // Cập nhật lại thông tin xóa của blog
-            blog.DeletedBy = "System"; // Hoặc có thể là userId của người xóa nếu có thông tin
+            blog.DeletedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value; // Hoặc có thể là userId của người xóa nếu có thông tin
 
             // Cập nhật blog trong cơ sở dữ liệu
             await _unitOfWork.GetRepository<Blog>().UpdateAsync(blog);
@@ -96,12 +123,15 @@ namespace BabyCare.Services.Service
         }
 
 
+
+
+
         public async Task<ApiResult<BasePaginatedList<BlogModelView>>> GetAllBlogAsync(int pageNumber, int pageSize, int? id, string? title, string? status, bool? isFeatured)
         {
             // Khởi tạo query cơ bản cho bảng Blog
             IQueryable<Blog> blogQuery = _unitOfWork.GetRepository<Blog>().Entities
                 .AsNoTracking()
-                .Where(b => !b.DeletedTime.HasValue); // Loại bỏ các bản ghi đã bị xóa
+                .Where(b => !b.DeletedTime.HasValue && b.Status == (int)BlogStatus.Active); // Loại bỏ các bản ghi đã bị xóa
 
             // Áp dụng bộ lọc theo id, title, status, và isFeatured nếu có
             if (id != null)
@@ -110,11 +140,11 @@ namespace BabyCare.Services.Service
             if (!string.IsNullOrWhiteSpace(title))
                 blogQuery = blogQuery.Where(b => b.Title.Contains(title));
 
-            if (!string.IsNullOrWhiteSpace(status))
-                blogQuery = blogQuery.Where(b => b.Status.Contains(status));
+            //if (!string.IsNullOrWhiteSpace(status))
+            //    blogQuery = blogQuery.Where(b => b.Status.Contains(status));
 
-            if (isFeatured.HasValue)
-                blogQuery = blogQuery.Where(b => b.IsFeatured == isFeatured.Value);
+            //if (isFeatured.HasValue)
+            //    blogQuery = blogQuery.Where(b => b.IsFeatured == isFeatured.Value);
 
             // Sắp xếp theo thời gian tạo giảm dần
             blogQuery = blogQuery.OrderByDescending(b => b.CreatedTime);
@@ -129,7 +159,78 @@ namespace BabyCare.Services.Service
                 .ToListAsync();
 
             // Chuyển đổi từ Blog sang BlogModelView
-            List<BlogModelView> blogModelViews = _mapper.Map<List<BlogModelView>>(paginatedBlogs);
+            List<BlogModelView> blogModelViews = paginatedBlogs.Select(x => new BlogModelView()
+            {
+                Id = x.Id,
+                Content = x.Content,
+                LikesCount = x.LikesCount,
+                Sources = x.Sources,
+                Status = Enum.IsDefined(typeof(BlogStatus), x.Status)
+                                 ? ((BlogStatus)x.Status).ToString()
+                                    : "Unknown",
+                Thumbnail = x.Thumbnail,
+                Title = x.Title,
+                ViewCount = x.ViewCount,
+                Week = x.Week,
+                AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(x.Author),
+                BlogTypeModelView = _mapper.Map<BlogTypeModelView>(x.BlogType)
+            }).ToList();
+
+            // Tạo đối tượng phân trang
+            var result = new BasePaginatedList<BlogModelView>(blogModelViews, totalCount, pageNumber, pageSize);
+
+            // Trả về kết quả
+            return new ApiSuccessResult<BasePaginatedList<BlogModelView>>(result);
+        }
+        public async Task<ApiResult<BasePaginatedList<BlogModelView>>> GetAllBlogAdminAsync(int pageNumber, int pageSize, int? id, string? title, string? status, bool? isFeatured)
+        {
+            // Khởi tạo query cơ bản cho bảng Blog
+            IQueryable<Blog> blogQuery = _unitOfWork.GetRepository<Blog>().Entities
+                .AsNoTracking()
+                .Where(b => !b.DeletedTime.HasValue); // Loại bỏ các bản ghi đã bị xóa
+
+            // Áp dụng bộ lọc theo id, title, status, và isFeatured nếu có
+            if (id != null)
+                blogQuery = blogQuery.Where(b => b.Id == id);
+
+            if (!string.IsNullOrWhiteSpace(title))
+                blogQuery = blogQuery.Where(b => b.Title.Contains(title));
+
+            //if (!string.IsNullOrWhiteSpace(status))
+            //    blogQuery = blogQuery.Where(b => b.Status.Contains(status));
+
+            //if (isFeatured.HasValue)
+            //    blogQuery = blogQuery.Where(b => b.IsFeatured == isFeatured.Value);
+
+            // Sắp xếp theo thời gian tạo giảm dần
+            blogQuery = blogQuery.OrderByDescending(b => b.CreatedTime);
+
+            // Lấy tổng số lượng bản ghi
+            int totalCount = await blogQuery.CountAsync();
+
+            // Lấy dữ liệu phân trang
+            List<Blog> paginatedBlogs = await blogQuery
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Chuyển đổi từ Blog sang BlogModelView
+            List<BlogModelView> blogModelViews = paginatedBlogs.Select(x => new BlogModelView()
+            {
+                Id = x.Id,
+                Content = x.Content,
+                LikesCount = x.LikesCount,
+                Sources = x.Sources,
+                Status = Enum.IsDefined(typeof(BlogStatus), x.Status)
+                                 ? ((BlogStatus)x.Status).ToString()
+                                    : "Unknown",
+                Thumbnail = x.Thumbnail,
+                Title = x.Title,
+                ViewCount = x.ViewCount,
+                Week = x.Week,
+                AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(x.Author),
+                BlogTypeModelView = _mapper.Map<BlogTypeModelView>(x.BlogType)
+            }).ToList();
 
             // Tạo đối tượng phân trang
             var result = new BasePaginatedList<BlogModelView>(blogModelViews, totalCount, pageNumber, pageSize);
@@ -158,15 +259,18 @@ namespace BabyCare.Services.Service
 
             // Chuyển đổi từ Blog sang BlogModelView
             BlogModelView blogModelView = _mapper.Map<BlogModelView>(blogEntity);
+            blogModelView.AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(blogEntity.Author);
+            blogModelView.BlogTypeModelView = _mapper.Map<BlogTypeModelView>(blogEntity.BlogType);
+
 
             return new ApiSuccessResult<BlogModelView>(blogModelView);
         }
 
-        public async Task<ApiResult<List<BlogModelViewAddedType>>> GetBlogByWeekAsync(int week)
+        public async Task<ApiResult<List<BlogModelView>>> GetBlogByWeekAsync(int week)
         {
             IQueryable<Blog> blogQuery = _unitOfWork.GetRepository<Blog>().Entities
                 .AsNoTracking()
-                .Where(b => !b.DeletedTime.HasValue && (b.Week!= null && b.Week  == week)); // Loại bỏ các bản ghi đã bị xóa
+                .Where(b => !b.DeletedTime.HasValue && (b.Week!= null && b.Week  == week) && b.Status == (int)BlogStatus.Active); // Loại bỏ các bản ghi đã bị xóa
 
             // Áp dụng bộ lọc theo id, title, status, và isFeatured nếu có
             
@@ -180,10 +284,25 @@ namespace BabyCare.Services.Service
             List<Blog> paginatedBlogs = await blogQuery.ToListAsync();
 
             // Chuyển đổi từ Blog sang BlogModelView
-            List<BlogModelViewAddedType> blogModelViews = _mapper.Map<List<BlogModelViewAddedType>>(paginatedBlogs);
+            List<BlogModelView> blogModelViews = paginatedBlogs.Select(x => new BlogModelView()
+            {
+                Id = x.Id,
+                Content = x.Content,
+                LikesCount = x.LikesCount,
+                Sources = x.Sources,
+                Status = Enum.IsDefined(typeof(BlogStatus), x.Status)
+                                 ? ((BlogStatus)x.Status).ToString()
+                                    : "Unknown",
+                Thumbnail = x.Thumbnail,
+                Title = x.Title,
+                ViewCount = x.ViewCount,
+                Week = x.Week,
+                AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(x.Author),
+                BlogTypeModelView = _mapper.Map<BlogTypeModelView>(x.BlogType)
+            }).ToList();
 
             // Tạo đối tượng phân trang
-            return new ApiSuccessResult<List<BlogModelViewAddedType>>(blogModelViews,"Blog updated successfully.");
+            return new ApiSuccessResult<List<BlogModelView>>(blogModelViews,"Blog updated successfully.");
 
         }
 
@@ -227,19 +346,19 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (model.LikesCount.HasValue && model.LikesCount != existingBlog.LikesCount)
-            {
-                existingBlog.LikesCount = model.LikesCount.Value;
-                isUpdated = true;
-            }
+            //if (model.LikesCount.HasValue && model.LikesCount != existingBlog.LikesCount)
+            //{
+            //    existingBlog.LikesCount = model.LikesCount.Value;
+            //    isUpdated = true;
+            //}
 
-            if (model.ViewCount.HasValue && model.ViewCount != existingBlog.ViewCount)
-            {
-                existingBlog.ViewCount = model.ViewCount.Value;
-                isUpdated = true;
-            }
+            //if (model.ViewCount.HasValue && model.ViewCount != existingBlog.ViewCount)
+            //{
+            //    existingBlog.ViewCount = model.ViewCount.Value;
+            //    isUpdated = true;
+            //}
 
-            if (!string.IsNullOrWhiteSpace(model.Status) && model.Status != existingBlog.Status)
+            if (model.Status != existingBlog.Status)
             {
                 existingBlog.Status = model.Status;
                 isUpdated = true;
@@ -259,11 +378,11 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (model.IsFeatured.HasValue && model.IsFeatured != existingBlog.IsFeatured)
-            {
-                existingBlog.IsFeatured = model.IsFeatured.Value;
-                isUpdated = true;
-            }
+            //if (model.IsFeatured.HasValue && model.IsFeatured != existingBlog.IsFeatured)
+            //{
+            //    existingBlog.IsFeatured = model.IsFeatured.Value;
+            //    isUpdated = true;
+            //}
             if (model.Week.HasValue && model.Week != existingBlog.Week)
             {
                 existingBlog.Week = model.Week.Value;
@@ -273,6 +392,8 @@ namespace BabyCare.Services.Service
             {
                 isUpdated = true;
             }
+
+
             // Nếu có thay đổi, cập nhật thông tin và lưu vào DB
             if (isUpdated)
             {
@@ -287,6 +408,7 @@ namespace BabyCare.Services.Service
                 {
                     existingBlog.Thumbnail = existingImage;
                 }
+
                 await _unitOfWork.GetRepository<Blog>().UpdateAsync(existingBlog);
                 await _unitOfWork.SaveAsync();
 
@@ -294,6 +416,130 @@ namespace BabyCare.Services.Service
             }
 
             return new ApiErrorResult<object>("Blog updated successfully.");
+        }
+
+        private string NormalizePropertyName(string propertyName)
+        {
+            if (string.IsNullOrEmpty(propertyName))
+                return propertyName;
+
+            return char.ToUpper(propertyName[0]) + propertyName.Substring(1);
+        }
+        private bool PropertyExists(string propertyName, Type entityType)
+        {
+            // Kiểm tra nếu thuộc tính tồn tại trong entity
+            var property = entityType.GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+            return property != null;
+        }
+        public async Task<ApiResult<BasePaginatedList<BlogModelView>>> GetBlogPagination(SearchOptimizeBlogRequest request)
+        {
+            var query = _unitOfWork.GetRepository<Blog>().Entities.AsQueryable();
+            query = query.Where(x => (x.Status == (int)BlogStatus.Active  && x.DeletedBy == null));
+            if(request.BlogTypeId != null)
+            {
+                query = query.Where(x => (x.BlogTypeId == request.BlogTypeId));
+            }
+
+            // 1. Áp dụng bộ lọc (Filtering)
+            if (!string.IsNullOrEmpty(request.SearchValue))
+            {
+                query = query.Where(a => a.Title.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                        a.Content.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                        (a.Author.FullName != null &&  a.Author.FullName.ToLower().Contains(request.SearchValue.ToLower())) ||
+                                        (a.Week != null && a.Week.ToString().Contains(request.SearchValue.ToLower()))
+                                        );
+            }
+            if (request.FromDate.HasValue)
+            {
+                query = query.Where(a => a.CreatedTime.Date >= request.FromDate.Value.Date);
+            }
+            if (request.ToDate.HasValue)
+            {
+                query = query.Where(a => a.CreatedTime.Date <= request.ToDate.Value.Date);
+            }
+            if (request.Status != null)
+            {
+                query = query.Where(a => a.Status == request.Status);
+            }
+
+            if (request.SortBy != null)
+            {
+                var normalizedSortBy = NormalizePropertyName(request.SortBy);
+
+                if (!PropertyExists(normalizedSortBy, typeof(Blog)))
+                {
+                    throw new ArgumentException($"Property '{request.SortBy}' does not exist on the GrowthChart entity.");
+                }
+
+                if (!string.IsNullOrEmpty(request.SortBy))
+                {
+                    if (normalizedSortBy == "ViewCount")
+                    {
+                        // 🔥 Sort đúng kiểu dữ liệu (int)
+                        query = request.IsDescending
+                            ? query.OrderByDescending(a => a.ViewCount)
+                            : query.OrderBy(a => a.ViewCount);
+                    }else if (normalizedSortBy == "LikesCount")
+                    {
+                        // 🔥 Sort đúng kiểu dữ liệu (int)
+                        query = request.IsDescending
+                            ? query.OrderByDescending(a => a.ViewCount)
+                            : query.OrderBy(a => a.ViewCount);
+                    }
+                    else
+                    {
+                        // 🔥 Sort các field khác (vẫn giữ logic cũ)
+                        query = request.IsDescending
+                            ? query.OrderByDescending(a => EF.Property<object>(a, normalizedSortBy))
+                            : query.OrderBy(a => EF.Property<object>(a, normalizedSortBy));
+                    }
+                }
+            }
+            else
+            {
+                query = query.OrderByDescending(a => a.CreatedTime);
+            }
+
+            // 3. Tổng số bản ghi
+            var totalRecords = await query.CountAsync();
+            var currentPage = request.PageIndex ?? 1;
+            var pageSize = request.PageSize ?? SystemConstant.PAGE_SIZE;
+            var total = await query.CountAsync();
+            // 4. Áp dụng phân trang (Pagination)
+            var data = await query
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+
+
+
+            var res = new List<BlogModelView>();
+            foreach (var existingItem in data)
+            {
+
+
+                var added = _mapper.Map<BlogModelView>(existingItem);
+
+                if (Enum.IsDefined(typeof(BlogStatus), existingItem.Status))
+                {
+                    added.Status = ((BlogStatus)existingItem.Status).ToString();
+                }
+                else
+                {
+                    added.Status = "Unknown";
+                }
+
+
+                added.AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(existingItem.Author);
+                added.BlogTypeModelView = _mapper.Map<BlogTypeModelView>(existingItem.BlogType);
+
+                res.Add(added);
+            }
+
+            var response = new BasePaginatedList<BlogModelView>(res, total, currentPage, pageSize);
+            // return to client
+            return new ApiSuccessResult<BasePaginatedList<BlogModelView>>(response);
         }
     }
 }
