@@ -85,23 +85,43 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
             }
-            var existingFeedback = await _unitOfWork.GetRepository<Feedback>().Entities
+            var feedbackRepo = _unitOfWork.GetRepository<Feedback>();
+            var existingFeedback = await feedbackRepo.Entities
                 .FirstOrDefaultAsync(f => f.Id == id && !f.DeletedTime.HasValue);
 
             if (existingFeedback == null)
             {
                 return new ApiErrorResult<object>("Feedback not found or already deleted");
             }
+            string userId = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value ?? "Unknown";
 
+            await DeleteChildFeedbacksAsync(existingFeedback.Id, feedbackRepo, userId);
+
+            // Xóa feedback cha
             existingFeedback.DeletedTime = DateTime.Now;
-            existingFeedback.DeletedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId").Value;
+            existingFeedback.DeletedBy = userId;
 
             await _unitOfWork.GetRepository<Feedback>().UpdateAsync(existingFeedback);
             await _unitOfWork.SaveAsync();
 
             return new ApiSuccessResult<object>("Feedback deleted successfully");
         }
-       
+        private async Task DeleteChildFeedbacksAsync(int parentId, IGenericRepository<Feedback> feedbackRepo, string userId)
+        {
+            var childFeedbacks = await feedbackRepo.Entities
+                .Where(f => f.ResponseFeedbackId == parentId && !f.DeletedTime.HasValue)
+                .ToListAsync();
+
+            foreach (var childFeedback in childFeedbacks)
+            {
+                childFeedback.DeletedTime = DateTime.Now;
+                childFeedback.DeletedBy = userId;
+                await feedbackRepo.UpdateAsync(childFeedback);
+
+                // 🔄 Gọi đệ quy để tiếp tục xóa các feedback con của feedback này
+                await DeleteChildFeedbacksAsync(childFeedback.Id, feedbackRepo, userId);
+            }
+        }
         public async Task<ApiResult<object>> BlockFeedbackAsync(BanFeedbackRequest request)
         {
             if (_contextAccessor.HttpContext?.User?.FindFirst("userId") == null)
