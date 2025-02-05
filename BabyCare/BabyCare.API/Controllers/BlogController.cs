@@ -1,5 +1,6 @@
 ﻿using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
+using BabyCare.ModelViews.AppointmentModelViews.Request;
 using BabyCare.ModelViews.BlogModelViews;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,35 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+        [HttpGet("all-admin")]
+        public async Task<ActionResult<BasePaginatedList<BlogModelView>>> GetAllBlogAdminAsync
+            ([FromQuery] int? id, [FromQuery] string? title, [FromQuery] string? status, [FromQuery] bool? isFeatured, int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                var result = await _blogService.GetAllBlogAdminAsync(pageNumber, pageSize, id, title, status, isFeatured);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
 
+        [HttpGet("all-user-pagination")]
+        public async Task<ActionResult<BasePaginatedList<BlogModelView>>> GetBlogPagination
+           ([FromQuery] SearchOptimizeBlogRequest request)
+        {
+            try
+            {
+                var result = await _blogService.GetBlogPagination(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
         /// <summary>
         ///     Get a blog by ID
         /// </summary>
@@ -64,7 +93,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
-
+        [HttpGet("get-status-handler")]
+        public IActionResult GetBlogStatusHandler()
+        {
+            try
+            {
+                var result = _blogService.GetBlogStatusHandler();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
         /// <summary>
         ///     Create a new blog
         /// </summary>
