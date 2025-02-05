@@ -133,6 +133,7 @@ namespace BabyCare.Services.Service
 
 
                 var added = _mapper.Map<GrowthChartModelView>(existingItem);
+                added.userViewModel = _mapper.Map<UserResponseModel>(existingItem.Child.User);
 
                 if (Enum.IsDefined(typeof(GrowthChartStatus), existingItem.Status))
                 {
@@ -238,6 +239,7 @@ namespace BabyCare.Services.Service
 
 
                 var added = _mapper.Map<GrowthChartModelView>(existingItem);
+                added.userViewModel = _mapper.Map<UserResponseModel>(existingItem.Child.User);
 
                 if (Enum.IsDefined(typeof(GrowthChartStatus), existingItem.Status))
                 {
@@ -549,7 +551,8 @@ namespace BabyCare.Services.Service
                 Topic = x.Topic,
                 Status = (Enum.IsDefined(typeof(GrowthChartStatus), x.Status)) ? ((GrowthChartStatus)x.Status).ToString() : "Unknown",
                 ViewCount = x.ViewCount,
-                childModelView = _mapper.Map<ChildModelViewAddeRecords>(x.Child)
+                childModelView = _mapper.Map<ChildModelViewAddeRecords>(x.Child),
+                userViewModel = _mapper.Map<UserResponseModel>(x.Child.User)
             }).ToList();
 
            
