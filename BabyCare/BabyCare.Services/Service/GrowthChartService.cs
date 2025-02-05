@@ -65,7 +65,9 @@ namespace BabyCare.Services.Service
             if (!string.IsNullOrEmpty(request.SearchValue))
             {
                 query = query.Where(a => a.Topic.ToLower().Contains(request.SearchValue.ToLower()) ||
-                                        a.Question.ToLower().Contains(request.SearchValue.ToLower())
+                                        a.Question.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                        a.Child.Name.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                        (a.Child.User.FullName!=null && a.Child.User.FullName.ToLower().Contains(request.SearchValue.ToLower()))
                                         );
             }
             if (request.FromDate.HasValue)
@@ -171,7 +173,9 @@ namespace BabyCare.Services.Service
             if (!string.IsNullOrEmpty(request.SearchValue))
             {
                 query = query.Where(a => a.Topic.ToLower().Contains(request.SearchValue.ToLower()) ||
-                                        a.Question.ToLower().Contains(request.SearchValue.ToLower())
+                                        a.Question.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                        a.Child.Name.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                        (a.Child.User.FullName != null && a.Child.User.FullName.ToLower().Contains(request.SearchValue.ToLower()))
                                         );
             }
             if (request.FromDate.HasValue)

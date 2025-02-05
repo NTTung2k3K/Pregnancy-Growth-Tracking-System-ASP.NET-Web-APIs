@@ -19,8 +19,8 @@ namespace BabyCare.ModelViews.ChildModelView
 
         
 
-        [MaxLength(10, ErrorMessage = "Fetal gender cannot exceed 10 characters.")]
-        public string? FetalGender { get; set; }
+        //[MaxLength(10, ErrorMessage = "Fetal gender cannot exceed 10 characters.")]
+        public int? FetalGender { get; set; }
 
         [MaxLength(50, ErrorMessage = "Pregnancy stage cannot exceed 50 characters.")]
         public string? PregnancyStage { get; set; }
