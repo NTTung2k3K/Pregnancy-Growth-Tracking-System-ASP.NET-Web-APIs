@@ -12,6 +12,7 @@ namespace BabyCare.ModelViews.GrowthChartModelView
 
         public string? Question { get; set; }
         public int ViewCount { get; set; } 
+        public UserModelViews.Response.UserResponseModel userViewModel { get; set; }
         public AppointmentModelViews.Response.ChildModelViewAddeRecords childModelView { get; set; }
         public List<FeedbackModelView.FeedbackModelView> feedbackModelViews { get; set; }
     }

@@ -332,7 +332,7 @@ namespace BabyCare.Services.Service
 
             // Map danh sách FGR sang ModelView
             model.childModelView.FetalGrowthRecordModelViews = _mapper.Map<List<FetalGrowthRecordModelViewAddedStandards>>(fgrs);
-
+            model.userViewModel = _mapper.Map<UserResponseModel>(entity.Child.User);
 
             // Retrieve related Feedbacks DETAIL: for independent
             //    var feedbacks = await _unitOfWork.GetRepository<Feedback>().Entities
