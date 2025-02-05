@@ -62,7 +62,10 @@ namespace BabyCare.Services.Service
                 {
                     newChild.PhotoUrl = await BabyCare.Core.Firebase.ImageHelper.Upload(model.PhotoUrl);
                 }
-
+                if(model.FetalGender == null)
+                {
+                    newChild.FetalGender = (int)Gender.Female;
+                }
                 // Thiết lập các trường còn lại
                 newChild.CreatedTime = DateTimeOffset.UtcNow;
                 newChild.CreatedBy = model.UserId.ToString(); // Hoặc lấy từ hệ thống User nếu có
@@ -203,7 +206,12 @@ namespace BabyCare.Services.Service
                 .ToListAsync();
 
             // Chuyển đổi từ Child sang ChildModelView
-            List<ChildModelView> childModelViews = _mapper.Map<List<ChildModelView>>(paginatedChildren);
+            List<ChildModelView> childModelViews = _mapper.Map<List<ChildModelView>>(paginatedChildren).Select(child =>
+            {
+                int genderInt = int.TryParse(child.FetalGender, out var parsedGender) ? parsedGender : -1;
+                child.FetalGender = Enum.IsDefined(typeof(Gender), genderInt) ? ((Gender)genderInt).ToString() : "Unknown";
+                return child;
+            }).ToList();
 
             // Tạo đối tượng phân trang
             var result = new BasePaginatedList<ChildModelView>(childModelViews, totalCount, pageNumber, pageSize);
@@ -231,6 +239,7 @@ namespace BabyCare.Services.Service
 
             // Chuyển đổi từ Child sang ChildModelView
             ChildModelViewAddeRecords childModelView = _mapper.Map<ChildModelViewAddeRecords>(childEntity);
+            childModelView.FetalGender = Enum.IsDefined(typeof(Gender), childEntity.FetalGender) ? ((Gender)childEntity.FetalGender).ToString() : "Unknown";
             foreach (var child in childEntity.FetalGrowthRecords)
             {
                 // Map Child entity sang ChildModelViewAddeRecords
@@ -291,7 +300,7 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (!string.IsNullOrWhiteSpace(model.FetalGender) && model.FetalGender != existingChild.FetalGender)
+            if (model.FetalGender!=null && model.FetalGender != existingChild.FetalGender)
             {
                 existingChild.FetalGender = model.FetalGender;
                 isUpdated = true;
@@ -411,7 +420,12 @@ namespace BabyCare.Services.Service
 
 
             // Chuyển đổi từ Child sang ChildModelView
-            var childModelView = _mapper.Map<List<ChildModelView>>(childEntity);
+            var childModelView = _mapper.Map<List<ChildModelView>>(childEntity).Select(child =>
+            {
+                int genderInt = int.TryParse(child.FetalGender, out var parsedGender) ? parsedGender : -1;
+                child.FetalGender = Enum.IsDefined(typeof(Gender), genderInt) ? ((Gender)genderInt).ToString() : "Unknown";
+                return child;
+            }).ToList();
 
             return new ApiSuccessResult<List<ChildModelView>>(childModelView);
         }
@@ -472,7 +486,12 @@ namespace BabyCare.Services.Service
                 .ToListAsync();
 
 
-            var res = _mapper.Map<List<ChildModelView>>(data);
+            var res = _mapper.Map<List<ChildModelView>>(data).Select(child =>
+            {
+                int genderInt = int.TryParse(child.FetalGender, out var parsedGender) ? parsedGender : -1;
+                child.FetalGender = Enum.IsDefined(typeof(Gender), genderInt) ? ((Gender)genderInt).ToString() : "Unknown";
+                return child;
+            }).ToList(); ;
 
             var response = new BasePaginatedList<ChildModelView>(res, total, currentPage, pageSize);
             // return to client

@@ -11,7 +11,7 @@ namespace BabyCare.ModelViews.FeedbackModelView
         public Guid UserId { get; set; }
         public string Description { get; set; }
         public int Rating { get; set; }
-        public string? Status { get; set; }
+        public string Status { get; set; }
         public string? FeedbackType { get; set; }
 
         public DateTimeOffset CreatedTime { get; set; }
@@ -25,7 +25,7 @@ namespace BabyCare.ModelViews.FeedbackModelView
         public string Description { get; set; }
         public int Rating { get; set; }
         public string? FeedbackType { get; set; }
-        public string? Status { get; set; }
+        public string Status { get; set; }
         public DateTimeOffset CreatedTime { get; set; }
 
         public UserResponseModel User { get; set; }

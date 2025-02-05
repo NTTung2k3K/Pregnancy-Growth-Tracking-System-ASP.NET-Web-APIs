@@ -13,6 +13,7 @@ using BabyCare.ModelViews.GrowthChartModelView;
 using static BabyCare.Core.Utils.SystemConstant;
 using System.Linq;
 using BabyCare.Core.Utils;
+using Firebase.Auth;
 
 namespace BabyCare.Services.Service
 {
@@ -100,12 +101,14 @@ namespace BabyCare.Services.Service
 
             return new ApiSuccessResult<object>("Feedback deleted successfully");
         }
+       
         public async Task<ApiResult<object>> BlockFeedbackAsync(BanFeedbackRequest request)
         {
             if (_contextAccessor.HttpContext?.User?.FindFirst("userId") == null)
             {
-                return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+                return new ApiErrorResult<object>("Please login to use this function.", System.Net.HttpStatusCode.BadRequest);
             }
+
             var existingFeedback = await _unitOfWork.GetRepository<Feedback>().Entities
                 .FirstOrDefaultAsync(f => f.Id == request.Id && !f.DeletedTime.HasValue);
 
@@ -113,18 +116,47 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Feedback not found or already deleted");
             }
-            if (existingFeedback.Status == (int)FeedbackStatus.BANNED) { 
-                return new ApiErrorResult<object>("Feedback has been banned");
+
+            if (existingFeedback.Status == (int)FeedbackStatus.BANNED)
+            {
+                return new ApiErrorResult<object>("Feedback has already been banned");
             }
 
+            var feedbackRepo = _unitOfWork.GetRepository<Feedback>();
+            string userId = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value ?? "Unknown";
+
             existingFeedback.LastUpdatedTime = DateTime.Now;
-            existingFeedback.LastUpdatedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId").Value;
+            existingFeedback.LastUpdatedBy = userId;
             existingFeedback.Status = (int)FeedbackStatus.BANNED;
-            await _unitOfWork.GetRepository<Feedback>().UpdateAsync(existingFeedback);
+
+            // Gọi hàm đệ quy để ban toàn bộ feedback con
+            await BanChildFeedbacksAsync(existingFeedback.Id, feedbackRepo, userId);
+
+            await feedbackRepo.UpdateAsync(existingFeedback);
             await _unitOfWork.SaveAsync();
 
-            return new ApiSuccessResult<object>("Feedback deleted successfully");
+            return new ApiSuccessResult<object>("Feedback banned successfully");
         }
+
+        // 🔹 Hàm đệ quy để ban tất cả feedback con
+        private async Task BanChildFeedbacksAsync(int parentId, IGenericRepository<Feedback> feedbackRepo, string userId)
+        {
+            var childFeedbacks = await feedbackRepo.Entities
+                .Where(f => f.ResponseFeedbackId == parentId)
+                .ToListAsync();
+
+            foreach (var childFeedback in childFeedbacks)
+            {
+                childFeedback.LastUpdatedTime = DateTime.Now;
+                childFeedback.LastUpdatedBy = userId;
+                childFeedback.Status = (int)FeedbackStatus.BANNED;
+                await feedbackRepo.UpdateAsync(childFeedback);
+
+                // 🔄 Gọi đệ quy để tiếp tục ban các feedback con của feedback này
+                await BanChildFeedbacksAsync(childFeedback.Id, feedbackRepo, userId);
+            }
+        }
+
 
         public async Task<ApiResult<List<FeedbackModelViewForAdmin>>> GetAllFeedbackAdminAsync()
         {
@@ -253,29 +285,20 @@ namespace BabyCare.Services.Service
 
             foreach (var feedback in parentFeedbacks)
             {
-                // Chuyển đổi Status từ Enum
                 var feedbackEntity = feedbacks.FirstOrDefault(f => f.Id == feedback.Id);
-                feedback.Status = feedbackEntity != null && Enum.IsDefined(typeof(FeedbackStatus), feedbackEntity.Status)
-                    ? ((FeedbackStatus)feedbackEntity.Status).ToString()
+                feedback.Status = feedbackEntity != null
+                    ? Enum.GetName(typeof(FeedbackStatus), feedbackEntity.Status) ?? "Unknown"
                     : "Unknown";
 
                 feedback.User = _mapper.Map<UserResponseModel>(feedbackEntity?.User);
 
-                // Tìm các feedback con có ParentFeedbackID = feedback.Id
+                // Tìm và cập nhật response feedbacks
                 feedback.ResponseFeedbacks = _mapper.Map<List<FeedbackModelView>>(
                     feedbacks.Where(f => f.ResponseFeedbackId == feedback.Id).ToList()
                 );
 
-                // Chuyển đổi Status của các feedback con
-                foreach (var childFeedback in feedback.ResponseFeedbacks)
-                {
-                    var childEntity = feedbacks.FirstOrDefault(f => f.Id == childFeedback.Id);
-                    childFeedback.Status = childEntity != null && Enum.IsDefined(typeof(FeedbackStatus), childEntity.Status)
-                        ? ((FeedbackStatus)childEntity.Status).ToString()
-                        : "Unknown";
-
-                    childFeedback.User = _mapper.Map<UserResponseModel>(childEntity?.User);
-                }
+                // Gọi hàm đệ quy để cập nhật Status cho tất cả các feedback con
+                UpdateStatusRecursively(feedback.ResponseFeedbacks, feedbacks);
             }
 
             return new ApiSuccessResult<object>(new
@@ -284,7 +307,29 @@ namespace BabyCare.Services.Service
                 HasMore = hasMore
             });
         }
+        private void UpdateStatusRecursively(List<FeedbackModelView> feedbacks, List<Feedback> allFeedbacks)
+        {
+            foreach (var feedback in feedbacks)
+            {
+                var feedbackEntity = allFeedbacks.FirstOrDefault(f => f.Id == feedback.Id);
+                feedback.Status = feedbackEntity != null
+                    ? Enum.GetName(typeof(FeedbackStatus), feedbackEntity.Status) ?? "Unknown"
+                    : "Unknown";
 
+                feedback.User = _mapper.Map<UserResponseModel>(feedbackEntity?.User);
+
+                // Tìm feedback con của feedback hiện tại
+                feedback.ResponseFeedbacks = _mapper.Map<List<FeedbackModelView>>(
+                    allFeedbacks.Where(f => f.ResponseFeedbackId == feedback.Id).ToList()
+                );
+
+                // Gọi đệ quy để cập nhật status cho các feedback con
+                if (feedback.ResponseFeedbacks.Any())
+                {
+                    UpdateStatusRecursively(feedback.ResponseFeedbacks, allFeedbacks);
+                }
+            }
+        }
         public async Task<ApiResult<object>> GetFeedbacksWithPagination(int growthChartId, int? pageIndex, int? pageSize)
         {
             var feedbacks = await _unitOfWork.GetRepository<Feedback>().Entities
@@ -307,30 +352,22 @@ namespace BabyCare.Services.Service
 
             foreach (var feedback in parentFeedbacks)
             {
-                // Chuyển đổi Status từ Enum
                 var feedbackEntity = feedbacks.FirstOrDefault(f => f.Id == feedback.Id);
-                feedback.Status = feedbackEntity != null && Enum.IsDefined(typeof(FeedbackStatus), feedbackEntity.Status)
-                    ? ((FeedbackStatus)feedbackEntity.Status).ToString()
+                feedback.Status = feedbackEntity != null
+                    ? Enum.GetName(typeof(FeedbackStatus), feedbackEntity.Status) ?? "Unknown"
                     : "Unknown";
 
                 feedback.User = _mapper.Map<UserResponseModel>(feedbackEntity?.User);
 
-                // Tìm các feedback con có ParentFeedbackID = feedback.Id
+                // Tìm và cập nhật response feedbacks
                 feedback.ResponseFeedbacks = _mapper.Map<List<FeedbackModelView>>(
                     feedbacks.Where(f => f.ResponseFeedbackId == feedback.Id).ToList()
                 );
 
-                // Chuyển đổi Status của các feedback con
-                foreach (var childFeedback in feedback.ResponseFeedbacks)
-                {
-                    var childEntity = feedbacks.FirstOrDefault(f => f.Id == childFeedback.Id);
-                    childFeedback.Status = childEntity != null && Enum.IsDefined(typeof(FeedbackStatus), childEntity.Status)
-                        ? ((FeedbackStatus)childEntity.Status).ToString()
-                        : "Unknown";
-
-                    childFeedback.User = _mapper.Map<UserResponseModel>(childEntity?.User);
-                }
+                // Gọi hàm đệ quy để cập nhật Status cho tất cả các feedback con
+                UpdateStatusRecursively(feedback.ResponseFeedbacks, feedbacks);
             }
+
 
             return new ApiSuccessResult<object>(new
             {
