@@ -110,7 +110,7 @@ namespace BabyCare.API.Controllers
         ///     Update a child's details
         /// </summary>
         [HttpPut("update/{id}")]
-        public async Task<ActionResult<string>> UpdateChild(int id, [FromBody] UpdateChildModelView model)
+        public async Task<ActionResult<string>> UpdateChild(int id, [FromForm] UpdateChildModelView model)
         {
             try
             {

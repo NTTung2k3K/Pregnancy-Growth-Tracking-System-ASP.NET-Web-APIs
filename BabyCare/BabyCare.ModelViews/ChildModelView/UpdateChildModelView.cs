@@ -11,7 +11,7 @@ namespace BabyCare.ModelViews.ChildModelView
     {
         public Guid? UserId { get; set; }
         public string? Name { get; set; }
-        public string? FetalGender { get; set; }
+        public int? FetalGender { get; set; }
         public string? PregnancyStage { get; set; }
         public float? WeightEstimate { get; set; }
         public float? HeightEstimate { get; set; }
