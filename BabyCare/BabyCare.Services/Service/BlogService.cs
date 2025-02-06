@@ -173,7 +173,8 @@ namespace BabyCare.Services.Service
                 ViewCount = x.ViewCount,
                 Week = x.Week,
                 AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(x.Author),
-                BlogTypeModelView = _mapper.Map<BlogTypeModelView>(x.BlogType)
+                BlogTypeModelView = _mapper.Map<BlogTypeModelView>(x.BlogType),
+                CreatedTime = x.CreatedTime
             }).ToList();
 
             // Tạo đối tượng phân trang
@@ -229,7 +230,9 @@ namespace BabyCare.Services.Service
                 ViewCount = x.ViewCount,
                 Week = x.Week,
                 AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(x.Author),
-                BlogTypeModelView = _mapper.Map<BlogTypeModelView>(x.BlogType)
+                BlogTypeModelView = _mapper.Map<BlogTypeModelView>(x.BlogType),
+                CreatedTime = x.CreatedTime
+
             }).ToList();
 
             // Tạo đối tượng phân trang
@@ -298,7 +301,9 @@ namespace BabyCare.Services.Service
                 ViewCount = x.ViewCount,
                 Week = x.Week,
                 AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(x.Author),
-                BlogTypeModelView = _mapper.Map<BlogTypeModelView>(x.BlogType)
+                BlogTypeModelView = _mapper.Map<BlogTypeModelView>(x.BlogType),
+                CreatedTime = x.CreatedTime
+
             }).ToList();
 
             // Tạo đối tượng phân trang

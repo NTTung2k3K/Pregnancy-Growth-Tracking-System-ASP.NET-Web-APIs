@@ -21,6 +21,8 @@ namespace BabyCare.ModelViews.BlogModelViews
         public string Status { get; set; }
         public string Sources { get; set; }
         public string Thumbnail { get; set; }
+        public DateTimeOffset CreatedTime { get; set; }
+
         public BlogTypeModelView.BlogTypeModelView BlogTypeModelView { get; set; }
         public UserModelViews.Response.EmployeeResponseModel AuthorResponseModel { get; set; }
         //public int BlogTypeId { get; set; }
