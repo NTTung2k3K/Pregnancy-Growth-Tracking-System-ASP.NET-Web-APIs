@@ -195,6 +195,26 @@ namespace BabyCare.API
                 }
             }
 
+            if (await userManager.FindByNameAsync("Doctor2@") == null)
+            {
+                var doctorUser = new ApplicationUsers()
+                {
+                    UserName = "Doctor2@",
+                    Email = "doctor@example.com",
+                    Status = (int)SystemConstant.EmployeeStatus.Active,
+
+                    EmailConfirmed = true,
+                    LockoutEnabled = false
+                };
+
+                var result = await userManager.CreateAsync(doctorUser, "Doctor2@");
+
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(doctorUser, SystemConstant.Role.DOCTOR);
+                }
+            }
+
             if (await userManager.FindByEmailAsync("User1@gmail.com") == null)
             {
                 var normalUser = new ApplicationUsers()

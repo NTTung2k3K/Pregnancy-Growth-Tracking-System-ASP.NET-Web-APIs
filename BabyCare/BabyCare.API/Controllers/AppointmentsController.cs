@@ -35,7 +35,20 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
-    
+        [HttpPost("confirm")]
+        public async Task<IActionResult> ConfirmAppointment([FromBody] ConfirmAppointment request)
+        {
+            try
+            {
+                var result = await _appointmentService.ConfirmAppointment(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+
         [HttpPut("update")]
         public async Task<IActionResult> UpdateAppointment([FromBody] UpdateAppointmentRequest request)
         {
@@ -185,6 +198,19 @@ namespace BabyCare.API.Controllers
             try
             {
                 var result = await _appointmentService.GetAppointmentsByUserIdInRange(userId,startDay,endDate);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+            }
+        }
+        [HttpGet("get-doctor-in-range-by-user-id")]
+        public async Task<IActionResult> GetAppointmentsDoctorByUserIdInRange([FromQuery] Guid userId, [FromQuery] DateTime startDay, [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var result = await _appointmentService.GetAppointmentsDoctorByUserIdInRange(userId, startDay, endDate);
                 return Ok(result);
             }
             catch (Exception ex)
