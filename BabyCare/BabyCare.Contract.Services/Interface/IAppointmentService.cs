@@ -15,6 +15,8 @@ namespace BabyCare.Contract.Services.Interface
     {
         Task<ApiResult<object>> CreateAppointment(CreateAppointmentRequest request);
         Task<ApiResult<object>> UpdateAppointment(UpdateAppointmentRequest request);
+        Task<ApiResult<object>> ConfirmAppointment(ConfirmAppointment request);
+
         Task<ApiResult<object>> UpdateByDoctorAppointment(UpdateAppointmentByDoctorRequest request);
         Task<ApiResult<BasePaginatedList<AppointmentResponseModel>>> GetAppointmentsByUserIdPagination(SearchAppointmentByUserId request);
 
@@ -25,6 +27,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<List<AppointmentResponseModel>>> GetAll();
 
         Task<ApiResult<List<AppointmentResponseModel>>> GetAppointmentsByUserIdInRange(Guid userId,DateTime startDay, DateTime endDate);
+        Task<ApiResult<List<AppointmentResponseModel>>> GetAppointmentsDoctorByUserIdInRange(Guid userId, DateTime startDay, DateTime endDate);
 
 
         ApiResult<List<AppointmentStatusResponseModel>> GetAppointmentStatusHandler();
