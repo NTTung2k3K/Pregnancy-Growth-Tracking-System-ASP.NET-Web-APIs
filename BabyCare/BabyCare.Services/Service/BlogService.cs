@@ -546,5 +546,74 @@ namespace BabyCare.Services.Service
             // return to client
             return new ApiSuccessResult<BasePaginatedList<BlogModelView>>(response);
         }
+        public async Task<ApiResult<List<object>>> GetBlogCountByMonthAsync()
+        {
+            var currentYear = DateTime.UtcNow.Year;
+            var blogCounts = new List<object>();
+
+            for (int month = 1; month <= 12; month++)
+            {
+                var count = await _unitOfWork.GetRepository<Blog>().Entities
+                    .Where(b => b.CreatedTime.Year == currentYear && b.CreatedTime.Month == month && !b.DeletedTime.HasValue)
+                    .CountAsync();
+
+                blogCounts.Add(new { month, quantity = count });
+            }
+
+            return new ApiSuccessResult<List<object>>(blogCounts);
+        }
+
+        public async Task<ApiResult<List<BlogModelView>>> GetMostViewedBlogsAsync(int quantity)
+        {
+            var mostViewedBlogs = await _unitOfWork.GetRepository<Blog>().Entities
+                .AsNoTracking()
+                .Where(b => !b.DeletedTime.HasValue)
+                .OrderByDescending(b => b.ViewCount)
+                .Take(quantity)
+                .ToListAsync();
+
+            if (!mostViewedBlogs.Any())
+            {
+                return new ApiErrorResult<List<BlogModelView>>("No blogs found.");
+            }
+
+            var blogModelViews = mostViewedBlogs.Select(blog =>
+            {
+                var blogModelView = _mapper.Map<BlogModelView>(blog);
+                blogModelView.AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(blog.Author);
+                blogModelView.BlogTypeModelView = _mapper.Map<BlogTypeModelView>(blog.BlogType);
+                return blogModelView;
+            }).ToList();
+
+            return new ApiSuccessResult<List<BlogModelView>>(blogModelViews);
+        }
+
+
+        public async Task<ApiResult<List<BlogModelView>>> GetMostLikedBlogAsync(int quantity)
+        {
+            var mostViewedBlogs = await _unitOfWork.GetRepository<Blog>().Entities
+                .AsNoTracking()
+                .Where(b => !b.DeletedTime.HasValue)
+                .OrderByDescending(b => b.LikesCount)
+                .Take(quantity)
+                .ToListAsync();
+
+            if (!mostViewedBlogs.Any())
+            {
+                return new ApiErrorResult<List<BlogModelView>>("No blogs found.");
+            }
+
+            var blogModelViews = mostViewedBlogs.Select(blog =>
+            {
+                var blogModelView = _mapper.Map<BlogModelView>(blog);
+                blogModelView.AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(blog.Author);
+                blogModelView.BlogTypeModelView = _mapper.Map<BlogTypeModelView>(blog.BlogType);
+                return blogModelView;
+            }).ToList();
+
+            return new ApiSuccessResult<List<BlogModelView>>(blogModelViews);
+        }
+        
     }
+
 }
