@@ -202,6 +202,86 @@ namespace BabyCare.Services.Service
 
 
                 _unitOfWork.CommitTransaction();
+
+                // Send mail for user
+                string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FormSendEmail", "CustomerForm.html");
+                path = Path.GetFullPath(path);
+                if (!File.Exists(path))
+                {
+                    return new ApiSuccessResult<object>("Booking successfully, but not found form to send mail");
+                }
+                var content = File.ReadAllText(path);
+                content = content.Replace("{{CustomerName}}", appointment.AppointmentUsers.FirstOrDefault().User.FullName);
+                content = content.Replace("{{AppointmentDate}}", appointment.AppointmentDate.Date.ToString());
+                content = content.Replace("{{AppointmentTime}}", GetSlotString(appointment.AppointmentSlot));
+                content = content.Replace("{{ServiceName}}", appointment.AppointmentTemplate.Name);
+                content = content.Replace("{{Description}}", appointment.AppointmentTemplate.Description);
+                content = content.Replace("{{Fee}}", appointment.AppointmentTemplate.Fee?.ToString("N0", new System.Globalization.CultureInfo("vi-VN")) + "VNĐ");
+                content = content.Replace("{{PhoneNumber}}", appointment.AppointmentUsers.FirstOrDefault().User.PhoneNumber);
+                content = content.Replace("{{Email}}", appointment.AppointmentUsers.FirstOrDefault().User.Email);
+                string childrenHtml = "";
+                foreach (var child in appointment.AppointmentChildren)
+                {
+                    childrenHtml += $@"
+        <tr>
+            <td style='padding: 12px; text-align: center;'>{child.Child.Name}</td>
+            <td style='padding: 12px; text-align: center;'>{child.Child.PregnancyWeekAtBirth}</td>
+            <td style='padding: 12px; text-align: center;'>{child.Child.DueDate:dd/MM/yyyy}</td>
+        </tr>";
+                }
+
+                content = content.Replace("{{childs}}", childrenHtml);
+
+                var resultSendMail = DoingMail.SendMail("BabyCare", "Booking successfully", content, appointment.AppointmentUsers.FirstOrDefault().User.Email);
+                if (!resultSendMail)
+                {
+                    return new ApiErrorResult<object>("Cannot send email to " + appointment.AppointmentUsers.FirstOrDefault().User.Email);
+                }
+                // Send mail to admin
+                string pathAdmin = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FormSendEmail", "ManagerForm.html");
+                pathAdmin = Path.GetFullPath(pathAdmin);
+                if (!File.Exists(pathAdmin))
+                {
+                    return new ApiSuccessResult<object>("Booking successfully, but not found form to send mail to admin");
+                }
+                var contentAdmin = File.ReadAllText(pathAdmin);
+                contentAdmin = contentAdmin.Replace("{{CustomerName}}", appointment.AppointmentUsers.FirstOrDefault().User.FullName);
+                contentAdmin = contentAdmin.Replace("{{AppointmentDate}}", appointment.AppointmentDate.Date.ToString());
+                contentAdmin = contentAdmin.Replace("{{AppointmentTime}}", GetSlotString(appointment.AppointmentSlot));
+                contentAdmin = contentAdmin.Replace("{{ServiceName}}", appointment.AppointmentTemplate.Name);
+                contentAdmin = contentAdmin.Replace("{{Description}}", appointment.AppointmentTemplate.Description);
+                contentAdmin = contentAdmin.Replace("{{Fee}}", appointment.AppointmentTemplate.Fee?.ToString("N0", new System.Globalization.CultureInfo("vi-VN")) + "VNĐ");
+                contentAdmin = contentAdmin.Replace("{{PhoneNumber}}", appointment.AppointmentUsers.FirstOrDefault().User.PhoneNumber);
+                contentAdmin = contentAdmin.Replace("{{Email}}", appointment.AppointmentUsers.FirstOrDefault().User.Email);
+                string childrenAdminHtml = "";
+                foreach (var child in appointment.AppointmentChildren)
+                {
+                    childrenAdminHtml += $@"
+        <tr>
+            <td style='padding: 12px; text-align: center;'>{child.Child.Name}</td>
+            <td style='padding: 12px; text-align: center;'>{child.Child.PregnancyWeekAtBirth}</td>
+            <td style='padding: 12px; text-align: center;'>{child.Child.DueDate:dd/MM/yyyy}</td>
+        </tr>";
+                }
+
+                contentAdmin = contentAdmin.Replace("{{childs}}", childrenAdminHtml);
+
+                var doctorEmail = await _userManager.FindByIdAsync(doctorId.ToString());
+                if (doctorEmail == null)
+                {
+                    return new ApiSuccessResult<object>("Appointment confirmed successfully.");
+
+                }
+
+                var resultSendMailAdmin = DoingMail.SendMail("BabyCare", "New Booking", contentAdmin, doctorEmail.Email);
+                if (!resultSendMailAdmin)
+                {
+                    return new ApiErrorResult<object>("Cannot send email to " + doctorEmail.Email);
+                }
+
+
+
+
                 return new ApiSuccessResult<object>("Create successfully.");
             }
             catch (Exception ex)
@@ -706,6 +786,12 @@ namespace BabyCare.Services.Service
                     Status = Enum.IsDefined(typeof(AppointmentStatus), appointment.Status)
                         ? ((AppointmentStatus)appointment.Status).ToString()
                         : "Unknown",
+                    AppointmentSlot = appointment.AppointmentSlot,
+                    Description = appointment.Description,
+                    Fee = appointment.Fee,
+                    Name = appointment.Name,
+                    Result = appointment.Result,
+                    Notes = appointment.Notes,
                 };
 
                 // Map User
@@ -1178,6 +1264,12 @@ namespace BabyCare.Services.Service
                     Status = Enum.IsDefined(typeof(AppointmentStatus), appointment.Status)
                         ? ((AppointmentStatus)appointment.Status).ToString()
                         : "Unknown",
+                    AppointmentSlot = appointment.AppointmentSlot,
+                    Description = appointment.Description,
+                    Fee = appointment.Fee,
+                    Name = appointment.Name,
+                    Result = appointment.Result,
+                    Notes = appointment.Notes,
                 };
 
                 // Map User

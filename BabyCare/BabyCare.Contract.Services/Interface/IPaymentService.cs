@@ -12,6 +12,9 @@ namespace BabyCare.Contract.Services.Interface
     {
         Task<ApiResult<List<PaymentResponseModel>>> GetAll();
         Task<ApiResult<PaymentResponseModel>> GetById(int id);
-
+        ApiResult<List<object>> GetMonthlyPaymentStatistics();
+        Task<ApiResult<List<PaymentResponseModel>>> GetRecentTransactions(int quantity);
+        ApiResult<decimal> GetTotalRevenueForCurrentYear();
+        ApiResult<object> GetMonthWithMaxTransactions();
     }
 }
