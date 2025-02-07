@@ -35,6 +35,7 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+
         [HttpGet("all-admin")]
         public async Task<ActionResult<BasePaginatedList<BlogModelView>>> GetAllBlogAdminAsync
             ([FromQuery] int? id, [FromQuery] string? title, [FromQuery] string? status, [FromQuery] bool? isFeatured, int pageNumber = 1, int pageSize = 10)
@@ -64,6 +65,7 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+
         /// <summary>
         ///     Get a blog by ID
         /// </summary>
@@ -80,8 +82,9 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+
         [HttpGet("get-by-week")]
-        public async Task<ActionResult<BlogModelView>> GetBlogByWeekAsync([FromQuery]int week)
+        public async Task<ActionResult<BlogModelView>> GetBlogByWeekAsync([FromQuery] int week)
         {
             try
             {
@@ -93,6 +96,7 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+
         [HttpGet("get-status-handler")]
         public IActionResult GetBlogStatusHandler()
         {
@@ -106,6 +110,7 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+
         /// <summary>
         ///     Create a new blog
         /// </summary>
@@ -154,6 +159,57 @@ namespace BabyCare.API.Controllers
             try
             {
                 var result = await _blogService.DeleteBlogAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+
+        /// <summary>
+        ///     Get blog count by month
+        /// </summary>
+        [HttpGet("count-by-month")]
+        public async Task<ActionResult<List<object>>> GetBlogCountByMonth()
+        {
+            try
+            {
+                var result = await _blogService.GetBlogCountByMonthAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+
+        /// <summary>
+        ///     Get most viewed blogs
+        /// </summary>
+        [HttpGet("most-viewed")]
+        public async Task<ActionResult<List<BlogModelView>>> GetMostViewedBlogs([FromQuery] int quantity)
+        {
+            try
+            {
+                var result = await _blogService.GetMostViewedBlogsAsync(quantity);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+
+        /// <summary>
+        ///     Get most liked blogs
+        /// </summary>
+        [HttpGet("most-liked")]
+        public async Task<ActionResult<List<BlogModelView>>> GetMostLikedBlogs([FromQuery] int quantity)
+        {
+            try
+            {
+                var result = await _blogService.GetMostLikedBlogAsync(quantity);
                 return Ok(result);
             }
             catch (Exception ex)

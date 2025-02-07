@@ -39,5 +39,11 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<BlogModelView>> GetBlogByIdAsync(int id);
         Task<ApiResult<List<BlogModelView>>> GetBlogByWeekAsync(int week);
 
+
+        Task<ApiResult<List<object>>> GetBlogCountByMonthAsync();
+        Task<ApiResult<List<BlogModelView>>> GetMostViewedBlogsAsync(int quantity);
+        Task<ApiResult<List<BlogModelView>>> GetMostLikedBlogAsync(int quantity);
+
+
     }
 }

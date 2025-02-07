@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
@@ -28,6 +29,87 @@ namespace BabyCare.Services.Service
             _userManager = userManager;
             _mapper = mapper;
         }
+        public ApiResult<List<object>> GetMonthlyPaymentStatistics()
+        {
+            var currentYear = DateTime.Now.Year;
+            var paymentRepo = _unitOfWork.GetRepository<Payment>();
+
+            var payments = paymentRepo.GetAll()
+                .Where(p => p.PaymentDate.Year == currentYear)
+                .ToList();
+
+            var statistics = payments
+                .GroupBy(p => p.PaymentDate.Month)
+                .Select(g => new
+                {
+                    Month = g.Key,
+                    TransactionCount = g.Count(),
+                    TotalAmount = g.Sum(p => p.Amount)
+                })
+                .OrderBy(s => s.Month)
+                .ToList();
+
+            var result = statistics.Cast<object>().ToList();
+
+            return new ApiSuccessResult<List<object>>(result, "Get successfully", System.Net.HttpStatusCode.OK);
+        }
+        public async Task<ApiResult<List<PaymentResponseModel>>> GetRecentTransactions(int quantity)
+        {
+            var paymentRepo = _unitOfWork.GetRepository<Payment>();
+            var userMembershipRepo = _unitOfWork.GetRepository<UserMembership>();
+            var membershipPackageRepo = _unitOfWork.GetRepository<MembershipPackage>();
+
+            var recentTransactions =  paymentRepo.GetAll()
+                .OrderByDescending(p => p.PaymentDate)
+                .Take(quantity)
+                .ToList();
+            var response = new List<PaymentResponseModel>();
+            foreach (var item in recentTransactions)
+            {
+                var paymentRes = _mapper.Map<PaymentResponseModel>(item);
+                paymentRes.UserMembership = _mapper.Map<UserMembershipResponse>(userMembershipRepo.GetById(item.MembershipId));
+                paymentRes.UserMembership.Package = _mapper.Map<MPResponseModel>(membershipPackageRepo.GetById(paymentRes.UserMembership.Package.Id));
+                paymentRes.UserMembership.User =  _mapper.Map<UserResponseModel>(await(_userManager.FindByIdAsync(paymentRes.UserMembership.User.Id.ToString())));
+                response.Add(paymentRes);
+            }
+            return new ApiSuccessResult<List<PaymentResponseModel>>(response);
+        }
+
+
+        public ApiResult<decimal> GetTotalRevenueForCurrentYear()
+        {
+            var currentYear = DateTime.Now.Year;
+            var paymentRepo = _unitOfWork.GetRepository<Payment>();
+
+            var totalRevenue =  paymentRepo.GetAll()
+                .Where(p => p.PaymentDate.Year == currentYear)
+                .Sum(p => p.Amount);
+
+            return new ApiSuccessResult<decimal>(totalRevenue);
+        }
+
+        public ApiResult<object> GetMonthWithMaxTransactions()
+        {
+            var currentYear = DateTime.Now.Year;
+            var paymentRepo = _unitOfWork.GetRepository<Payment>();
+
+            var payments =  paymentRepo.GetAll()
+                .Where(p => p.PaymentDate.Year == currentYear)
+                .ToList();
+
+            var maxTransactions = payments
+                .GroupBy(p => p.PaymentDate.Month)
+                .Select(g => new
+                {
+                    Month = g.Key,
+                    TransactionCount = g.Count()
+                })
+                .OrderByDescending(s => s.TransactionCount)
+                .FirstOrDefault();
+
+            return new ApiSuccessResult<object>(maxTransactions);
+        }
+
         public async Task<ApiResult<List<PaymentResponseModel>>> GetAll()
         {
             var paymentRepo = _unitOfWork.GetRepository<Payment>();

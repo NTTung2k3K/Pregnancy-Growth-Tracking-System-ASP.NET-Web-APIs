@@ -163,6 +163,35 @@ namespace BabyCare.Contract.Services.Implements
             }
         }
 
+        public async Task<ApiResult<DashboardUserCreateResponse>> GetUsersByCreateTime()
+        {
+            var now = DateTime.Now;
+
+            var users = await _userManager.Users.ToListAsync(); // Lấy tất cả users để xử lý
+            var usersWithRoleUser = new List<ApplicationUsers>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles.Contains(SystemConstant.Role.USER)) // Kiểm tra user có role "User"
+                {
+                    usersWithRoleUser.Add(user);
+                }
+            }
+
+            var usersY = usersWithRoleUser.Where(u => u.CreatedTime.Year == now.Year).ToList();
+            var usersM = usersWithRoleUser.Where(u => u.CreatedTime.Month == now.Month).ToList();
+            var usersD = usersWithRoleUser.Where(u => u.CreatedTime.Date == now.Date).ToList();
+
+            var res = new DashboardUserCreateResponse()
+            {
+                InDay = usersD.Count,
+                InMonth = usersM.Count,
+                InYear = usersY.Count,
+            };
+
+            return new ApiSuccessResult<DashboardUserCreateResponse>(res);
+        }
 
         public async Task<ApiResult<object>> UserRegister(UserRegisterRequestModel request)
         {
@@ -528,14 +557,18 @@ namespace BabyCare.Contract.Services.Implements
             {
                 response.Status = "Unknown";
             }
-            if (Enum.IsDefined(typeof(Gender), existingUser.Gender))
+            if(existingUser.Gender != null)
             {
-                response.Gender = ((Gender)existingUser.Gender).ToString();
+                if (Enum.IsDefined(typeof(Gender), existingUser.Gender))
+                {
+                    response.Gender = ((Gender)existingUser.Gender).ToString();
+                }
             }
             else
             {
                 response.Gender = "Unknown";
             }
+
             var userChilds = _mapper.Map<List<ChildModelView>>(existingUser.Children);
             response.Childs = userChilds;
 
