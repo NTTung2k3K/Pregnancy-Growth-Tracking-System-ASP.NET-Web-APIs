@@ -84,11 +84,11 @@ namespace BabyCare.API.Controllers
         }
 
         [HttpGet("get-by-week")]
-        public async Task<ActionResult<BlogModelView>> GetBlogByWeekAsync([FromQuery] int week)
+        public async Task<ActionResult<BlogModelView>> GetBlogByWeekAsync([FromQuery] SeachOptimizeBlogByWeek request)
         {
             try
             {
-                var result = await _blogService.GetBlogByWeekAsync(week);
+                var result = await _blogService.GetBlogByWeekAsync(request);
                 return Ok(result);
             }
             catch (Exception ex)
