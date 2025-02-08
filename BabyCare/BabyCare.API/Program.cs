@@ -1,4 +1,5 @@
 using BabyCare.API;
+using BabyCare.WorkerService.Worker;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,10 @@ builder.Services.AddSwagger();
 builder.Services.AddConfig(builder.Configuration);
 builder.Services.AddConfigJWT(builder.Configuration);
 builder.Services.AddCorsPolicyBackend();
+
+builder.Services.AddHostedService<ReminderWorker>();
+builder.Services.AddHostedService<FetalGrowthAlertWorker>();
+
 var app = builder.Build();
 
 // Draft data

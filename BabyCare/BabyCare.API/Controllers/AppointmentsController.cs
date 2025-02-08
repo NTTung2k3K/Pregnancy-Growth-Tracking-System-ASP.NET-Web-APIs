@@ -231,6 +231,20 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
             }
         }
-      
+
+        [HttpPost("change-doctor-appointment")]
+        public async Task<IActionResult> ChangeDoctorAppointment([FromQuery] Guid DoctorId, [FromQuery] int AppointmentId, [FromQuery] string Reason)
+        {
+            try
+            {
+                var result = await _appointmentService.ChangeDoctorAppointment(DoctorId, AppointmentId, Reason);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+
     }
 }
