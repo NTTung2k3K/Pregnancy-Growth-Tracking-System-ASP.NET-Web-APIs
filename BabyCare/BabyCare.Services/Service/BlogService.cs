@@ -269,45 +269,118 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<BlogModelView>(blogModelView);
         }
 
-        public async Task<ApiResult<List<BlogModelView>>> GetBlogByWeekAsync(int week)
+        public async Task<ApiResult<BasePaginatedList<BlogModelView>>> GetBlogByWeekAsync(SeachOptimizeBlogByWeek request)
         {
-            IQueryable<Blog> blogQuery = _unitOfWork.GetRepository<Blog>().Entities
-                .AsNoTracking()
-                .Where(b => !b.DeletedTime.HasValue && (b.Week!= null && b.Week  == week) && b.Status == (int)BlogStatus.Active); // Loại bỏ các bản ghi đã bị xóa
-
-            // Áp dụng bộ lọc theo id, title, status, và isFeatured nếu có
-            
-
-            // Sắp xếp theo thời gian tạo giảm dần
-            blogQuery = blogQuery.OrderByDescending(b => b.CreatedTime);
-
-            // Lấy tổng số lượng bản ghi
-
-            // Lấy dữ liệu phân trang
-            List<Blog> paginatedBlogs = await blogQuery.ToListAsync();
-
-            // Chuyển đổi từ Blog sang BlogModelView
-            List<BlogModelView> blogModelViews = paginatedBlogs.Select(x => new BlogModelView()
+            var query = _unitOfWork.GetRepository<Blog>().Entities.AsQueryable();
+            query = query.Where(x => (x.Status == (int)BlogStatus.Active && x.DeletedBy == null && x.Week == request.Week));
+            if (request.BlogTypeId != null)
             {
-                Id = x.Id,
-                Content = x.Content,
-                LikesCount = x.LikesCount,
-                Sources = x.Sources,
-                Status = Enum.IsDefined(typeof(BlogStatus), x.Status)
-                                 ? ((BlogStatus)x.Status).ToString()
-                                    : "Unknown",
-                Thumbnail = x.Thumbnail,
-                Title = x.Title,
-                ViewCount = x.ViewCount,
-                Week = x.Week,
-                AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(x.Author),
-                BlogTypeModelView = _mapper.Map<BlogTypeModelView>(x.BlogType),
-                CreatedTime = x.CreatedTime
+                query = query.Where(x => (x.BlogTypeId == request.BlogTypeId));
+            }
 
-            }).ToList();
+            // 1. Áp dụng bộ lọc (Filtering)
+            if (!string.IsNullOrEmpty(request.SearchValue))
+            {
+                query = query.Where(a => a.Title.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                        a.Content.ToLower().Contains(request.SearchValue.ToLower()) ||
+                                        (a.Author.FullName != null && a.Author.FullName.ToLower().Contains(request.SearchValue.ToLower()))
+                                        );
+            }
+            if (request.FromDate.HasValue)
+            {
+                query = query.Where(a => a.CreatedTime.Date >= request.FromDate.Value.Date);
+            }
+            if (request.ToDate.HasValue)
+            {
+                query = query.Where(a => a.CreatedTime.Date <= request.ToDate.Value.Date);
+            }
+            if (request.Status != null)
+            {
+                query = query.Where(a => a.Status == request.Status);
+            }
 
-            // Tạo đối tượng phân trang
-            return new ApiSuccessResult<List<BlogModelView>>(blogModelViews,"Blog updated successfully.");
+            if (request.SortBy != null)
+            {
+                var normalizedSortBy = NormalizePropertyName(request.SortBy);
+
+                if (!PropertyExists(normalizedSortBy, typeof(Blog)))
+                {
+                    throw new ArgumentException($"Property '{request.SortBy}' does not exist on the GrowthChart entity.");
+                }
+
+                if (!string.IsNullOrEmpty(request.SortBy))
+                {
+                    if (normalizedSortBy == "ViewCount")
+                    {
+                        // 🔥 Sort đúng kiểu dữ liệu (int)
+                        query = request.IsDescending
+                            ? query.OrderByDescending(a => a.ViewCount)
+                            : query.OrderBy(a => a.ViewCount);
+                    }
+                    else if (normalizedSortBy == "LikesCount")
+                    {
+                        // 🔥 Sort đúng kiểu dữ liệu (int)
+                        query = request.IsDescending
+                            ? query.OrderByDescending(a => a.ViewCount)
+                            : query.OrderBy(a => a.ViewCount);
+                    }
+                    else
+                    {
+                        // 🔥 Sort các field khác (vẫn giữ logic cũ)
+                        query = request.IsDescending
+                            ? query.OrderByDescending(a => EF.Property<object>(a, normalizedSortBy))
+                            : query.OrderBy(a => EF.Property<object>(a, normalizedSortBy));
+                    }
+                }
+            }
+            else
+            {
+                query = query.OrderByDescending(a => a.CreatedTime);
+            }
+
+            // 3. Tổng số bản ghi
+            var totalRecords = await query.CountAsync();
+            var currentPage = request.PageIndex ?? 1;
+            var pageSize = request.PageSize ?? SystemConstant.PAGE_SIZE;
+            var total = await query.CountAsync();
+            // 4. Áp dụng phân trang (Pagination)
+            var data = await query
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+
+
+
+            var res = new List<BlogModelView>();
+            foreach (var existingItem in data)
+            {
+
+
+                var added = _mapper.Map<BlogModelView>(existingItem);
+
+                if (Enum.IsDefined(typeof(BlogStatus), existingItem.Status))
+                {
+                    added.Status = ((BlogStatus)existingItem.Status).ToString();
+                }
+                else
+                {
+                    added.Status = "Unknown";
+                }
+
+
+                added.AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(existingItem.Author);
+                added.BlogTypeModelView = _mapper.Map<BlogTypeModelView>(existingItem.BlogType);
+
+                res.Add(added);
+            }
+
+            var response = new BasePaginatedList<BlogModelView>(res, total, currentPage, pageSize);
+            // return to client
+            return new ApiSuccessResult<BasePaginatedList<BlogModelView>>(response);
+
+
+
 
         }
 
