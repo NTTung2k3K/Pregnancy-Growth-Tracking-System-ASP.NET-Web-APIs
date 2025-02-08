@@ -16,10 +16,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="FormSendEmail\Alert.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FormSendEmail\CustomerForm.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FormSendEmail\ManagerForm.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FormSendEmail\Reminder.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FormSendEmail\SendCode.html">

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhắc nhở lịch hẹn</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .email-container {
+            width: 600px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #e8be6f;
+            color: #ffffff;
+            padding: 20px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+            margin: 15px 0;
+        }
+
+        .content {
+            padding: 20px;
+            font-size: 16px;
+            color: #333;
+            text-align: left;
+        }
+
+        .appointment-details {
+            background-color: #fdf8e4;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .children-details {
+            background-color: #eef7fb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .footer {
+            padding: 20px;
+            font-size: 14px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            margin-top: 15px;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #e8be6f;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+            .btn:hover {
+                background-color: #d1a25f;
+            }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">📅 Nhắc nhở lịch hẹn</div>
+        <img src="https://firebasestorage.googleapis.com/v0/b/hairsalonamazing-14369.appspot.com/o/images%2FLogoBabyCare.jpg?alt=media&token=f13d1266-a4ce-42bb-be06-a0a8a50fd07a" class="logo" alt="Logo BabyCare" />
+        <div class="content">
+            <p>Xin chào, <strong>{{Name}}</strong>!</p>
+            <p>Chúng tôi muốn nhắc bạn về lịch hẹn sắp tới của bạn:</p>
+
+            <div class="appointment-details">
+                <p><strong>Lịch hẹn:</strong> {{AppointmentName}}</p>
+                <p><strong>Ngày và Giờ:</strong> {{AppointmentDate}}</p>
+                <p><strong>Khung giờ:</strong> {{AppointmentSlot}}</p>
+                <p><strong>Ghi chú:</strong> {{Notes}}</p>
+                <p><strong>Mô tả:</strong> {{Description}}</p>
+                <p><strong>Chi phí:</strong> {{Fee}}</p>
+            </div>
+
+            <div class="children-details">
+                <p><strong>Thông tin trẻ em:</strong></p>
+                <p>{{ChildrenInfo}}</p>
+            </div>
+
+            <p>Vui lòng có mặt đúng giờ. Chúng tôi rất mong được đón tiếp bạn!</p>
+        </div>
+        <div class="footer">
+            Trân trọng,<br>
+            <strong>Đội ngũ BabyCare</strong><br>
+            📧 Email: BabyCareSystemFPT@gmail.com
+        </div>
+    </div>
+</body>
+</html>
