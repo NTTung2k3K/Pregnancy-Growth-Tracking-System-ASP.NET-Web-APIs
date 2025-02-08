@@ -178,6 +178,8 @@ namespace BabyCare.Services.Service
                     Description = $"{existingAT.Name}_{appointment.AppointmentDate.ToString()}_Slot:{appointment.AppointmentSlot}_Estimate Cost:{appointment.Fee}",
                     UserId = request.UserId,
                     DoctorId = doctorId != null ? doctorId.Value : null,
+                    AssignedBy = request.IsDoctorCreate ? Guid.Parse(_contextAccessor.HttpContext?.User?.FindFirst("userId").Value) : request.UserId,
+                    AssignedTime = DateTime.Now,
                 };
                 await repoAppointmentUser.InsertAsync(appointmentUser);
                 await repoAppointmentUser.SaveAsync();
@@ -360,17 +362,17 @@ namespace BabyCare.Services.Service
             var user = await _userManager.FindByIdAsync(existingItem.AppointmentUsers.FirstOrDefault().UserId.ToString());
 
             response.User = _mapper.Map<UserResponseModel>(user);
-            response.Doctors = new();
-            foreach (var doctor in existingItem.AppointmentUsers)
+            response.AppoinmentUsers = new();
+            
+            var appointmentUser = existingItem.AppointmentUsers.OrderByDescending(x => x.AssignedTime).FirstOrDefault();
+            if(appointmentUser != null)
             {
-                if (doctor.Doctor == null)
-                {
-                    continue;
-                }
-                var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
-                var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
-                response.Doctors.Add(doctorModel);
+                var appointmentUserModel = _mapper.Map<AppoinmentUserResponseModel>(appointmentUser);
+                appointmentUserModel.Doctor = _mapper.Map<EmployeeResponseModel>(appointmentUserModel.Doctor);
+
+                response.AppoinmentUsers.Add(appointmentUserModel);
             }
+            
             var at = repoAT.GetById(existingItem.AppointmentTemplateId);
             response.AppointmentTemplate = _mapper.Map<ATResponseModel>(at);
             response.Childs = new();
@@ -691,9 +693,6 @@ namespace BabyCare.Services.Service
 
             // Lấy tất cả các Appointment liên quan đến userId
             var allAppointments = await repo.Entities
-                .Include(x => x.AppointmentTemplate)
-                .Include(x => x.AppointmentUsers).ThenInclude(x => x.User)
-                .Include(x => x.AppointmentChildren).ThenInclude(x => x.Child)
                 .Where(x => x.AppointmentUsers.Any(au => au.UserId == userId) && x.DeletedBy == null)
                  .OrderBy(x => x.AppointmentDate)
 
@@ -735,6 +734,8 @@ namespace BabyCare.Services.Service
                         response.Doctors.Add(doctorModel);
                     }
                 }
+
+
 
                 // Map AppointmentTemplate
                 var at = await repoAT.GetByIdAsync(appointment.AppointmentTemplateId);
@@ -835,14 +836,14 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<List<AppointmentResponseModel>>(responseList);
         }
 
-        public async Task<ApiResult<List<AppointmentResponseModel>>> GetAll()
+        public async Task<ApiResult<List<AppointmentResponseModel>>> GetAll(Guid doctorId)
         {
             var repo = _unitOfWork.GetRepository<Appointment>();
             var repoChild = _unitOfWork.GetRepository<Child>();
             var repoAT = _unitOfWork.GetRepository<AppointmentTemplates>();
 
             var appointmentsQuery = repo.Entities
-                .Where(x => x.DeletedBy == null && x.Status != (int)AppointmentStatus.Pending)
+                .Where(x => x.DeletedBy == null && x.Status != (int)AppointmentStatus.Pending && x.AppointmentUsers.Any(x => x.DoctorId == doctorId))
                 .OrderBy(x => x.AppointmentDate); // Sắp xếp theo Date tăng dần
 
             // Thực thi truy vấn
@@ -1313,7 +1314,82 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<List<AppointmentResponseModel>>(responseList);
         }
 
-        public async Task<ApiResult<object>> ChangeDoctorAppointment(Guid DoctorId, int AppointmentId, string reason)
+        public async Task<ApiResult<AppointmentResponseModelV2>> GetAppointmentByIdSideAdmin(int id)
+        {
+            var repo = _unitOfWork.GetRepository<Appointment>();
+            var repoChild = _unitOfWork.GetRepository<Child>();
+            var repoAT = _unitOfWork.GetRepository<AppointmentTemplates>();
+            var repoFGR = _unitOfWork.GetRepository<FetalGrowthRecord>();
+            var repoFGSD = _unitOfWork.GetRepository<FetalGrowthStandard>();
+
+
+
+            // Check mp is existed
+            var existingItem = await repo.Entities.Include(x => x.AppointmentTemplate).Include(x => x.AppointmentUsers).ThenInclude(x => x.User)
+                .Include(x => x.AppointmentChildren).ThenInclude(x => x.Child)
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (existingItem == null || existingItem.DeletedBy != null)
+            {
+                return new ApiErrorResult<AppointmentResponseModelV2>("Appointment is not existed.");
+            }
+            var response = _mapper.Map<AppointmentResponseModelV2>(existingItem);
+
+
+            if (Enum.IsDefined(typeof(AppointmentStatus), existingItem.Status))
+            {
+                response.Status = ((AppointmentStatus)existingItem.Status).ToString();
+            }
+            else
+            {
+                response.Status = "Unknown";
+            }
+            var user = await _userManager.FindByIdAsync(existingItem.AppointmentUsers.FirstOrDefault().UserId.ToString());
+
+            response.User = _mapper.Map<UserResponseModel>(user);
+            response.AppoinmentUsers = new();
+            
+            foreach (var appointmentUser in existingItem.AppointmentUsers)
+            {
+                if (appointmentUser.Doctor == null)
+                {
+                    continue;
+                }
+                var doctorCheck = await _userManager.FindByIdAsync(appointmentUser.DoctorId.ToString());
+                if (doctorCheck != null)
+                {
+                    var appointmentUserModel = _mapper.Map<AppoinmentUserResponseModel>(appointmentUser);
+                    appointmentUserModel.Doctor = _mapper.Map<EmployeeResponseModel>(appointmentUserModel.Doctor);
+
+                    response.AppoinmentUsers.Add(appointmentUserModel);
+                }
+
+            }
+            var at = repoAT.GetById(existingItem.AppointmentTemplateId);
+            response.AppointmentTemplate = _mapper.Map<ATResponseModel>(at);
+            response.Childs = new();
+            foreach (var child in existingItem.AppointmentChildren)
+            {
+                // Map Child entity sang ChildModelViewAddeRecords
+                var childModel = _mapper.Map<ChildModelViewAddeRecords>(child.Child);
+
+                // Lấy các FGR liên quan và map cùng tiêu chuẩn
+                var fgrs = await repoFGR.Entities
+                    .Include(x => x.FetalGrowthStandard) // Đảm bảo include dữ liệu liên quan
+                    .Where(x => x.ChildId == child.ChildId)
+                    .ToListAsync();
+
+                // Map danh sách FGR sang ModelView
+                childModel.FetalGrowthRecordModelViews = _mapper.Map<List<FetalGrowthRecordModelViewAddedStandards>>(fgrs);
+
+                // Thêm vào response
+                response.Childs.Add(childModel);
+            }
+
+
+
+            return new ApiSuccessResult<AppointmentResponseModelV2>(response);
+        }
+        public async Task<ApiResult<object>> ChangeDoctorAppointment(Guid DoctorId, int AppointmentId)
         {
             var appointmentRepo = _unitOfWork.GetRepository<Appointment>();
 
@@ -1364,7 +1440,6 @@ namespace BabyCare.Services.Service
                 CreatedTime = DateTime.Now,
                 Description = existingItem.Description,
                 UserId = existingItem.AppointmentUsers.FirstOrDefault().UserId,
-                Reason = reason,
                 
             };
 
