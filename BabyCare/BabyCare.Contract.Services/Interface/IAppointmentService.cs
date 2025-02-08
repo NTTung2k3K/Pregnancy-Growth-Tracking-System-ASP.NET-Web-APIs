@@ -23,8 +23,10 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<BasePaginatedList<AppointmentResponseModel>>> GetAppointmentsPagination(BaseSearchRequest request);
         Task<ApiResult<object>> DeleteAppointment(DeleteAppointmentRequest request);
         Task<ApiResult<AppointmentResponseModelV2>> GetAppointmentById(int id);
+        Task<ApiResult<AppointmentResponseModelV2>> GetAppointmentByIdSideAdmin(int id);
+
         Task<ApiResult<List<AppointmentResponseModel>>> GetAppointmentsByUserId(Guid userId);
-        Task<ApiResult<List<AppointmentResponseModel>>> GetAll();
+        Task<ApiResult<List<AppointmentResponseModel>>> GetAll(Guid doctorId);
 
         Task<ApiResult<List<AppointmentResponseModel>>> GetAppointmentsByUserIdInRange(Guid userId,DateTime startDay, DateTime endDate);
         Task<ApiResult<List<AppointmentResponseModel>>> GetAppointmentsDoctorByUserIdInRange(Guid userId, DateTime startDay, DateTime endDate);
@@ -36,6 +38,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> UpdateNoShowAppointmentStatusByDoctor(NoShowAppointmentByDoctor request);
         Task<ApiResult<AvailableSlotResponseModel>> GetSlotAvailable(DateTime date);
 
+        Task<ApiResult<object>> ChangeDoctorAppointment(Guid DoctorId, int AppointmentId);
 
     }
 }

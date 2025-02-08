@@ -63,6 +63,7 @@ namespace BabyCare.Repositories.Mapper
             CreateMap<UpdateAppointmentRequest, Appointment>().ReverseMap();
             CreateMap<AppointmentResponseModel, Appointment>().ReverseMap();
             CreateMap<AppointmentResponseModelV2, Appointment>().ReverseMap();
+            CreateMap<AppoinmentUserResponseModel, AppointmentUser>().ReverseMap();
 
             // Add
             CreateMap<ChildModelView, Child>().ReverseMap();
