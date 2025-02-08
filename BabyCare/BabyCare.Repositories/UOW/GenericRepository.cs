@@ -28,6 +28,11 @@ namespace BabyCare.Repositories.UOW
             _dbSet.Remove(entity);
         }
 
+        public void DeleteRange(IList<T> obj)
+        {
+            _dbSet.RemoveRange(obj);
+        }
+
         public IEnumerable<T> GetAll()
         {
             return _dbSet.AsEnumerable();
@@ -52,7 +57,7 @@ namespace BabyCare.Repositories.UOW
         {
             query = query.AsNoTracking();
             int count = await query.CountAsync();
-            IReadOnlyCollection<T> items = await query.Skip((pageSize - 1) * pageSize).Take(pageSize).ToListAsync();
+            List<T> items = await query.Skip((pageSize - 1) * pageSize).Take(pageSize).ToListAsync();
             return new BasePaginatedList<T>(items, count, index, pageSize);
         }
 

@@ -11,12 +11,14 @@ namespace BabyCare.Contract.Repositories.Entity
     {
         public string PackageName { get; set; }
         public string? Description { get; set; }
-        public decimal Price { get; set; }
+        public decimal OriginalPrice { get; set; }
         public int Duration { get; set; }
-        public string? Status { get; set; }
-        public string? PackageLevel { get; set; }
+        public int? Status { get; set; }
+        public int? PackageLevel { get; set; }
         public string? ImageUrl { get; set; }
         public decimal? Discount { get; set; }
+        public decimal? Price { get; set; }
+
         public int? ShowPriority { get; set; }
 
         public virtual ICollection<UserMembership> UserMemberships { get; set; }

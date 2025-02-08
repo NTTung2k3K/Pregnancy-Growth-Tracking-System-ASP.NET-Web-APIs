@@ -9,6 +9,7 @@ namespace BabyCare.Contract.Repositories.Entity
 {
     public class FetalGrowthStandard : BaseEntity
     {
+        public int Week { get; set; }
         public string? GestationalAge { get; set; }
         public float MinWeight { get; set; }
         public float MaxWeight { get; set; }
@@ -18,6 +19,8 @@ namespace BabyCare.Contract.Repositories.Entity
         public float AverageHeight { get; set; }
         public float HeadCircumference { get; set; }
         public float AbdominalCircumference { get; set; }
+        public int? FetalHeartRate { get; set; }
+
 
         public virtual ICollection<FetalGrowthRecord> FetalGrowthRecords { get; set; }
     }

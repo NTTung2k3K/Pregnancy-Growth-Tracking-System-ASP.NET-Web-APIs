@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cảnh báo phát triển thai nhi</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .email-container {
+            width: 600px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #e8be6f;
+            color: #ffffff;
+            padding: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+            margin: 15px 0;
+        }
+
+        .content {
+            padding: 20px;
+            font-size: 16px;
+            color: #333;
+            text-align: left;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">⚠ Cảnh báo phát triển thai nhi</div>
+        <img src="https://firebasestorage.googleapis.com/v0/b/hairsalonamazing-14369.appspot.com/o/images%2FLogoBabyCare.jpg?alt=media&token=f13d1266-a4ce-42bb-be06-a0a8a50fd07a" class="logo" alt="Logo BabyCare" />
+        <div class="content">
+            <p>Xin chào,</p>
+            <p>Đây là cảnh báo về sự phát triển của thai nhi <strong>{{ChildName}}</strong>:</p>
+            <p><strong>Tuần thai:</strong> {{WeekOfPregnancy}}</p>
+            <p>
+                <strong>Cân nặng:</strong> {{Weight}} kg (Chuẩn: {{MinWeight}} - {{MaxWeight}} kg)
+            </p>
+            <p>
+                <strong>Chiều cao:</strong> {{Height}} cm (Chuẩn: {{MinHeight}} - {{MaxHeight}} cm)
+            </p>
+            <p>
+                <strong>Vòng đầu:</strong> {{HeadCircumference}} cm (Chuẩn: {{StandardHeadCircumference}} cm ±10%)
+            </p>
+            <p>
+                <strong>Vòng bụng:</strong> {{AbdominalCircumference}} cm (Chuẩn: {{StandardAbdominalCircumference}} cm ±10%)
+            </p>
+            <p>
+                <strong>Tần số tim thai:</strong> {{FetalHeartRate}} bpm (Chuẩn: {{StandardFetalHeartRate}} bpm ±10%)
+            </p>
+            <p><strong>Thời gian ghi nhận:</strong> {{RecordedAt}}</p>
+            <p><strong>Mô tả:</strong> {{AlertDescription}}</p>
+            <p>Vui lòng kiểm tra và theo dõi.</p>
+        </div>
+        <div class="footer">
+            Trân trọng,<br>
+            <strong>Đội ngũ BabyCare</strong><br>
+            📧 Email: BabyCareSystemFPT@gmail.com
+        </div>
+    </div>
+</body>
+</html>

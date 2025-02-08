@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Appointment</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .email-container {
+            width: 600px;
+            margin: auto;
+            background-color: #ffffff;
+            border: 1px solid #dedede;
+            border-radius: 3px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <table cellpadding="0" cellspacing="0" width="100%"
+            style="background-color: #e8be6f; color: #ffffff; border-bottom: 0; font-weight: bold; line-height: 100%; vertical-align: middle; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; border-radius: 3px 3px 0 0;">
+            <tbody>
+                <tr>
+                    <td style="padding: 36px 48px; display: block">
+                        <h1
+                            style="font-size: 30px; font-weight: bold; line-height: 150%; margin: 0; text-align: center; color: #ffffff;">
+                            Có lịch khám từ khách hàng
+                        </h1>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <img src="https://firebasestorage.googleapis.com/v0/b/hairsalonamazing-14369.appspot.com/o/images%2FLogoBabyCare.jpg?alt=media&token=f13d1266-a4ce-42bb-be06-a0a8a50fd07a"
+            style="width: 200px; height: 180px" />
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tbody>
+                <tr>
+                    <td valign="top" style="background-color: #ffffff">
+                        <table border="0" cellpadding="20" cellspacing="0" width="100%">
+                            <tbody>
+                                <tr>
+                                    <td valign="top" style="padding: 0px 48px 48px 32px">
+                                        <div
+                                            style="font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; font-size: 14px; line-height: 150%; text-align: center; color: black;">
+                                            <p style="margin: 0 0 16px; color: black;">
+                                                Khách hàng <span style="font-weight: bold">{{CustomerName}}</span>,
+                                            </p>
+                                            <p style="margin: 0 0 16px; color: black;">
+                                                Đã đặt lịch khám tại phòng khám. Dưới đây là thông tin lịch hẹn:
+                                            </p>
+
+                                            <h2
+                                                style="color: #e8be6f; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: center;">
+                                                Lịch hẹn: {{AppointmentDate}} - {{AppointmentTime}}
+                                            </h2>
+
+                                            <div style="margin-bottom: 40px">
+                                                <table cellspacing="0" cellpadding="6" border="1"
+                                                    style="color: #636363; border: 1px solid #e5e5e5; vertical-align: middle; width: 100%; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col" style="padding: 12px; text-align: center;">
+                                                                Dịch vụ</th>
+                                                            <th scope="col" style="padding: 12px; text-align: center;">
+                                                                Mô tả</th>
+                                                            <th scope="col" style="padding: 12px; text-align: center;">
+                                                                Giá</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td style="padding: 12px; text-align: center;">
+                                                                {{ServiceName}}</td>
+                                                            <td style="padding: 12px; text-align: center;">
+                                                                {{Description}}</td>
+                                                            <td style="padding: 12px; text-align: center;">{{Fee}}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <h2
+                                                style="color: #e8be6f; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: center;">
+                                                Thai nhi
+                                            </h2>
+
+                                            <div style="margin-bottom: 40px">
+                                                <table cellspacing="0" cellpadding="6" border="1"
+                                                    style="color: #636363; border: 1px solid #e5e5e5; vertical-align: middle; width: 100%; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col" style="padding: 12px; text-align: center;">
+                                                                Tên</th>
+                                                            <th scope="col" style="padding: 12px; text-align: center;">
+                                                                Tuần tuổi</th>
+                                                            <th scope="col" style="padding: 12px; text-align: center;">
+                                                                Ngày dự sinh</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {{childs}}
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <table cellspacing="0" cellpadding="0" border="0"
+                                                style="width: 100%; vertical-align: top; margin-bottom: 40px; padding: 0;">
+                                                <tbody>
+                                                    <tr>
+                                                        <td valign="top" width="50%"
+                                                            style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; border: 0; padding: 0;">
+                                                            <h2
+                                                                style="color: #e8be6f; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: center;">
+                                                                Thông tin khách hàng
+                                                            </h2>
+
+                                                            <address
+                                                                style="padding: 12px; border: 1px solid #e5e5e5; color: black;">
+                                                                <span style="color: black;">Tên khách hàng:
+                                                                    <span>{{CustomerName}}</span></span><br />
+                                                                <span style="color: black;">Số điện thoại:
+                                                                    <span>{{PhoneNumber}}</span></span><br />
+                                                                <span style="color: black;">Email:
+                                                                    <span>{{Email}}</span></span><br />
+                                                            </address>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

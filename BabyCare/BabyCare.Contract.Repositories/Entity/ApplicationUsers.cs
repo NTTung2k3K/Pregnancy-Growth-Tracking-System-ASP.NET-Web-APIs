@@ -16,17 +16,18 @@ namespace BabyCare.Contract.Repositories.Entity
         public string? Image { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? Address { get; set; }
-        public string? Gender { get; set; }
+        public int? Gender { get; set; }
         public string? BloodGroup { get; set; }
-        public DateTime? DueDate { get; set; }
-        public string? CreatedBy { get; set; }
-        public string? LastUpdatedBy { get; set; }
-        public string? DeletedBy { get; set; }
+        public Guid? CreatedBy { get; set; }
+        public Guid? LastUpdatedBy { get; set; }
+        public Guid? DeletedBy { get; set; }
         public DateTimeOffset CreatedTime { get; set; }
         public DateTimeOffset LastUpdatedTime { get; set; }
         public DateTimeOffset? DeletedTime { get; set; }
         public string? RefreshToken { get; set; }
         public DateTimeOffset RefreshTokenExpiryTime { get; set; }
+        public int? Status { get; set; }
+
         
 
         public ApplicationUsers()
@@ -38,12 +39,12 @@ namespace BabyCare.Contract.Repositories.Entity
 
         public virtual ICollection<UserMembership> UserMemberships { get; set; }
 
-        public virtual ICollection<Appointment> Appointments { get; set; }
-
         public virtual ICollection<Blog> Blogs { get; set; }
 
         public virtual ICollection<Child> Children { get; set; }
 
         public virtual ICollection<Feedback> Feedbacks { get; set; }
+        public virtual ICollection<AppointmentUser> AppointmentUsers { get; set; }
+
     }
 }
