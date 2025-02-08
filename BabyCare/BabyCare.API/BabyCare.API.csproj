@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BabyCare.Core\BabyCare.Core.csproj" />
     <ProjectReference Include="..\BabyCare.Services\BabyCare.Services.csproj" />
+    <ProjectReference Include="..\BabyCare.WorkerService\BabyCare.WorkerService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

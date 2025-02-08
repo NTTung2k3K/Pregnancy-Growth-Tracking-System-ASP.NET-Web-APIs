@@ -36,6 +36,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> UpdateNoShowAppointmentStatusByDoctor(NoShowAppointmentByDoctor request);
         Task<ApiResult<AvailableSlotResponseModel>> GetSlotAvailable(DateTime date);
 
+        Task<ApiResult<object>> ChangeDoctorAppointment(Guid DoctorId, int AppointmentId, string Reason);
 
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
@@ -1130,7 +1131,7 @@ namespace BabyCare.Services.Service
 
 
 
-            var au =  existingItem.AppointmentUsers.FirstOrDefault(x => x.AppointmentId == existingItem.Id);
+            var au = existingItem.AppointmentUsers.FirstOrDefault(x => x.AppointmentId == existingItem.Id);
             au.DoctorId = doctorId;
             // Cập nhật thông tin `Appointment`
             existingItem.LastUpdatedTime = DateTime.Now;
@@ -1311,5 +1312,68 @@ namespace BabyCare.Services.Service
 
             return new ApiSuccessResult<List<AppointmentResponseModel>>(responseList);
         }
+
+        public async Task<ApiResult<object>> ChangeDoctorAppointment(Guid DoctorId, int AppointmentId, string reason)
+        {
+            var appointmentRepo = _unitOfWork.GetRepository<Appointment>();
+
+            // Tìm kiếm cuộc hẹn dựa trên AppointmentId
+            var existingItem = await appointmentRepo.Entities.FirstOrDefaultAsync(x => x.Id == AppointmentId);
+
+            if (existingItem == null || existingItem.DeletedBy != null)
+            {
+                return new ApiErrorResult<object>("Appointment is not existed.");
+            }
+
+            // Lấy repository của AppointmentUser
+            var appointmentUserRepo = _unitOfWork.GetRepository<AppointmentUser>();
+
+            // Kiểm tra xem đã có bản ghi AppointmentUser với cùng AppointmentId và DoctorId hay chưa
+            var existingAppointmentUser = await appointmentUserRepo.Entities
+                .FirstOrDefaultAsync(x => x.AppointmentId == AppointmentId && x.DoctorId == DoctorId);
+
+            if (existingAppointmentUser != null)
+            {
+                return new ApiErrorResult<object>("This doctor is already assigned to this appointment.");
+            }
+
+            // Lấy ngày của cuộc hẹn hiện tại (loại bỏ phần giờ phút)
+            var appointmentDate = existingItem.AppointmentDate.Date;
+
+            // Kiểm tra xem bác sĩ đã có lịch trong cùng ngày và cùng slot (ngoại trừ cuộc hẹn hiện tại) hay không
+            bool doctorBusy = await appointmentUserRepo.Entities
+                .AnyAsync(x => x.DoctorId == DoctorId
+                    && x.AppointmentId != AppointmentId
+                    // Kiểm tra cuộc hẹn của bác sĩ có diễn ra trong khoảng thời gian của ngày hiện tại
+                    && x.Appointment.AppointmentDate == appointmentDate
+                    // So sánh slot của cuộc hẹn
+                    && x.Appointment.AppointmentSlot == existingItem.AppointmentSlot);
+
+            if (doctorBusy)
+            {
+                return new ApiErrorResult<object>("This doctor is busy at the selected time slot.");
+            }
+
+
+            var appointmentUser = new AppointmentUser()
+            {
+                AppointmentId = AppointmentId,
+                DoctorId = DoctorId,
+                //Appointment = existingItem,
+                AssignedTime = DateTime.Now,
+                CreatedTime = DateTime.Now,
+                Description = existingItem.Description,
+                UserId = existingItem.AppointmentUsers.FirstOrDefault().UserId,
+                Reason = reason,
+                
+            };
+
+            await appointmentUserRepo.InsertAsync(appointmentUser);
+            await appointmentUserRepo.SaveAsync();
+
+            return new ApiSuccessResult<object>("Doctor appointment changed successfully.");
+        }
+
+
     }
 }
