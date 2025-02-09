@@ -31,5 +31,6 @@ namespace BabyCare.Contract.Repositories.Entity
         public Guid AssignedBy { get; set; }
         public string? Description { get; set; }
 
+        public string? Reason { get; set; }
     }
 }
