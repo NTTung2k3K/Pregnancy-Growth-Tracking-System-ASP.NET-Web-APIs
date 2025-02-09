@@ -103,7 +103,7 @@ namespace BabyCare.Services.Service
 
 
             var appointmentTemplatesRepo = _unitOfWork.GetRepository<AppointmentTemplates>();
-            var allAT = appointmentTemplatesRepo.GetAll();
+            var allAT = appointmentTemplatesRepo.GetAll().Where(x => x.Status == (int)AppointmentTemplatesStatus.Active).ToList();
             foreach (var appointmentTemplates in allAT)
             {
                 var appointment = new Appointment()
