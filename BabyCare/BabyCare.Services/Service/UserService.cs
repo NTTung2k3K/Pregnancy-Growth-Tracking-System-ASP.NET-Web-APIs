@@ -1095,7 +1095,7 @@ namespace BabyCare.Contract.Services.Implements
                 Address = x.Address,
                 DateOfBirth = x.DateOfBirth,
                 FullName = x.FullName,
-                Gender = Enum.IsDefined(typeof(Gender), x.Gender)
+                Gender = x.Gender == null ? "Unknown" : Enum.IsDefined(typeof(Gender), x.Gender)
                                ? ((Gender)x.Gender).ToString()
                                   : "Unknown",
                 Image = x.Image,
