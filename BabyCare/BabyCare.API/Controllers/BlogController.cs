@@ -132,6 +132,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+        [HttpPost("update-quantity")]
+        public async Task<IActionResult> UpdateQuantity([FromBody] UpdateQuantityRequest model)
+        {
+            try
+            {
+                var result = await _blogService.UpdateQuantity(model);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
 
         /// <summary>
         ///     Update a blog
