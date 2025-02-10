@@ -69,7 +69,7 @@ namespace BabyCare.Services.Service
             newBlog.LikesCount = 0;
             newBlog.ViewCount = 0;
             newBlog.Status = model.Status;
-            
+
 
             // Lưu Blog vào cơ sở dữ liệu
             await _unitOfWork.GetRepository<Blog>().InsertAsync(newBlog);
@@ -448,7 +448,7 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            
+
 
             if (model.BlogTypeId.HasValue && model.BlogTypeId != existingBlog.BlogTypeId)
             {
@@ -466,7 +466,7 @@ namespace BabyCare.Services.Service
                 existingBlog.Week = model.Week.Value;
                 isUpdated = true;
             }
-            if(model.Thumbnail != null)
+            if (model.Thumbnail != null)
             {
                 isUpdated = true;
             }
@@ -512,8 +512,8 @@ namespace BabyCare.Services.Service
         public async Task<ApiResult<BasePaginatedList<BlogModelView>>> GetBlogPagination(SearchOptimizeBlogRequest request)
         {
             var query = _unitOfWork.GetRepository<Blog>().Entities.AsQueryable();
-            query = query.Where(x => (x.Status == (int)BlogStatus.Active  && x.DeletedBy == null));
-            if(request.BlogTypeId != null)
+            query = query.Where(x => (x.Status == (int)BlogStatus.Active && x.DeletedBy == null));
+            if (request.BlogTypeId != null)
             {
                 query = query.Where(x => (x.BlogTypeId == request.BlogTypeId));
             }
@@ -523,7 +523,7 @@ namespace BabyCare.Services.Service
             {
                 query = query.Where(a => a.Title.ToLower().Contains(request.SearchValue.ToLower()) ||
                                         a.Content.ToLower().Contains(request.SearchValue.ToLower()) ||
-                                        (a.Author.FullName != null &&  a.Author.FullName.ToLower().Contains(request.SearchValue.ToLower())) ||
+                                        (a.Author.FullName != null && a.Author.FullName.ToLower().Contains(request.SearchValue.ToLower())) ||
                                         (a.Week != null && a.Week.ToString().Contains(request.SearchValue.ToLower()))
                                         );
             }
@@ -557,7 +557,8 @@ namespace BabyCare.Services.Service
                         query = request.IsDescending
                             ? query.OrderByDescending(a => a.ViewCount)
                             : query.OrderBy(a => a.ViewCount);
-                    }else if (normalizedSortBy == "LikesCount")
+                    }
+                    else if (normalizedSortBy == "LikesCount")
                     {
                         // 🔥 Sort đúng kiểu dữ liệu (int)
                         query = request.IsDescending
@@ -686,7 +687,40 @@ namespace BabyCare.Services.Service
 
             return new ApiSuccessResult<List<BlogModelView>>(blogModelViews);
         }
-        
+
+        public async Task<ApiResult<object>> UpdateQuantity(UpdateQuantityRequest request)
+        {
+            // Kiểm tra ID hợp lệ
+            if (request.Id <= 0)
+            {
+                return new ApiErrorResult<object>("Please provide a valid Blog ID.");
+            }
+
+            // Tìm blog theo ID và kiểm tra xem nó có tồn tại không
+            var existingBlog = await _unitOfWork.GetRepository<Blog>()
+                .Entities
+                .SingleOrDefaultAsync(blog => blog.Id == request.Id && !blog.DeletedTime.HasValue);
+
+            if (existingBlog == null)
+            {
+                return new ApiErrorResult<object>("Blog not found or has been deleted.");
+            }
+            if (request.IsUpdateLiked)
+            {
+                existingBlog.LikesCount += 1;
+            }
+            else
+            {
+                existingBlog.ViewCount+= 1;
+            }
+
+
+            await _unitOfWork.GetRepository<Blog>().UpdateAsync(existingBlog);
+            await _unitOfWork.SaveAsync();
+
+            return new ApiSuccessResult<object>("Blog updated successfully.");
+
+        }
     }
 
 }
