@@ -272,10 +272,17 @@ namespace BabyCare.Services.Service
         public async Task<ApiResult<BasePaginatedList<BlogModelView>>> GetBlogByWeekAsync(SeachOptimizeBlogByWeek request)
         {
             var query = _unitOfWork.GetRepository<Blog>().Entities.AsQueryable();
-            query = query.Where(x => (x.Status == (int)BlogStatus.Active && x.DeletedBy == null && x.Week == request.Week));
+
+            query = query.Where(x => x.Status == (int)BlogStatus.Active && x.DeletedBy == null);
+
+            if (request.Week.HasValue && request.Week.Value != 0)
+            {
+                query = query.Where(x => x.Week == request.Week);
+            }
+
             if (request.BlogTypeId != null)
             {
-                query = query.Where(x => (x.BlogTypeId == request.BlogTypeId));
+                query = query.Where(x => x.BlogTypeId == request.BlogTypeId);
             }
 
             // 1. Áp dụng bộ lọc (Filtering)
@@ -312,21 +319,18 @@ namespace BabyCare.Services.Service
                 {
                     if (normalizedSortBy == "ViewCount")
                     {
-                        // 🔥 Sort đúng kiểu dữ liệu (int)
                         query = request.IsDescending
                             ? query.OrderByDescending(a => a.ViewCount)
                             : query.OrderBy(a => a.ViewCount);
                     }
                     else if (normalizedSortBy == "LikesCount")
                     {
-                        // 🔥 Sort đúng kiểu dữ liệu (int)
                         query = request.IsDescending
                             ? query.OrderByDescending(a => a.ViewCount)
                             : query.OrderBy(a => a.ViewCount);
                     }
                     else
                     {
-                        // 🔥 Sort các field khác (vẫn giữ logic cũ)
                         query = request.IsDescending
                             ? query.OrderByDescending(a => EF.Property<object>(a, normalizedSortBy))
                             : query.OrderBy(a => EF.Property<object>(a, normalizedSortBy));
@@ -338,25 +342,19 @@ namespace BabyCare.Services.Service
                 query = query.OrderByDescending(a => a.CreatedTime);
             }
 
-            // 3. Tổng số bản ghi
             var totalRecords = await query.CountAsync();
             var currentPage = request.PageIndex ?? 1;
             var pageSize = request.PageSize ?? SystemConstant.PAGE_SIZE;
             var total = await query.CountAsync();
-            // 4. Áp dụng phân trang (Pagination)
+
             var data = await query
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-
-
-
             var res = new List<BlogModelView>();
             foreach (var existingItem in data)
             {
-
-
                 var added = _mapper.Map<BlogModelView>(existingItem);
 
                 if (Enum.IsDefined(typeof(BlogStatus), existingItem.Status))
@@ -368,7 +366,6 @@ namespace BabyCare.Services.Service
                     added.Status = "Unknown";
                 }
 
-
                 added.AuthorResponseModel = _mapper.Map<EmployeeResponseModel>(existingItem.Author);
                 added.BlogTypeModelView = _mapper.Map<BlogTypeModelView>(existingItem.BlogType);
 
@@ -376,12 +373,7 @@ namespace BabyCare.Services.Service
             }
 
             var response = new BasePaginatedList<BlogModelView>(res, total, currentPage, pageSize);
-            // return to client
             return new ApiSuccessResult<BasePaginatedList<BlogModelView>>(response);
-
-
-
-
         }
 
         public async Task<ApiResult<object>> UpdateBlogAsync(int id, UpdateBlogModelView model)
