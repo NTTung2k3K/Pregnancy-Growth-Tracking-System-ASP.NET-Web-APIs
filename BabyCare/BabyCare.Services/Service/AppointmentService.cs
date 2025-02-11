@@ -39,11 +39,14 @@ namespace BabyCare.Services.Service
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly UserManager<ApplicationUsers> _userManager;
         private readonly IFetalGrowthRecordService _fetalGrowthRecordService;
+        private readonly DatabaseContext _context;
 
 
 
-        public AppointmentService(IFetalGrowthRecordService fetalGrowthRecordService, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
+
+        public AppointmentService(DatabaseContext context,IFetalGrowthRecordService fetalGrowthRecordService, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
         {
+            _context = context;
             _fetalGrowthRecordService = fetalGrowthRecordService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -1393,27 +1396,22 @@ namespace BabyCare.Services.Service
         {
             try
             {
-                var appointmentRepo = _unitOfWork.GetRepository<Appointment>();
-
-                _unitOfWork.BeginTransaction();
-                //if (_contextAccessor.HttpContext?.User?.FindFirst("userId") == null)
-                //{
-                //    return new ApiErrorResult<object>("Please login to use this function.", System.Net.HttpStatusCode.BadRequest);
-                //}
-
+                _context.Database.BeginTransaction();
+                var changerId = _contextAccessor.HttpContext?.User?.FindFirst("userId");
+                if (changerId == null)
+                {
+                    return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+                }
                 // Tìm kiếm cuộc hẹn dựa trên AppointmentId
-                var existingItem = await appointmentRepo.Entities.FirstOrDefaultAsync(x => x.Id == request.AppointmentId);
+                var existingItem = await _context.Appointments.FirstOrDefaultAsync(x => x.Id == request.AppointmentId);
 
                 if (existingItem == null || existingItem.DeletedBy != null)
                 {
                     return new ApiErrorResult<object>("Appointment is not existed.");
                 }
 
-                // Lấy repository của AppointmentUser
-                var appointmentUserRepo = _unitOfWork.GetRepository<AppointmentUser>();
-
                 // Kiểm tra xem đã có bản ghi AppointmentUser với cùng AppointmentId và DoctorId hay chưa
-                var existingAppointmentUser = await appointmentUserRepo.Entities
+                var existingAppointmentUser = await _context.AppointmentUsers
                     .FirstOrDefaultAsync(x => x.AppointmentId == request.AppointmentId && x.DoctorId == request.DoctorId);
 
                 if (existingAppointmentUser != null)
@@ -1425,12 +1423,10 @@ namespace BabyCare.Services.Service
                 var appointmentDate = existingItem.AppointmentDate.Date;
 
                 // Kiểm tra xem bác sĩ đã có lịch trong cùng ngày và cùng slot (ngoại trừ cuộc hẹn hiện tại) hay không
-                bool doctorBusy = await appointmentUserRepo.Entities
+                bool doctorBusy = await _context.AppointmentUsers
                     .AnyAsync(x => x.DoctorId == request.DoctorId
                         && x.AppointmentId != request.AppointmentId
-                        // Kiểm tra cuộc hẹn của bác sĩ có diễn ra trong khoảng thời gian của ngày hiện tại
                         && x.Appointment.AppointmentDate == appointmentDate
-                        // So sánh slot của cuộc hẹn
                         && x.Appointment.AppointmentSlot == existingItem.AppointmentSlot);
 
                 if (doctorBusy)
@@ -1444,35 +1440,29 @@ namespace BabyCare.Services.Service
                     return new ApiErrorResult<object>("User is not existed.");
                 }
 
-                //var userIdString = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
-                //if (string.IsNullOrEmpty(userIdString))
-                //{
-                //    return new ApiErrorResult<object>("Please login to use this function.", System.Net.HttpStatusCode.BadRequest);
-                //}
-
+                var auId = await GetNextAppointmentUserIdAsync();
                 var appointmentUser = new AppointmentUser()
                 {
+                    //Id = auId,
                     AppointmentId = request.AppointmentId,
                     DoctorId = request.DoctorId,
                     AssignedTime = DateTime.Now,
                     CreatedTime = DateTime.Now,
                     Description = existingItem.Description,
                     UserId = userId,
-                    //AssignedBy = Guid.Parse(userIdString),
-                    //LastUpdatedBy = userIdString,
                     LastUpdatedTime = DateTime.Now,
                     Reason = request.Reason,
-                    //Appointment = existingItem,
+                    AssignedBy = Guid.Parse(changerId.Value),
                 };
 
-                await appointmentUserRepo.InsertAsync(appointmentUser);
-                await appointmentUserRepo.SaveAsync();
-                _unitOfWork.CommitTransaction();
+                _context.AppointmentUsers.Add(appointmentUser);
+                await _context.SaveChangesAsync();
+                _context.Database.CommitTransaction();
                 return new ApiSuccessResult<object>("Doctor appointment changed successfully.");
             }
             catch (Exception ex)
             {
-                _unitOfWork.RollBack();
+                _context.Database.RollbackTransaction();
                 throw new Exception("Transaction failed.", ex);
             }
         }
