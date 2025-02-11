@@ -54,6 +54,7 @@ namespace BabyCare.ModelViews.AppointmentModelViews.Response
         public DateTime? AssignedTime { get; set; }
         public Guid AssignedBy { get; set; }
         public string? Description { get; set; }
+        public string Reason { get; set; }
     }
     public class ChildModelViewAddeRecords : ChildModelView.ChildModelView
     {
