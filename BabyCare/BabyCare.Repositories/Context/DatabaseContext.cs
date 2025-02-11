@@ -68,25 +68,48 @@ namespace BabyCare.Repositories.Context
             //    .ValueGeneratedOnAdd()
             //    .UseIdentityColumn(); // Giá trị được sinh tự động khi thêm
 
-            builder.Entity<ApplicationUsers>()
-                .HasMany(u => u.AppointmentUsers) // Một ApplicationUsers có nhiều AppointmentUsers
-                .WithOne(au => au.User)          // Một AppointmentUser liên kết với một ApplicationUser
-                .HasForeignKey(au => au.UserId)  // Khóa ngoại UserId
-                .OnDelete(DeleteBehavior.Restrict); // Hành vi khi xóa // Định nghĩa hành vi xóa
 
-            // Cấu hình quan hệ giữa DoctorId trong AppointmentUser với ApplicationUsers
-            builder.Entity<AppointmentUser>()
-                .HasOne(au => au.Doctor)
-                .WithMany()
-                .HasForeignKey(au => au.DoctorId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<AppointmentUser>(entity =>
+            {
+                //// Primary Key
+                //entity.HasKey(e => e.Id);
 
-            // Cấu hình quan hệ giữa AppointmentId trong AppointmentUser với Appointment
-            builder.Entity<AppointmentUser>()
-                .HasOne(au => au.Appointment)
-                .WithMany()
-                .HasForeignKey(au => au.Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                //// Identity Column (Auto-Increment)
+                //entity.Property(e => e.Id)
+                //    .ValueGeneratedOnAdd();
+
+                // Foreign Key - Doctor (Nullable)
+                entity.HasOne(e => e.Doctor)
+                    .WithMany()
+                    .HasForeignKey(e => e.DoctorId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+
+
+
+            });
+
+
+
+            //builder.Entity<ApplicationUsers>()
+            //    .HasMany(u => u.AppointmentUsers) // Một ApplicationUsers có nhiều AppointmentUsers
+            //    .WithOne(au => au.User)          // Một AppointmentUser liên kết với một ApplicationUser
+            //    .HasForeignKey(au => au.UserId)  // Khóa ngoại UserId
+            //    .OnDelete(DeleteBehavior.Restrict); // Hành vi khi xóa // Định nghĩa hành vi xóa
+
+            //// Cấu hình quan hệ giữa DoctorId trong AppointmentUser với ApplicationUsers
+            //builder.Entity<AppointmentUser>()
+            //    .HasOne(au => au.Doctor)
+            //    .WithMany()
+            //    .HasForeignKey(au => au.DoctorId)
+            //    .OnDelete(DeleteBehavior.Restrict);
+
+            //// Cấu hình quan hệ giữa AppointmentId trong AppointmentUser với Appointment
+            //builder.Entity<AppointmentUser>()
+            //    .HasOne(au => au.Appointment)
+            //    .WithMany()
+            //    .HasForeignKey(au => au.Id)
+            //    .OnDelete(DeleteBehavior.Restrict);
             builder.Entity<Feedback>().HasOne(x => x.User).WithMany(x => x.Feedbacks).HasForeignKey(x => x.UserId).IsRequired().OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Feedback>().HasOne(x => x.GrowthChart).WithMany(x => x.Feedbacks).HasForeignKey(x => x.GrowthChartsID).IsRequired().OnDelete(DeleteBehavior.Restrict);
