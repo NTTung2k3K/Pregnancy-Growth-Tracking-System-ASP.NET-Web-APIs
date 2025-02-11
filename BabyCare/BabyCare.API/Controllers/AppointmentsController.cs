@@ -272,5 +272,19 @@ namespace BabyCare.API.Controllers
             }
         }
 
+        [HttpGet("get-doctor-free")]
+        public async Task<IActionResult> GetAllDoctorFree([FromQuery] int appointmentId)
+        {
+            try
+            {
+                var result = await _appointmentService.GetAllDoctorFree(appointmentId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+            }
+        }
+
     }
 }
