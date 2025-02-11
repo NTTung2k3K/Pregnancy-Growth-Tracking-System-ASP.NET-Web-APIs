@@ -70,6 +70,10 @@ namespace BabyCare.Services.Service
                 {
                     return new ApiErrorResult<object>("Parent feedback not found.");
                 }
+                if (parentFeedback.Status == (int)FeedbackStatus.BANNED || parentFeedback.DeletedTime != null)
+                {
+                    return new ApiErrorResult<object>("Feedback is not found.");
+                }
                 feedback.ResponseFeedback = parentFeedback;
             }
             feedback.Status = (int)FeedbackStatus.Active;
@@ -177,6 +181,24 @@ namespace BabyCare.Services.Service
             }
         }
 
+
+        private async Task UnBanChildFeedbacksAsync(int parentId, IGenericRepository<Feedback> feedbackRepo, string userId)
+        {
+            var childFeedbacks = await feedbackRepo.Entities
+                .Where(f => f.ResponseFeedbackId == parentId)
+                .ToListAsync();
+
+            foreach (var childFeedback in childFeedbacks)
+            {
+                childFeedback.LastUpdatedTime = DateTime.Now;
+                childFeedback.LastUpdatedBy = userId;
+                childFeedback.Status = (int)FeedbackStatus.Active;
+                await feedbackRepo.UpdateAsync(childFeedback);
+
+                // 🔄 Gọi đệ quy để tiếp tục ban các feedback con của feedback này
+                await UnBanChildFeedbacksAsync(childFeedback.Id, feedbackRepo, userId);
+            }
+        }
 
         public async Task<ApiResult<List<FeedbackModelViewForAdmin>>> GetAllFeedbackAdminAsync()
         {
@@ -394,6 +416,42 @@ namespace BabyCare.Services.Service
                 Feedbacks = parentFeedbacks,
                 HasMore = hasMore
             });
+        }
+
+        public async Task<ApiResult<object>> UnBlockFeedbackAsync(BanFeedbackRequest request)
+        {
+            if (_contextAccessor.HttpContext?.User?.FindFirst("userId") == null)
+            {
+                return new ApiErrorResult<object>("Please login to use this function.", System.Net.HttpStatusCode.BadRequest);
+            }
+
+            var existingFeedback = await _unitOfWork.GetRepository<Feedback>().Entities
+                .FirstOrDefaultAsync(f => f.Id == request.Id && !f.DeletedTime.HasValue);
+
+            if (existingFeedback == null)
+            {
+                return new ApiErrorResult<object>("Feedback not found or already deleted");
+            }
+
+            if (existingFeedback.Status == (int)FeedbackStatus.Active)
+            {
+                return new ApiErrorResult<object>("Feedback has already been active");
+            }
+
+            var feedbackRepo = _unitOfWork.GetRepository<Feedback>();
+            string userId = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value ?? "Unknown";
+
+            existingFeedback.LastUpdatedTime = DateTime.Now;
+            existingFeedback.LastUpdatedBy = userId;
+            existingFeedback.Status = (int)FeedbackStatus.Active;
+
+            // Gọi hàm đệ quy để ban toàn bộ feedback con
+            await UnBanChildFeedbacksAsync(existingFeedback.Id, feedbackRepo, userId);
+
+            await feedbackRepo.UpdateAsync(existingFeedback);
+            await _unitOfWork.SaveAsync();
+
+            return new ApiSuccessResult<object>("Feedback unbanned successfully");
         }
     }
 }
