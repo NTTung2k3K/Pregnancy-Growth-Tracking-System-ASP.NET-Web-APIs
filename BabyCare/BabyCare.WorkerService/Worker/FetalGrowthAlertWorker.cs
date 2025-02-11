@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BabyCare.Contract.Repositories.Entity;
+using BabyCare.Contract.Services.Interface;
 using BabyCare.Core.Utils;
 using BabyCare.Repositories.Context;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,7 @@ namespace BabyCare.WorkerService.Worker
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<FetalGrowthAlertWorker> _logger;
-        // Thời gian kiểm tra: ví dụ mỗi 1 phút
+        // Thời gian kiểm tra: ví dụ mỗi 1 phút 
         private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
 
         public FetalGrowthAlertWorker(IServiceScopeFactory serviceScopeFactory, ILogger<FetalGrowthAlertWorker> logger)
@@ -39,7 +40,10 @@ namespace BabyCare.WorkerService.Worker
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {
                         var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-                        await CreateAlertsAndSendEmails(dbContext, stoppingToken);
+                        var membershipPackageService = scope.ServiceProvider.GetRequiredService<IMembershipPackageService>();
+
+
+                        await CreateAlertsAndSendEmails(dbContext, membershipPackageService,stoppingToken);
                     }
                 }
                 catch (Exception ex)
@@ -53,7 +57,7 @@ namespace BabyCare.WorkerService.Worker
             _logger.LogInformation("FetalGrowthAlertWorker is stopping.");
         }
 
-        private async Task CreateAlertsAndSendEmails(DatabaseContext dbContext, CancellationToken stoppingToken)
+        private async Task CreateAlertsAndSendEmails(DatabaseContext dbContext, IMembershipPackageService membershipPackageService, CancellationToken stoppingToken)
         {
             // Lấy các FetalGrowthRecord chưa có Alert, bao gồm chuẩn phát triển và thông tin trẻ (với thông tin người dùng)
             var records = await dbContext.FetalGrowthRecords
@@ -75,6 +79,11 @@ namespace BabyCare.WorkerService.Worker
                     _logger.LogWarning("FetalGrowthRecord {RecordId} does not have an associated Child.", record.Id);
                     continue;
                 }
+                if (await membershipPackageService.HasStandardDeviationAlerts(record.Child.UserId) == false)
+                {
+                    continue;
+                }
+
 
                 // Kiểm tra cân nặng và chiều cao theo khoảng min - max
                 bool isUnderweight = record.Weight < record.FetalGrowthStandard.MinWeight;

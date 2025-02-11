@@ -30,9 +30,10 @@ namespace BabyCare.Services.Service
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
-
-        public ChildService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor)
+        private readonly IMembershipPackageService _membershipPackageService;
+        public ChildService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, IMembershipPackageService membershipPackageService)
         {
+            _membershipPackageService = membershipPackageService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
@@ -52,7 +53,11 @@ namespace BabyCare.Services.Service
                 {
                     return new ApiErrorResult<object>("A child with the same name and date of birth already exists.");
                 }
-
+                var canGenerate =  _membershipPackageService.CanGenerateAppointments(model.UserId).Result.ResultObj;
+                if (canGenerate == false)
+                {
+                    return new ApiErrorResult<object>("Please buy membership package to use auto generate appointments.");
+                }
                 // Ánh xạ từ CreateChildModelView sang Child entity
                 Child newChild = _mapper.Map<Child>(model);
                 newChild.IsGenerateSampleAppointments = model.IsGenerateSampleAppointments;

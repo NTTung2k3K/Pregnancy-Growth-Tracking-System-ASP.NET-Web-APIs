@@ -91,11 +91,9 @@ namespace BabyCare.Core.Utils
         }
         public enum PackageLevel
         {
-            None = 0,
             Bronze = 1,
             Silver = 2,
             Gold = 3,
-            Premium = 4,
         }
     }
 }

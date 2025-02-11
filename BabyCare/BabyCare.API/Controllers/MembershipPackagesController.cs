@@ -151,5 +151,64 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
             }
         }
+
+
+        [HttpGet("can-added-record")]
+        public async Task<IActionResult> CanAddedRecord([FromQuery] Guid id)
+        {
+            try
+            {
+                var result = await _membershipPackageService.CanAddedRecord(id);
+                return Ok(new BabyCare.Core.APIResponse.ApiSuccessResult<bool>(result));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+
+        [HttpGet("can-generate-appointment")]
+        public async Task<IActionResult> CanGenerateAppointments([FromQuery] Guid id)
+        {
+            try
+            {
+                var result = await _membershipPackageService.CanGenerateAppointments(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+
+
+        [HttpGet("can-share-growth-chart")]
+        public async Task<IActionResult> CanShareGrowthChart([FromQuery] Guid id)
+        {
+            try
+            {
+                var result = await _membershipPackageService.CanShareGrowthChart(id);
+                return Ok(new BabyCare.Core.APIResponse.ApiSuccessResult<bool>(result));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+
+
+        [HttpGet("can-view-growth-chart")]
+        public async Task<IActionResult> CanViewGrowthChart([FromQuery] Guid id)
+        {
+            try
+            {
+                var result = await _membershipPackageService.CanViewGrowthChart(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
     }
 }
