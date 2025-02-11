@@ -14,6 +14,7 @@ using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
 using BabyCare.ModelViews.AuthModelViews.Response;
 using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.FetalGrowthRecordModelView;
+using BabyCare.ModelViews.RoleModelViews;
 using BabyCare.ModelViews.UserModelViews.Response;
 using BabyCare.Repositories.Context;
 using Firebase.Auth;
@@ -1467,6 +1468,63 @@ namespace BabyCare.Services.Service
             }
         }
 
+        public async Task<ApiResult<List<EmployeeResponseModel>>> GetAllDoctorFree(int appointmentId)
+        {
+            try
+            {
+                // Lấy thông tin cuộc hẹn hiện tại
+                var appointment = await _context.Appointments
+                    .Where(a => a.Id == appointmentId)
+                    .Select(a => new { a.AppointmentDate, a.AppointmentSlot })
+                    .FirstOrDefaultAsync();
+
+                if (appointment == null)
+                {
+                    return new ApiErrorResult<List<EmployeeResponseModel>>("Appointment not found.");
+                }
+
+                // Lấy danh sách tất cả bác sĩ
+                var allDoctors = await _context.Users
+                    .Where(u => u.UserRoles.Any(r => r.Role.Name == "Doctor")) // Chỉ lấy bác sĩ
+                    .ToListAsync();
+
+                // Lấy danh sách DoctorId đã có mặt trong cuộc hẹn này
+                var assignedDoctorIds = await _context.AppointmentUsers
+                    .Where(au => au.AppointmentId == appointmentId && au.DoctorId != null)
+                    .Select(au => au.DoctorId.Value)
+                    .ToListAsync();
+
+                // Lấy danh sách DoctorId đã có lịch trong cùng ngày và slot đó
+                var busyDoctorIds = await _context.AppointmentUsers
+                    .Where(au => au.Appointment.AppointmentDate == appointment.AppointmentDate
+                                && au.Appointment.AppointmentSlot == appointment.AppointmentSlot
+                                && au.DoctorId != null)
+                    .Select(au => au.DoctorId.Value)
+                    .ToListAsync();
+
+                // Lọc danh sách bác sĩ chưa được gán vào cuộc hẹn này và không bận trong ngày + slot đó
+                var availableDoctors = allDoctors
+                    .Where(d => !assignedDoctorIds.Contains(d.Id) && !busyDoctorIds.Contains(d.Id))
+                    .Select(d => new EmployeeResponseModel
+                    {
+                        Id = d.Id,
+                        FullName = d.FullName,
+                        Image = d.Image,
+                        DateOfBirth = d.DateOfBirth,
+                        Address = d.Address,
+                        Gender = d.Gender == 1 ? "Male" : "Female",
+                        PhoneNumber = d.PhoneNumber,
+                        Email = d.Email,
+                        Status = d.Status == 1 ? "Active" : "Inactive",
+                    }).ToList();
+
+                return new ApiSuccessResult<List<EmployeeResponseModel>>(availableDoctors);
+            }
+            catch (Exception ex)
+            {
+                return new ApiErrorResult<List<EmployeeResponseModel>>(ex.Message);
+            }
+        }
 
     }
 }
