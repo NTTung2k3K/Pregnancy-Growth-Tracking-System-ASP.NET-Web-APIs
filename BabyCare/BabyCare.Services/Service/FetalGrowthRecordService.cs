@@ -19,9 +19,11 @@ namespace BabyCare.Services.Service
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IMembershipPackageService _membershipPackageService;
 
-        public FetalGrowthRecordService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor)
+        public FetalGrowthRecordService(IMembershipPackageService membershipPackageService,IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor)
         {
+            _membershipPackageService = membershipPackageService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
@@ -33,10 +35,19 @@ namespace BabyCare.Services.Service
             var existingRecord = await _unitOfWork.GetRepository<FetalGrowthRecord>()
                 .Entities
                 .FirstOrDefaultAsync(r => r.ChildId == model.ChildId && r.WeekOfPregnancy == model.WeekOfPregnancy && !r.DeletedTime.HasValue);
-
+            var child = await _unitOfWork.GetRepository<Child>().Entities.FirstOrDefaultAsync(x => x.Id == model.ChildId);
             if (existingRecord != null)
             {
                 return new ApiErrorResult<object>("Fetal growth record already exists for the given child and week.");
+            }
+            if(child == null)
+            {
+                return new ApiErrorResult<object>("Child is not existed.");
+            }
+            var canAddRecord = await _membershipPackageService.CanAddedRecord(child.UserId);
+            if (canAddRecord == false)
+            {
+                return new ApiErrorResult<object>("Please buy membership package to use this function.");
             }
 
             FetalGrowthRecord newRecord = _mapper.Map<FetalGrowthRecord>(model);
@@ -46,7 +57,7 @@ namespace BabyCare.Services.Service
 
             var standart = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities.Where(x => x.Week == model.WeekOfPregnancy).FirstOrDefaultAsync();
             newRecord.FetalGrowthStandardId = standart.Id;
-
+            await _membershipPackageService.AddedRecord(child.UserId);
             await _unitOfWork.GetRepository<FetalGrowthRecord>().InsertAsync(newRecord);
             await _unitOfWork.SaveAsync();
 

@@ -35,10 +35,12 @@ namespace BabyCare.Services.Service
         private readonly IMapper _mapper;
         public readonly UserManager<ApplicationUsers> _userManager;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IMembershipPackageService _membershipPackageService;
 
 
-        public GrowthChartService(IHttpContextAccessor httpContextAccessor, IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUsers> userManager)
+        public GrowthChartService(IMembershipPackageService membershipPackageService, IHttpContextAccessor httpContextAccessor, IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUsers> userManager)
         {
+            _membershipPackageService = membershipPackageService;
             _contextAccessor = httpContextAccessor;
             _userManager = userManager;
             _unitOfWork = unitOfWork;
@@ -429,15 +431,37 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<GrowthChartCreateResponse>("Child is not existed.", System.Net.HttpStatusCode.NotFound);
             }
-            var entity = _mapper.Map<GrowthChart>(model);
-            entity.ChildId = existingChild.Id;
-            entity.CreatedTime = DateTime.Now;
-            entity.Status = (int)GrowthChartStatus.Shared;
+            var applicationUser = await _userManager.FindByIdAsync(existingChild.UserId.ToString());
+            if (applicationUser == null)
+            {
+                return new ApiErrorResult<GrowthChartCreateResponse>("ApplicationUser not found.", System.Net.HttpStatusCode.NotFound);
+            }
+            var canShare = await _membershipPackageService.CanShareGrowthChart(applicationUser.Id);
+            if (!canShare)
+            {
+                return new ApiErrorResult<GrowthChartCreateResponse>("You have reached the sharing limit for your package.", System.Net.HttpStatusCode.Forbidden);
+            }
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                var entity = _mapper.Map<GrowthChart>(model);
+                entity.ChildId = existingChild.Id;
+                entity.CreatedTime = DateTime.Now;
+                entity.Status = (int)GrowthChartStatus.Shared;
+                await _membershipPackageService.ShareGrowthChart(applicationUser.Id);
+                await _unitOfWork.GetRepository<GrowthChart>().InsertAsync(entity);
+                await _unitOfWork.SaveAsync();
+                _unitOfWork.CommitTransaction();
+                return new ApiSuccessResult<GrowthChartCreateResponse>(new GrowthChartCreateResponse() { Id = entity.Id }, "Growth chart created successfully.");
 
-            await _unitOfWork.GetRepository<GrowthChart>().InsertAsync(entity);
-            await _unitOfWork.SaveAsync();
+            }
+            catch (Exception ex)
+            {
+                _unitOfWork.RollBack();
+                return new ApiErrorResult<GrowthChartCreateResponse>(ex.Message, System.Net.HttpStatusCode.Forbidden);
+            }
 
-            return new ApiSuccessResult<GrowthChartCreateResponse>(new GrowthChartCreateResponse() { Id = entity.Id},"Growth chart created successfully.");
+
         }
         public async Task<ApiResult<object>> UpdateGrowthChartStatusByUserAsync(UpdateGrowChartByUser model)
         {

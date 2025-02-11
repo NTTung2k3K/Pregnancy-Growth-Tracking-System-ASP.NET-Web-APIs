@@ -1,4 +1,5 @@
 ﻿using BabyCare.ModelViews.ChildModelView;
+using BabyCare.ModelViews.UserMembershipModelView.Response;
 
 namespace BabyCare.ModelViews.UserModelViews.Response
 {
@@ -18,6 +19,7 @@ namespace BabyCare.ModelViews.UserModelViews.Response
         public string? CreatedBy { get; set; }
         public bool? IsEmailConfirmed { get; set; }
         public string? LastUpdatedBy { get; set; }
+        public List<UserMembershipResponse> UserMembershipResponses { get; set; }
         public List<ChildModelView.ChildModelView> Childs { get; set; }
     }
 }
