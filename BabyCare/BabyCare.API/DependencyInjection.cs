@@ -14,6 +14,7 @@ using Microsoft.OpenApi.Models;
 using BabyCare.Core.Utils;
 using BabyCare.Contract.Services.Implements;
 using VNPAY.NET;
+using static BabyCare.Core.Utils.SystemConstant;
 
 namespace BabyCare.API
 {
@@ -328,50 +329,64 @@ namespace BabyCare.API
             }
             if (!dbContext.MembershipPackages.Any())
             {
-                var packages = new List<MembershipPackage>
-        {
-            new MembershipPackage
-            {
-                PackageName = "Basic Pregnancy Tracking",
-                Description = "Gói cơ bản giúp theo dõi sự phát triển của thai kỳ, bao gồm lịch hẹn siêu âm, nhắc nhở các mốc quan trọng và các bài viết tư vấn sức khỏe.",
-                OriginalPrice = 199000, // Giá gốc
-                Discount = 0.10m, // 10% giảm giá
-                Price = 179100, // Giá sau khi giảm
-                Duration = 30, // 30 ngày
-                Status = 1, // Active
-                PackageLevel = (int)SystemConstant.PackageLevel.Bronze, // Cấp độ 1 (gói cơ bản)
-                ShowPriority = 1, // Độ ưu tiên hiển thị
-                //ImageUrl = "https://example.com/images/basic-package.png"
-            },
-            new MembershipPackage
-            {
-                PackageName = "Premium Pregnancy Tracking",
-                Description = "Gói cao cấp giúp theo dõi đầy đủ các chỉ số của thai kỳ, lịch tiêm phòng, nhắc nhở xét nghiệm và quyền truy cập vào các bài viết chuyên sâu.",
-                OriginalPrice = 499000,
-                Discount = 0.15m, // 15% giảm giá
-                Price = 424150,
-                Duration = 90, // 90 ngày
-                Status = 1, // Active
-                PackageLevel = (int)SystemConstant.PackageLevel.Silver, // Cấp độ 2 (gói cao cấp)
-                ShowPriority = 2,
-                //ImageUrl = "https://example.com/images/premium-package.png"
-            },
-            new MembershipPackage
-            {
-                PackageName = "Ultimate Pregnancy Care",
-                Description = "Gói toàn diện với tất cả tính năng của hệ thống, hỗ trợ chuyên gia trực tuyến 24/7, theo dõi sức khỏe của mẹ và bé, cùng biểu đồ tăng trưởng chuyên sâu.",
-                OriginalPrice = 999000,
-                Discount = 0.20m, // 20% giảm giá
-                Price = 799200,
-                Duration = 180, // 180 ngày
-                Status = 1, // Active
-                PackageLevel = (int)SystemConstant.PackageLevel.Gold, // Cấp độ 3 (gói toàn diện)
-                ShowPriority = 3,
-                //ImageUrl = "https://example.com/images/ultimate-package.png"
-            }
-        };
+                var membershipPackages = new List<MembershipPackage>
+{
+    new MembershipPackage
+    {
+        PackageName = "Bronze - Basic Pregnancy Tracking",
+        Description = "Gói miễn phí giúp theo dõi cơ bản sự phát triển của thai kỳ.",
+        OriginalPrice = 0, // Gói miễn phí
+        Discount = 0.00m,
+        Price = 0,
+        Duration = 30, // 30 ngày
+        Status = 1,
+        PackageLevel = (int?)PackageLevel.Bronze,
+        ShowPriority = 1,
+        MaxRecordAdded = 0,
+        MaxGrowthChartShares = 0,
+        HasGenerateAppointments = false,
+        HasStandardDeviationAlerts = false,
+        HasViewGrowthChart = false
 
-                dbContext.MembershipPackages.AddRange(packages);
+    },
+    new MembershipPackage
+    {
+        PackageName = "Silver - Premium Pregnancy Tracking",
+        Description = "Gói cao cấp giúp theo dõi biểu đồ tăng trưởng, tạo lịch hẹn, và nhận thông báo.",
+        OriginalPrice = 299000, // Giá gốc
+        Discount = 0.10m, // 10% giảm giá
+        Price = 269100, // Giá sau khi giảm
+        Duration = 90, // 3 tháng
+        Status = 1,
+        PackageLevel = (int?)PackageLevel.Silver,
+        ShowPriority = 2,
+        MaxRecordAdded = 30,
+        MaxGrowthChartShares = 10,
+        HasGenerateAppointments = true, // Hỗ trợ tạo lịch hẹn trong 30 ngày
+        HasStandardDeviationAlerts = true,
+        HasViewGrowthChart = true
+    },
+    new MembershipPackage
+    {
+        PackageName = "Gold - Ultimate Pregnancy Care",
+        Description = "Gói toàn diện với đầy đủ tính năng không giới hạn, hỗ trợ theo dõi chuyên sâu.",
+        OriginalPrice = 799000, // Giá gốc
+        Discount = 0.15m, // 15% giảm giá
+        Price = 679150, // Giá sau khi giảm
+        Duration = 365, // 1 năm
+        Status = 1,
+        MaxRecordAdded = -1,
+        PackageLevel = (int?)PackageLevel.Gold,
+        ShowPriority = 3,
+        MaxGrowthChartShares = -1, // Không giới hạn lượt chia sẻ
+        HasGenerateAppointments = true, // Hỗ trợ tạo lịch hẹn trong 1 năm
+        HasStandardDeviationAlerts = true,
+        HasViewGrowthChart = true
+
+    }
+};
+
+                dbContext.MembershipPackages.AddRange(membershipPackages);
                 await dbContext.SaveChangesAsync();
             }
 

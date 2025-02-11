@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BabyCare.ModelViews.AppointmentModelViews.Request;
+using BabyCare.ModelViews.UserModelViews.Response;
 
 namespace BabyCare.Contract.Services.Interface
 {
@@ -40,6 +41,8 @@ namespace BabyCare.Contract.Services.Interface
 
         Task<ApiResult<object>> ChangeDoctorAppointment(ChangeDoctorAppointmentRequest request);
         Task<ApiResult<List<AppointmentResponseModel>>> GetAllByAdmin();
+
+        Task<ApiResult<List<EmployeeResponseModel>>> GetAllDoctorFree(int appointmentId);
 
     }
 }
