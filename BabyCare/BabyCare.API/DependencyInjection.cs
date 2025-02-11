@@ -345,7 +345,9 @@ namespace BabyCare.API
         MaxRecordAdded = 0,
         MaxGrowthChartShares = 0,
         HasGenerateAppointments = false,
-        HasStandardDeviationAlerts = false
+        HasStandardDeviationAlerts = false,
+        HasViewGrowthChart = false
+
     },
     new MembershipPackage
     {
@@ -361,7 +363,8 @@ namespace BabyCare.API
         MaxRecordAdded = 30,
         MaxGrowthChartShares = 10,
         HasGenerateAppointments = true, // Hỗ trợ tạo lịch hẹn trong 30 ngày
-        HasStandardDeviationAlerts = true
+        HasStandardDeviationAlerts = true,
+        HasViewGrowthChart = true
     },
     new MembershipPackage
     {
@@ -377,7 +380,9 @@ namespace BabyCare.API
         ShowPriority = 3,
         MaxGrowthChartShares = -1, // Không giới hạn lượt chia sẻ
         HasGenerateAppointments = true, // Hỗ trợ tạo lịch hẹn trong 1 năm
-        HasStandardDeviationAlerts = true
+        HasStandardDeviationAlerts = true,
+        HasViewGrowthChart = true
+
     }
 };
 

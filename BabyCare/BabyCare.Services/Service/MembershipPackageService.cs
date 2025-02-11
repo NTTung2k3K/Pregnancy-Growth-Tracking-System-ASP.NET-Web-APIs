@@ -170,7 +170,12 @@ namespace BabyCare.Services.Service
                 Description = x.Description,
                 Duration = x.Duration,
                 ImageUrl = x.ImageUrl,
-                OriginalPrice = x.OriginalPrice
+                OriginalPrice = x.OriginalPrice,
+                HasGenerateAppointments = x.HasGenerateAppointments,
+                HasStandardDeviationAlerts = x.HasStandardDeviationAlerts,
+                HasViewGrowthChart = x.HasViewGrowthChart,
+                MaxGrowthChartShares = x.MaxGrowthChartShares,
+                MaxRecordAdded = x.MaxRecordAdded
 
             }).ToList();
 
