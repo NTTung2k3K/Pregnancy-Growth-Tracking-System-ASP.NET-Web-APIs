@@ -39,6 +39,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<AvailableSlotResponseModel>> GetSlotAvailable(DateTime date);
 
         Task<ApiResult<object>> ChangeDoctorAppointment(ChangeDoctorAppointmentRequest request);
+        Task<ApiResult<List<AppointmentResponseModel>>> GetAllByAdmin();
 
     }
 }
