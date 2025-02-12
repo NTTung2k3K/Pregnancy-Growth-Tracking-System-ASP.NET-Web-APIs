@@ -40,7 +40,9 @@ namespace BabyCare.WorkerService.Worker
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {
                         var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-                        await CreateAlertsAndSendEmails(dbContext, stoppingToken);
+                        var membershipPackageService = scope.ServiceProvider.GetRequiredService<IMembershipPackageService>();
+
+                        await CreateAlertsAndSendEmails(dbContext,membershipPackageService, stoppingToken);
                     }
                 }
                 catch (Exception ex)
@@ -54,7 +56,7 @@ namespace BabyCare.WorkerService.Worker
             _logger.LogInformation("FetalGrowthAlertWorker is stopping.");
         }
 
-        private async Task CreateAlertsAndSendEmails(DatabaseContext dbContext, CancellationToken stoppingToken)
+        private async Task CreateAlertsAndSendEmails(DatabaseContext dbContext, IMembershipPackageService membershipPackageService, CancellationToken stoppingToken)
         {
             // Lấy các FetalGrowthRecord chưa có Alert, bao gồm chuẩn phát triển và thông tin trẻ (với thông tin người dùng)
             var records = await dbContext.FetalGrowthRecords
