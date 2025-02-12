@@ -872,14 +872,21 @@ namespace BabyCare.Services.Service
 
                 // Lấy thông tin Doctor
                 response.Doctors = new();
-                foreach (var doctor in appointment.AppointmentUsers)
+                var firstDoctor = appointment.AppointmentUsers.OrderByDescending(x => x.AssignedTime).FirstOrDefault();
+                if (firstDoctor != null)
                 {
-                    if (doctor.Doctor == null) continue;
 
-                    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
-                    var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
+                    var doctorModel = _mapper.Map<EmployeeResponseModel>(firstDoctor);
                     response.Doctors.Add(doctorModel);
                 }
+                //foreach (var doctor in appointment.AppointmentUsers)
+                //{
+                //    if (doctor.Doctor == null) continue;
+
+                //    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
+                //    var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
+                //    response.Doctors.Add(doctorModel);
+                //}
 
                 // Lấy thông tin Appointment Template
                 var at = await repoAT.GetByIdAsync(appointment.AppointmentTemplateId);
@@ -1344,17 +1351,24 @@ namespace BabyCare.Services.Service
 
                 // Map Doctors
                 response.Doctors = new();
-                foreach (var doctor in appointment.AppointmentUsers)
+                var firstDoctor = appointment.AppointmentUsers.OrderByDescending(x => x.AssignedTime).FirstOrDefault();
+                if (firstDoctor != null)
                 {
-                    if (doctor.Doctor == null) continue;
 
-                    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
-                    if (doctorCheck != null)
-                    {
-                        var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
-                        response.Doctors.Add(doctorModel);
-                    }
+                    var doctorModel = _mapper.Map<EmployeeResponseModel>(firstDoctor);
+                    response.Doctors.Add(doctorModel);
                 }
+                //foreach (var doctor in )
+                //{
+                //    if (doctor.Doctor == null) continue;
+
+                //    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
+                //    if (doctorCheck != null)
+                //    {
+                //        var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
+                //        response.Doctors.Add(doctorModel);
+                //    }
+                //}
 
                 // Map AppointmentTemplate
                 var at = await repoAT.GetByIdAsync(appointment.AppointmentTemplateId);
