@@ -30,7 +30,6 @@ namespace BabyCare.Contract.Repositories.Entity
 
         public virtual Child Child { get; set; }
         public virtual FetalGrowthStandard FetalGrowthStandard { get; set; }
-        public virtual GrowthChart? GrowthChart { get; set; }
 
         public virtual Alert? Alert { get; set; }
     }
