@@ -880,7 +880,7 @@ namespace BabyCare.Services.Service
                 // Lấy thông tin Doctor
                 response.Doctors = new();
                 var firstDoctor = appointment.AppointmentUsers.OrderByDescending(x => x.AssignedTime).FirstOrDefault();
-                if (firstDoctor != null)
+                if (firstDoctor != null && firstDoctor.DoctorId == doctorId)
                 {
 
                     var doctorModel = _mapper.Map<EmployeeResponseModel>(firstDoctor.User);
@@ -1359,7 +1359,7 @@ namespace BabyCare.Services.Service
                 // Map Doctors
                 response.Doctors = new();
                 var firstDoctor = appointment.AppointmentUsers.OrderByDescending(x => x.AssignedTime).FirstOrDefault();
-                if (firstDoctor != null)
+                if (firstDoctor != null && firstDoctor.DoctorId == userId)
                 {
 
                     var doctorModel = _mapper.Map<EmployeeResponseModel>(firstDoctor.User);
