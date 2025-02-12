@@ -886,6 +886,10 @@ namespace BabyCare.Services.Service
                     var doctorModel = _mapper.Map<EmployeeResponseModel>(firstDoctor.User);
                     response.Doctors.Add(doctorModel);
                 }
+                else
+                {
+                    continue;
+                }
                 //foreach (var doctor in appointment.AppointmentUsers)
                 //{
                 //    if (doctor.Doctor == null) continue;
@@ -1364,6 +1368,10 @@ namespace BabyCare.Services.Service
 
                     var doctorModel = _mapper.Map<EmployeeResponseModel>(firstDoctor.User);
                     response.Doctors.Add(doctorModel);
+                }
+                else
+                {
+                    continue;
                 }
                 //foreach (var doctor in )
                 //{
