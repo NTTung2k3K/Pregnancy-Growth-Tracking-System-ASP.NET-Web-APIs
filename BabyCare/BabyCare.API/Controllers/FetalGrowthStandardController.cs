@@ -21,36 +21,72 @@ namespace BabyCare.API.Controllers
         [HttpGet("all")]
         public async Task<ActionResult<BasePaginatedList<FetalGrowthStandardModelView>>> GetAllFetalGrowthStandards([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
         {
-            var result = await _fetalGrowthStandardService.GetAllFetalGrowthStandardsAsync(pageNumber, pageSize);
-            return Ok(result);
+            try
+            {
+                var result = await _fetalGrowthStandardService.GetAllFetalGrowthStandardsAsync(pageNumber, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardById(int id)
         {
-            var result = await _fetalGrowthStandardService.GetFetalGrowthStandardByIdAsync(id);
-            return Ok(result);
+            try
+            {
+                var result = await _fetalGrowthStandardService.GetFetalGrowthStandardByIdAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
         }
 
         [HttpPost("create")]
         public async Task<ActionResult<object>> CreateFetalGrowthStandard([FromBody] CreateFetalGrowthStandardModelView model)
         {
-            var result = await _fetalGrowthStandardService.AddFetalGrowthStandardAsync(model);
-            return Ok(result);
+            try
+            {
+                var result = await _fetalGrowthStandardService.AddFetalGrowthStandardAsync(model);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
         }
 
         [HttpPut("update/{id}")]
         public async Task<ActionResult<object>> UpdateFetalGrowthStandard(int id, [FromBody] UpdateFetalGrowthStandardModelView model)
         {
-            var result = await _fetalGrowthStandardService.UpdateFetalGrowthStandardAsync(id, model);
-            return Ok(result);
+            try
+            {
+                var result = await _fetalGrowthStandardService.UpdateFetalGrowthStandardAsync(id, model);
+                return Ok(new { Message = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
         }
 
         [HttpDelete("delete/{id}")]
         public async Task<ActionResult<object>> DeleteFetalGrowthStandard(int id)
         {
-            var result = await _fetalGrowthStandardService.DeleteFetalGrowthStandardAsync(id);
-            return Ok(result);
+            try
+            {
+                var result = await _fetalGrowthStandardService.DeleteFetalGrowthStandardAsync(id);
+                return Ok(new { Message = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
         }
     }
+
 }

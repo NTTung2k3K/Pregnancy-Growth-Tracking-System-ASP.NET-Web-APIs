@@ -28,17 +28,22 @@ namespace BabyCare.Services.Service
         {
             IQueryable<FetalGrowthStandard> query = _unitOfWork.GetRepository<FetalGrowthStandard>().Entities
                 .AsNoTracking()
-                .Where(f => !f.DeletedTime.HasValue)
-                .OrderByDescending(f => f.CreatedTime);
+                .Where(f => !f.DeletedTime.HasValue);
 
             int totalCount = await query.CountAsync();
 
-            var list = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-            var modelList = _mapper.Map<List<FetalGrowthStandardModelView>>(list);
+            List<FetalGrowthStandard> list = await query
+                .OrderByDescending(f => f.CreatedTime) // Chỉ sắp xếp trước khi phân trang
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            List<FetalGrowthStandardModelView> modelList = _mapper.Map<List<FetalGrowthStandardModelView>>(list);
 
             return new ApiSuccessResult<BasePaginatedList<FetalGrowthStandardModelView>>(
                 new BasePaginatedList<FetalGrowthStandardModelView>(modelList, totalCount, pageNumber, pageSize));
         }
+
 
         public async Task<ApiResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardByIdAsync(int id)
         {
