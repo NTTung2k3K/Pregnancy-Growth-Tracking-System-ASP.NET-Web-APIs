@@ -125,6 +125,10 @@ namespace BabyCare.Repositories.Mapper
             CreateMap<Feedback, CreateFeedbackModelView>().ReverseMap();
             CreateMap<Feedback, UpdateFeedbackModelView>().ReverseMap();
 
+
+            CreateMap<FetalGrowthStandard, FetalGrowthStandardModelView>().ReverseMap();
+            CreateMap<FetalGrowthStandard, CreateFetalGrowthStandardModelView>().ReverseMap();
+            CreateMap<FetalGrowthStandard, UpdateFetalGrowthStandardModelView>().ReverseMap();
         }
     }
 }
