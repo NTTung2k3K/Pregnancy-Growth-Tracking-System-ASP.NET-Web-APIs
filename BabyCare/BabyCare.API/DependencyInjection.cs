@@ -163,8 +163,11 @@ namespace BabyCare.API
                 {
                     UserName = "Admin1@",
                     Email = "admin@example.com",
+                    FullName = "This is Admin",
                     Status = (int)SystemConstant.EmployeeStatus.Active,
                     EmailConfirmed = true,
+                    Gender = 1,
+
                     LockoutEnabled = false
                 };
 
@@ -181,8 +184,10 @@ namespace BabyCare.API
                 var doctorUser = new ApplicationUsers()
                 {
                     UserName = "Doctor1@",
+                    FullName = "This is Doctor 1",
                     Email = "doctor@example.com",
                     Status = (int)SystemConstant.EmployeeStatus.Active,
+                    Gender = 1,
 
                     EmailConfirmed = true,
                     LockoutEnabled = false
@@ -201,8 +206,11 @@ namespace BabyCare.API
                 var doctorUser = new ApplicationUsers()
                 {
                     UserName = "Doctor2@",
+                    FullName = "This is Doctor 2",
+
                     Email = "doctor@example.com",
                     Status = (int)SystemConstant.EmployeeStatus.Active,
+                    Gender = 1,
 
                     EmailConfirmed = true,
                     LockoutEnabled = false
@@ -222,9 +230,11 @@ namespace BabyCare.API
                 {
                     UserName = "User1@",
                     Email = "user@gmail.com",
+                    FullName = "This is normal user",
                     Status = (int)SystemConstant.EmployeeStatus.Active,
                     EmailConfirmed = true,
-                    LockoutEnabled = false
+                    LockoutEnabled = false,
+                    Gender = 1
                 };
 
                 var result = await userManager.CreateAsync(normalUser, "User1@gmail.com");
@@ -240,93 +250,94 @@ namespace BabyCare.API
             if (!dbContext.AppointmentTemplates.Any())
             {
                 var templates = new List<AppointmentTemplates>
-{
-    new AppointmentTemplates
     {
-        Name = "Khám thai lần đầu",
-        DaysFromBirth = -270,
-        Description = "Kiểm tra xác nhận thai, tính tuổi thai và đưa ra dự sinh.",
-        Status = 1,
-        Image = "https://cdn-icons-png.flaticon.com/512/3209/3209960.png",
-        Fee = 100000 // 100.000đ
-    },
-    new AppointmentTemplates
-    {
-        Name = "Siêu âm lần 1",
-        DaysFromBirth = -210,
-        Description = "Siêu âm để kiểm tra hình thái học của thai nhi lần đầu.",
-        Status = 1,
-        Image = "https://cdn-icons-png.flaticon.com/512/1989/1989553.png",
-        Fee = 150000 // 150.000đ
-    },
-    new AppointmentTemplates
-    {
-        Name = "Xét nghiệm máu lần đầu",
-        DaysFromBirth = -180,
-        Description = "Xét nghiệm máu để kiểm tra nguy cơ dị tật di truyền hoặc bất thường.",
-        Status = 1,
-        Image = "https://cdn-icons-png.flaticon.com/512/1055/1055672.png",
-        Fee = 200000 // 200.000đ
-    },
-    new AppointmentTemplates
-    {
-        Name = "Siêu âm dị tật thai nhi",
-        DaysFromBirth = -120,
-        Description = "Siêu âm chi tiết để phát hiện dị tật bẩm sinh hoặc vấn đề bất thường.",
-        Status = 1,
-        Image = "https://cdn-icons-png.flaticon.com/512/3209/3209929.png",
-        Fee = 250000 // 250.000đ
-    },
-    new AppointmentTemplates
-    {
-        Name = "Xét nghiệm đường huyết",
-        DaysFromBirth = -90,
-        Description = "Kiểm tra đường huyết để phát hiện tiểu đường thai kỳ.",
-        Status = 1,
-        Image = "https://cdn-icons-png.flaticon.com/512/2580/2580426.png",
-        Fee = 300000 // 300.000đ
-    },
-    new AppointmentTemplates
-    {
-        Name = "Tiêm phòng uốn ván lần 1",
-        DaysFromBirth = -60,
-        Description = "Tiêm phòng uốn ván để bảo vệ mẹ và thai nhi.",
-        Status = 1,
-        Image = "https://cdn-icons-png.flaticon.com/512/4210/4210947.png",
-        Fee = 50000 // 50.000đ
-    },
-    new AppointmentTemplates
-    {
-        Name = "Siêu âm theo dõi sự phát triển",
-        DaysFromBirth = -30,
-        Description = "Siêu âm để đánh giá sự phát triển của thai nhi (cân nặng, nước ối).",
-        Status = 1,
-        Image = "https://cdn-icons-png.flaticon.com/512/3209/3209934.png",
-        Fee = 200000 // 200.000đ
-    },
-    new AppointmentTemplates
-    {
-        Name = "Kiểm tra thai kỳ cuối",
-        DaysFromBirth = -7,
-        Description = "Kiểm tra sức khỏe mẹ và thai nhi trước khi sinh.",
-        Status = 1,
-        Image = "https://cdn-icons-png.flaticon.com/512/3209/3209970.png",
-        Fee = 100000 // 100.000đ
-    },
-    new AppointmentTemplates
-    {
-        Name = "Kiểm tra sau sinh",
-        DaysFromBirth = 30,
-        Description = "Kiểm tra tình trạng sức khỏe mẹ và bé sau sinh.",
-        Status = 1,
-        Image = "https://cdn-icons-png.flaticon.com/512/2254/2254821.png",
-        Fee = 120000 // 120.000đ
-    }
-};
+        new AppointmentTemplates
+        {
+            Name = "First Prenatal Checkup",
+            DaysFromBirth = -270,
+            Description = "Confirm pregnancy, estimate gestational age, and determine due date.",
+            Status = 1,
+            Image = "https://cdn-icons-png.flaticon.com/512/3209/3209960.png",
+            Fee = 100000 // 100,000 VND
+        },
+        new AppointmentTemplates
+        {
+            Name = "First Ultrasound",
+            DaysFromBirth = -210,
+            Description = "Ultrasound to check fetal morphology for the first time.",
+            Status = 1,
+            Image = "https://cdn-icons-png.flaticon.com/512/1989/1989553.png",
+            Fee = 150000 // 150,000 VND
+        },
+        new AppointmentTemplates
+        {
+            Name = "First Blood Test",
+            DaysFromBirth = -180,
+            Description = "Blood test to screen for genetic disorders and abnormalities.",
+            Status = 1,
+            Image = "https://cdn-icons-png.flaticon.com/512/1055/1055672.png",
+            Fee = 200000 // 200,000 VND
+        },
+        new AppointmentTemplates
+        {
+            Name = "Fetal Anomaly Ultrasound",
+            DaysFromBirth = -120,
+            Description = "Detailed ultrasound to detect congenital abnormalities.",
+            Status = 1,
+            Image = "https://cdn-icons-png.flaticon.com/512/3209/3209929.png",
+            Fee = 250000 // 250,000 VND
+        },
+        new AppointmentTemplates
+        {
+            Name = "Gestational Diabetes Test",
+            DaysFromBirth = -90,
+            Description = "Blood sugar test to check for gestational diabetes.",
+            Status = 1,
+            Image = "https://cdn-icons-png.flaticon.com/512/2580/2580426.png",
+            Fee = 300000 // 300,000 VND
+        },
+        new AppointmentTemplates
+        {
+            Name = "First Tetanus Vaccine",
+            DaysFromBirth = -60,
+            Description = "Tetanus vaccination to protect both mother and baby.",
+            Status = 1,
+            Image = "https://cdn-icons-png.flaticon.com/512/4210/4210947.png",
+            Fee = 50000 // 50,000 VND
+        },
+        new AppointmentTemplates
+        {
+            Name = "Growth Monitoring Ultrasound",
+            DaysFromBirth = -30,
+            Description = "Ultrasound to assess fetal development (weight, amniotic fluid, etc.).",
+            Status = 1,
+            Image = "https://cdn-icons-png.flaticon.com/512/3209/3209934.png",
+            Fee = 200000 // 200,000 VND
+        },
+        new AppointmentTemplates
+        {
+            Name = "Final Pregnancy Checkup",
+            DaysFromBirth = -7,
+            Description = "Health check for mother and baby before delivery.",
+            Status = 1,
+            Image = "https://cdn-icons-png.flaticon.com/512/3209/3209970.png",
+            Fee = 100000 // 100,000 VND
+        },
+        new AppointmentTemplates
+        {
+            Name = "Postpartum Checkup",
+            DaysFromBirth = 30,
+            Description = "Health check for both mother and baby after birth.",
+            Status = 1,
+            Image = "https://cdn-icons-png.flaticon.com/512/2254/2254821.png",
+            Fee = 120000 // 120,000 VND
+        }
+    };
+
                 dbContext.AppointmentTemplates.AddRange(templates);
                 await dbContext.SaveChangesAsync();
-
             }
+
             if (!dbContext.MembershipPackages.Any())
             {
                 var membershipPackages = new List<MembershipPackage>
@@ -334,7 +345,7 @@ namespace BabyCare.API
     new MembershipPackage
     {
         PackageName = "Bronze - Basic Pregnancy Tracking",
-        Description = "Gói miễn phí giúp theo dõi cơ bản sự phát triển của thai kỳ.",
+Description = "Free package for basic pregnancy tracking.",
         OriginalPrice = 0, // Gói miễn phí
         Discount = 0.00m,
         Price = 0,
@@ -352,7 +363,7 @@ namespace BabyCare.API
     new MembershipPackage
     {
         PackageName = "Silver - Premium Pregnancy Tracking",
-        Description = "Gói cao cấp giúp theo dõi biểu đồ tăng trưởng, tạo lịch hẹn, và nhận thông báo.",
+Description = "Premium package for tracking growth charts, scheduling appointments, and receiving notifications.",
         OriginalPrice = 299000, // Giá gốc
         Discount = 0.10m, // 10% giảm giá
         Price = 269100, // Giá sau khi giảm
@@ -369,7 +380,7 @@ namespace BabyCare.API
     new MembershipPackage
     {
         PackageName = "Gold - Ultimate Pregnancy Care",
-        Description = "Gói toàn diện với đầy đủ tính năng không giới hạn, hỗ trợ theo dõi chuyên sâu.",
+Description = "Comprehensive package with unlimited features, supporting in-depth tracking.",
         OriginalPrice = 799000, // Giá gốc
         Discount = 0.15m, // 15% giảm giá
         Price = 679150, // Giá sau khi giảm
