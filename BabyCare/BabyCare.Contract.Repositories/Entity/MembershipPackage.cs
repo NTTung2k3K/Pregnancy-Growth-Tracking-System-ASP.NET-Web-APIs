@@ -23,6 +23,7 @@ namespace BabyCare.Contract.Repositories.Entity
 
 
         public int MaxRecordAdded { get; set; } // -1 = Unlimited
+        public int MaxAppointmentCanBooking { get; set; } // -1 = Unlimited
 
         public int MaxGrowthChartShares { get; set; } // -1 = Unlimited
         public bool HasGenerateAppointments { get; set; }   // 0 nếu không hỗ trợ

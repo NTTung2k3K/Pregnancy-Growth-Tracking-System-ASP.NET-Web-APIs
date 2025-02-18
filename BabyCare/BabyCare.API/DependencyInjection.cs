@@ -74,7 +74,8 @@ namespace BabyCare.API
                 .AddScoped<IVnpay, Vnpay>()
                 .AddHttpContextAccessor()
                 .AddScoped<IMembershipPackageService, MembershipPackageService>()
-                .AddScoped<IAppointmentTemplateService, AppointmentTemplateService>();
+                .AddScoped<IAppointmentTemplateService, AppointmentTemplateService>()
+                .AddScoped<IFetalGrowthStandardService, FetalGrowthStandardService>();
 
 
         }

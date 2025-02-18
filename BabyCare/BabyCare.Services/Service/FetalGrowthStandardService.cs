@@ -28,17 +28,22 @@ namespace BabyCare.Services.Service
         {
             IQueryable<FetalGrowthStandard> query = _unitOfWork.GetRepository<FetalGrowthStandard>().Entities
                 .AsNoTracking()
-                .Where(f => !f.DeletedTime.HasValue)
-                .OrderByDescending(f => f.CreatedTime);
+                .Where(f => !f.DeletedTime.HasValue);
 
             int totalCount = await query.CountAsync();
 
-            var list = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-            var modelList = _mapper.Map<List<FetalGrowthStandardModelView>>(list);
+            List<FetalGrowthStandard> list = await query
+                .OrderByDescending(f => f.CreatedTime) 
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            List<FetalGrowthStandardModelView> modelList = _mapper.Map<List<FetalGrowthStandardModelView>>(list);
 
             return new ApiSuccessResult<BasePaginatedList<FetalGrowthStandardModelView>>(
                 new BasePaginatedList<FetalGrowthStandardModelView>(modelList, totalCount, pageNumber, pageSize));
         }
+
 
         public async Task<ApiResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardByIdAsync(int id)
         {
@@ -56,8 +61,14 @@ namespace BabyCare.Services.Service
 
         public async Task<ApiResult<object>> AddFetalGrowthStandardAsync(CreateFetalGrowthStandardModelView model)
         {
+            var existingWeek = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities.Where(x => x.Week == model.Week).ToListAsync();
+            if (existingWeek.Count > 0)
+            {
+                return new ApiErrorResult<object>("Fetal growth standard has existing week.");
+
+            }
             var entity = _mapper.Map<FetalGrowthStandard>(model);
-            entity.CreatedTime = DateTimeOffset.UtcNow;
+            entity.CreatedTime = DateTime.Now;
 
             await _unitOfWork.GetRepository<FetalGrowthStandard>().InsertAsync(entity);
             await _unitOfWork.SaveAsync();
@@ -69,14 +80,22 @@ namespace BabyCare.Services.Service
         {
             var entity = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities
                 .FirstOrDefaultAsync(f => f.Id == id && !f.DeletedTime.HasValue);
-
+            
             if (entity == null)
             {
                 return new ApiErrorResult<object>("Fetal growth standard not found.");
             }
+            if (model.Week != entity.Week)
+            {
+                var existingWeek = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities.Where(x => x.Week == model.Week).ToListAsync();
+                if (existingWeek.Count > 0)
+                {
+                    return new ApiErrorResult<object>("Fetal growth standard has existing week.");
 
+                }
+            }
             _mapper.Map(model, entity);
-            entity.LastUpdatedTime = DateTimeOffset.UtcNow;
+            entity.LastUpdatedTime = DateTime.Now;
 
             await _unitOfWork.GetRepository<FetalGrowthStandard>().UpdateAsync(entity);
             await _unitOfWork.SaveAsync();
@@ -94,11 +113,25 @@ namespace BabyCare.Services.Service
                 return new ApiErrorResult<object>("Fetal growth standard not found.");
             }
 
-            entity.DeletedTime = DateTimeOffset.UtcNow;
+            entity.DeletedTime = DateTime.Now;
             await _unitOfWork.GetRepository<FetalGrowthStandard>().UpdateAsync(entity);
             await _unitOfWork.SaveAsync();
 
             return new ApiSuccessResult<object>("Fetal growth standard deleted successfully.");
+        }
+
+        public async Task<ApiResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardByWeekAsync(int week)
+        {
+            var entity = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities
+                 .FirstOrDefaultAsync(f => f.Week == week && !f.DeletedTime.HasValue);
+
+            if (entity == null)
+            {
+                return new ApiErrorResult<FetalGrowthStandardModelView>("Fetal growth standard not found.");
+            }
+
+            var model = _mapper.Map<FetalGrowthStandardModelView>(entity);
+            return new ApiSuccessResult<FetalGrowthStandardModelView>(model);
         }
     }
 }

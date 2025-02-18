@@ -42,26 +42,25 @@ namespace BabyCare.Contract.Services.Interface
 
 
 
-        //  Lấy số lần chia sẻ Growth Chart tối đa dựa trên gói của user
         Task<int> GetMaxGrowthChartShares(Guid userId);
+        Task<int> GetMaxAppointmentCanBooking(Guid userId);
 
 
-        //  Kiểm tra xem user còn quyền chia sẻ Growth Chart không
         Task<bool> CanShareGrowthChart(Guid userId);
 
 
-        //  Tăng số lần chia sẻ Growth Chart
         Task<bool> ShareGrowthChart(Guid userId);
 
-        //  Kiểm tra user có thể tạo lịch hẹn không
         Task<ApiResult<bool>> CanGenerateAppointments(Guid userId);
 
         Task<ApiResult<bool>> CanViewGrowthChart(Guid userId);
 
         Task<bool> CanAddedRecord(Guid userId);
-        //  Kiểm tra user có thông báo lệch chuẩn không
         Task<bool> HasStandardDeviationAlerts(Guid userId);
 
+
+        Task<bool> UpdateAppointmentBooking(Guid userId);
+        Task<bool> CanBooking(Guid userId);
 
 
 

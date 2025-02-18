@@ -497,6 +497,15 @@ namespace BabyCare.Services.Service
             return true;
         }
 
+        public async Task<bool> UpdateAppointmentBooking(Guid userId)
+        {
+            var membership = await GetUserActiveMembership(userId);
+            if (membership == null || !await CanBooking(userId))
+                return false;
+
+            membership.AppointmentBookingCount += 1;
+            return true;
+        }
 
 
 
@@ -514,6 +523,20 @@ namespace BabyCare.Services.Service
 
             return membership.AddedRecordCount < maxAdded;
         }
+        public async Task<bool> CanBooking(Guid userId)
+        {
+            var membership = await GetUserActiveMembership(userId);
+            if (membership == null || membership.Package == null)
+                return false; // Không có gói hợp lệ
+
+            int maxBooking = membership.Package.PackageLevel == (int)SystemConstant.PackageLevel.Gold
+                            ? -1 // Gói Gold không giới hạn
+                            : membership.Package.MaxAppointmentCanBooking; // Gói Silver giới hạn 10 lần, Bronze không có tính năng này
+
+            if (maxBooking == -1) return true; // Nếu là gói Gold thì luôn được chia sẻ
+
+            return membership.AddedRecordCount < maxBooking;
+        }
 
         //  Tăng số lần add record
         public async Task<bool> AddedRecord(Guid userId)
@@ -526,14 +549,12 @@ namespace BabyCare.Services.Service
             return true;
         }
 
-        //  Kiểm tra user có thể tạo lịch hẹn không
         public async Task<ApiResult<bool>> CanGenerateAppointments(Guid userId)
         {
             var package = await GetUserActivePackage(userId);
             return  new ApiSuccessResult<bool>(package?.HasGenerateAppointments ?? false);
         }
 
-        //  Kiểm tra user có thông báo lệch chuẩn không
         public async Task<bool> HasStandardDeviationAlerts(Guid userId)
         {
             var package = await GetUserActivePackage(userId);
@@ -546,6 +567,10 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<bool>(package?.HasViewGrowthChart ?? false);
         }
 
-        
+        public async Task<int> GetMaxAppointmentCanBooking(Guid userId)
+        {
+            var package = await GetUserActivePackage(userId);
+            return package?.MaxAppointmentCanBooking?? 0;
+        }
     }
 }
