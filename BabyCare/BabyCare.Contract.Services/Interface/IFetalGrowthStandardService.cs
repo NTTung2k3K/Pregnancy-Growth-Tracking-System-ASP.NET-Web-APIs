@@ -8,6 +8,8 @@ namespace BabyCare.Contract.Services.Interface
     {
         Task<ApiResult<BasePaginatedList<FetalGrowthStandardModelView>>> GetAllFetalGrowthStandardsAsync(int pageNumber, int pageSize);
         Task<ApiResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardByIdAsync(int id);
+        Task<ApiResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardByWeekAsync(int week);
+
         Task<ApiResult<object>> AddFetalGrowthStandardAsync(CreateFetalGrowthStandardModelView model);
         Task<ApiResult<object>> UpdateFetalGrowthStandardAsync(int id, UpdateFetalGrowthStandardModelView model);
         Task<ApiResult<object>> DeleteFetalGrowthStandardAsync(int id);
