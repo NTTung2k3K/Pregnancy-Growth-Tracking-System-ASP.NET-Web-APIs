@@ -41,11 +41,12 @@ namespace BabyCare.Services.Service
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly UserManager<ApplicationUsers> _userManager;
         private readonly IFetalGrowthRecordService _fetalGrowthRecordService;
+        private readonly IMembershipPackageService _membershipPackageService;
 
 
-
-        public AppointmentService( IFetalGrowthRecordService fetalGrowthRecordService, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
+        public AppointmentService(IMembershipPackageService membershipPackageService ,IFetalGrowthRecordService fetalGrowthRecordService, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
         {
+            _membershipPackageService = membershipPackageService;
             _fetalGrowthRecordService = fetalGrowthRecordService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -94,6 +95,11 @@ namespace BabyCare.Services.Service
             if (existingUser == null)
             {
                 return new ApiErrorResult<object>("User is not existed.", System.Net.HttpStatusCode.NotFound);
+            }
+            var canBooking = await _membershipPackageService.CanBooking(request.UserId);
+            if (!canBooking)
+            {
+                return new ApiErrorResult<object>("User cannot booking. Please buy membership package.", System.Net.HttpStatusCode.NotFound);
             }
             // Check child is existed
             //var existingChild = await repoChild.GetByIdAsync(request.ChildId);
@@ -202,6 +208,7 @@ namespace BabyCare.Services.Service
                     await repoAC.InsertAsync(appointmentChild);
                 }
 
+                await _membershipPackageService.UpdateAppointmentBooking(request.UserId);
                 await repoAC.SaveAsync();
 
 

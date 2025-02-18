@@ -23,6 +23,8 @@ namespace BabyCare.Contract.Repositories.Entity
         public string? Status { get; set; }
         public bool IsActive => Status == "Active" && DateTime.Now <= EndDate;
         public int GrowthChartShareCount { get; set; } = 0;
+        public int AppointmentBookingCount { get; set; } = 0;
+
         public int AddedRecordCount { get; set; } = 0;
 
         public virtual ApplicationUsers User { get; set; }

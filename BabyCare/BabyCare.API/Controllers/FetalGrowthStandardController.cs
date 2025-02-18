@@ -45,7 +45,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
-
+        [HttpGet("get-by-week")]
+        public async Task<ActionResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardByWeekAsync([FromQuery]int week)
+        {
+            try
+            {
+                var result = await _fetalGrowthStandardService.GetFetalGrowthStandardByWeekAsync(week);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
         [HttpPost("create")]
         public async Task<ActionResult<object>> CreateFetalGrowthStandard([FromBody] CreateFetalGrowthStandardModelView model)
         {

@@ -576,7 +576,7 @@ namespace BabyCare.Contract.Services.Implements
 
 
             response.UserMembershipResponses = new();
-            foreach (var item in existingUser.UserMemberships)
+            foreach (var item in existingUser.UserMemberships.OrderByDescending(x => x.EndDate))
             {
                 var userMembership = new UserMembershipResponse()
                 {
@@ -597,8 +597,8 @@ namespace BabyCare.Contract.Services.Implements
                         Duration = item.Package.Duration,
                         ImageUrl = item.Package.ImageUrl,
                         Price = item.Package.Price.Value,
-                        PackageLevel = Enum.IsDefined(typeof(PackageLevel), item.Package.Status)
-                               ? ((PackageLevel)item.Package.Status.Value).ToString()
+                        PackageLevel = Enum.IsDefined(typeof(PackageLevel), item.Package.PackageLevel.Value)
+                               ? ((PackageLevel)item.Package.PackageLevel.Value).ToString()
                                   : "Unknown",
                         PackageName = item.Package.PackageName,
                         OriginalPrice = item.Package.OriginalPrice,
