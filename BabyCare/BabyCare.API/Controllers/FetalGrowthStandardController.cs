@@ -2,8 +2,6 @@
 using BabyCare.Core;
 using BabyCare.ModelViews.FetalGrowthStandardModelView;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace BabyCare.API.Controllers
 {

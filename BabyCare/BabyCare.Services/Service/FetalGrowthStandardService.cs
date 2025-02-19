@@ -6,10 +6,6 @@ using BabyCare.Core.APIResponse;
 using BabyCare.ModelViews.FetalGrowthStandardModelView;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BabyCare.Services.Service
 {

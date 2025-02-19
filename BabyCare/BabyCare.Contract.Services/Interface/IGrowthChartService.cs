@@ -1,10 +1,7 @@
 ﻿using BabyCare.Core.APIResponse;
 using BabyCare.ModelViews.GrowthChartModelView;
-using System.Threading.Tasks;
 using BabyCare.Core;
 using BabyCare.ModelViews.AppointmentModelViews.Request;
-using BabyCare.ModelViews.AppointmentModelViews.Response;
-using BabyCare.ModelViews.FeedbackModelView;
 
 namespace BabyCare.Contract.Services.Interface
 {

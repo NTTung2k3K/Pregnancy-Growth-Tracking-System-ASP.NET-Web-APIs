@@ -1,14 +1,7 @@
 ﻿using BabyCare.Core.APIResponse;
 using BabyCare.Core;
-using BabyCare.ModelViews.BlogModelViews;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.AppointmentModelViews.Response;
-using BabyCare.ModelViews.AppointmentModelViews.Request;
 
 namespace BabyCare.Contract.Services.Interface
 {

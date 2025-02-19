@@ -1,21 +1,12 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.Core.APIResponse;
 using BabyCare.ModelViews.BlogTypeModelView;
-using BabyCare.ModelViews.RoleModelViews;
-using Firebase.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BabyCare.Services.Service
 {

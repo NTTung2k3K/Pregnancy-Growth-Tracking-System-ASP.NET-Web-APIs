@@ -1,36 +1,22 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.Core.APIResponse;
 using BabyCare.Core.Base;
-using BabyCare.Core.Firebase;
 using BabyCare.Core.Utils;
 using BabyCare.ModelViews.AppointmentModelViews.Request;
 using BabyCare.ModelViews.AppointmentModelViews.Response;
 using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
-using BabyCare.ModelViews.AuthModelViews.Response;
 using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.FetalGrowthRecordModelView;
-using BabyCare.ModelViews.RoleModelViews;
 using BabyCare.ModelViews.UserModelViews.Response;
-using BabyCare.Repositories.Context;
-using BabyCare.Repositories.UOW;
-using Firebase.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using static BabyCare.Core.Utils.SystemConstant;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BabyCare.Services.Service
 {

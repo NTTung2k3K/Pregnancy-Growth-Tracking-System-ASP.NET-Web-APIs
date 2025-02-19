@@ -2,11 +2,6 @@
 using BabyCare.Core.Base;
 using BabyCare.Core;
 using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BabyCare.ModelViews.AppointmentTemplateModelViews.Request;
 
 namespace BabyCare.Contract.Services.Interface

@@ -1,13 +1,9 @@
-﻿using Azure.Core;
-using BabyCare.Contract.Services.Implements;
-using BabyCare.Contract.Services.Interface;
+﻿using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.ModelViews.AppointmentModelViews.Request;
 using BabyCare.ModelViews.GrowthChartModelView;
 using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace BabyCare.API.Controllers
 {

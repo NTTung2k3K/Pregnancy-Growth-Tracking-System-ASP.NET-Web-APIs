@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using BabyCare.ModelViews.AuthModelViews;
 using BabyCare.Contract.Services.Interface;
 using BabyCare.ModelViews.AuthModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Request;
-using BabyCare.Core.Base;
 
-namespace XuongMayBE.API.Controllers
+namespace BabyCare.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

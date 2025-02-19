@@ -19,7 +19,6 @@ using BabyCare.ModelViews.RoleModelViews;
 using BabyCare.ModelViews.UserMembershipModelView.Response;
 using BabyCare.ModelViews.UserModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
-using Firebase.Auth;
 
 namespace BabyCare.Repositories.Mapper
 {

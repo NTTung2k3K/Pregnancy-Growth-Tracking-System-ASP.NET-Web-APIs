@@ -11,9 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using BabyCare.ModelViews.UserModelViews.Response;
 using BabyCare.ModelViews.GrowthChartModelView;
 using static BabyCare.Core.Utils.SystemConstant;
-using System.Linq;
 using BabyCare.Core.Utils;
-using Firebase.Auth;
 
 namespace BabyCare.Services.Service
 {

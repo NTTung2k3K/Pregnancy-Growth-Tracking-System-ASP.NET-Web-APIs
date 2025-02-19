@@ -2,16 +2,10 @@
 using BabyCare.Core;
 using BabyCare.Core.APIResponse;
 using BabyCare.Core.Base;
-using BabyCare.Core.Utils;
 using BabyCare.ModelViews.MembershipPackageModelViews.Request;
 using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BabyCare.Contract.Services.Interface
 {

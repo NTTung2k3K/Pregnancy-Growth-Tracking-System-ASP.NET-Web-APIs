@@ -1,15 +1,9 @@
-﻿using BabyCare.Contract.Services.Implements;
-using BabyCare.Contract.Services.Interface;
+﻿using BabyCare.Contract.Services.Interface;
 using BabyCare.Core.Base;
 using BabyCare.Core;
 using BabyCare.ModelViews.AppointmentModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using VNPAY.NET.Utilities;
-using Azure.Core;
-using BabyCare.ModelViews.AppointmentModelViews.Response;
-using Microsoft.AspNetCore.Authorization;
 
 namespace BabyCare.API.Controllers
 {

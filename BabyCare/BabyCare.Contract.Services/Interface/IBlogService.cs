@@ -1,13 +1,6 @@
 ﻿using BabyCare.Core.APIResponse;
 using BabyCare.Core;
-using BabyCare.ModelViews.BlogTypeModelView;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BabyCare.ModelViews.BlogModelViews;
-using BabyCare.ModelViews.GrowthChartModelView;
 using BabyCare.ModelViews.AppointmentModelViews.Request;
 
 namespace BabyCare.Contract.Services.Interface

@@ -1,11 +1,8 @@
 ﻿using Azure.Core;
-using BabyCare.Contract.Services.Implements;
 using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
-using BabyCare.ModelViews.BlogTypeModelView;
 using BabyCare.ModelViews.FeedbackModelView;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace BabyCare.API.Controllers
 {

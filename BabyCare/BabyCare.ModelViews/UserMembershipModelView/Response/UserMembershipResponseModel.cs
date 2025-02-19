@@ -1,12 +1,5 @@
 ﻿using BabyCare.ModelViews.MembershipPackageModelViews.Response;
-using BabyCare.ModelViews.PaymentModelView.Response;
 using BabyCare.ModelViews.UserModelViews.Response;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BabyCare.ModelViews.UserMembershipModelView.Response
 {

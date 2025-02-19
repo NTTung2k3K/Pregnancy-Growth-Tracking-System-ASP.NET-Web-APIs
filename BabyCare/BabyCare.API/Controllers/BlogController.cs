@@ -2,7 +2,6 @@
 using BabyCare.Core;
 using BabyCare.ModelViews.AppointmentModelViews.Request;
 using BabyCare.ModelViews.BlogModelViews;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BabyCare.API.Controllers

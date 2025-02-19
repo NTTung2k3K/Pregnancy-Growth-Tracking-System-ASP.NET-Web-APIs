@@ -1,9 +1,7 @@
 ﻿using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.ModelViews.FetalGrowthRecordModelView;
-using BabyCare.Services.Service;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace BabyCare.API.Controllers
 {
