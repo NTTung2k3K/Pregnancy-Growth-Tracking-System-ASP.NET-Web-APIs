@@ -1,6 +1,5 @@
 ﻿using BabyCare.Core.APIResponse;
 using BabyCare.ModelViews.FetalGrowthStandardModelView;
-using System.Threading.Tasks;
 using BabyCare.Core;
 namespace BabyCare.Contract.Services.Interface
 {

@@ -1,5 +1,4 @@
-﻿using BabyCare.ModelViews.ChildModelView;
-using BabyCare.ModelViews.UserMembershipModelView.Response;
+﻿using BabyCare.ModelViews.UserMembershipModelView.Response;
 
 namespace BabyCare.ModelViews.UserModelViews.Response
 {

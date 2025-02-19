@@ -1,11 +1,4 @@
-﻿using BabyCare.ModelViews.ChildModelView;
-using BabyCare.ModelViews.FetalGrowthRecordModelView;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BabyCare.ModelViews.FetalGrowthRecordModelView;
 
 namespace BabyCare.ModelViews.AppointmentModelViews.Request
 {

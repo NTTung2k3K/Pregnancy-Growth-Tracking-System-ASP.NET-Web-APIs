@@ -1,11 +1,5 @@
 ﻿using BabyCare.Core.APIResponse;
 using BabyCare.Core;
-using BabyCare.ModelViews.RoleModelViews;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BabyCare.ModelViews.BlogTypeModelView;
 
 namespace BabyCare.Contract.Services.Interface

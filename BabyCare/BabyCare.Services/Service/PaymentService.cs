@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Azure;
 using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.Contract.Services.Interface;
@@ -9,12 +8,6 @@ using BabyCare.ModelViews.PaymentModelView.Response;
 using BabyCare.ModelViews.UserMembershipModelView.Response;
 using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static BabyCare.Core.Utils.SystemConstant;
 
 namespace BabyCare.Services.Service
 {

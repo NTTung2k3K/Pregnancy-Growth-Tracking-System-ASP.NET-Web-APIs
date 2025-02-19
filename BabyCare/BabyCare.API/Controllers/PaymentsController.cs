@@ -1,9 +1,6 @@
 ﻿using BabyCare.Contract.Services.Interface;
 using BabyCare.Core;
 using BabyCare.ModelViews.UserModelViews.Response;
-using BabyCare.Services.Service;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BabyCare.API.Controllers

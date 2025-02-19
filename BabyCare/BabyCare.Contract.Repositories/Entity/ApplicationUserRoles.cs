@@ -1,11 +1,5 @@
-﻿using BabyCare.Contract.Repositories.Entity;
-using BabyCare.Core.Utils;
+﻿using BabyCare.Core.Utils;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BabyCare.Contract.Repositories.Entity
 {

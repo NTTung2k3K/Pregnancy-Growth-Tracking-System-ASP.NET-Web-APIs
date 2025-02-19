@@ -1,12 +1,5 @@
 ﻿using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
-using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.UserModelViews.Response;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BabyCare.ModelViews.AppointmentModelViews.Response
 {

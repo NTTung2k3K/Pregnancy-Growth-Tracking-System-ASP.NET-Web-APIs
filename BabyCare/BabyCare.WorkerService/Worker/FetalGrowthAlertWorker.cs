@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using BabyCare.Contract.Repositories.Entity;
+﻿using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Services.Interface;
 using BabyCare.Core.Utils;
 using BabyCare.Repositories.Context;

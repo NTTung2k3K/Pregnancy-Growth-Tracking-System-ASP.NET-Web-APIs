@@ -1,10 +1,5 @@
 ﻿using BabyCare.Core.APIResponse;
 using BabyCare.ModelViews.PaymentModelView.Response;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BabyCare.Contract.Services.Interface
 {

@@ -6,26 +6,14 @@ using BabyCare.Core.APIResponse;
 using BabyCare.ModelViews.GrowthChartModelView;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
-using Azure.Core;
-using BabyCare.ModelViews.AuthModelViews.Response;
 using static BabyCare.Core.Utils.SystemConstant;
 using Microsoft.AspNetCore.Http;
-using Azure;
 using BabyCare.ModelViews.AppointmentModelViews.Response;
 using BabyCare.Core.Utils;
-using BabyCare.ModelViews.AppointmentModelViews.Request;
-using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
-using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.UserModelViews.Response;
 using System.Reflection;
 using BabyCare.ModelViews.FeedbackModelView;
-using BabyCare.ModelViews.MembershipPackageModelViews.Response;
-using Microsoft.AspNetCore.Mvc;
 
 namespace BabyCare.Services.Service
 {
