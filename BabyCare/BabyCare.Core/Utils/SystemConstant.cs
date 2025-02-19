@@ -63,7 +63,8 @@ namespace BabyCare.Core.Utils
             CancelledByDoctor = 6, // Hủy bởi bác sĩ
             NoShow = 7, // Người dùng không đến
             Rescheduled = 8, // Đã dời lịch
-            Failed = 9 // Thất bại (do lỗi hệ thống hoặc các lý do khác)
+            Failed = 9, // Thất bại (do lỗi hệ thống hoặc các lý do khác)
+            Lated = 10,
 
         }
         public enum AppointmentTemplatesStatus

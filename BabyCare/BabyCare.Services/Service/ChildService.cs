@@ -100,6 +100,7 @@ namespace BabyCare.Services.Service
             var allAT = appointmentTemplatesRepo.GetAll().Where(x => x.Status == (int)AppointmentTemplatesStatus.Active).ToList();
             foreach (var appointmentTemplates in allAT)
             {
+                var now = DateTime.Now;
                 var appointment = new Appointment()
                 {
                     AppointmentTemplateId = appointmentTemplates.Id,
@@ -108,6 +109,11 @@ namespace BabyCare.Services.Service
                     Fee = appointmentTemplates.Fee,
                     Name = appointmentTemplates.Name,
                 };
+                // If appointment date < now change status
+                if(appointment.AppointmentDate.Date < now.Date)
+                {
+                    appointment.Status = (int)AppointmentStatus.Lated;
+                }
                 await appointmentRepo.InsertAsync(appointment);
                 await appointmentRepo.SaveAsync();
                 await _unitOfWork.SaveAsync();

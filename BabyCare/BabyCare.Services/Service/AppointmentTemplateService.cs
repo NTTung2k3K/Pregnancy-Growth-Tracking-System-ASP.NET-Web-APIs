@@ -42,8 +42,18 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Name of appointment template is existed.");
             }
-            var appointmentTemplates = _mapper.Map<AppointmentTemplates>(request);
+            var validWeek = repo.Entities.Where(x => x.DaysFromBirth == request.DaysFromBirth && x.Status == (int)AppointmentTemplatesStatus.Active).ToList();
+            if (validWeek.Any()) 
+            {
+                return new ApiErrorResult<object>("Week is existed.");
+            }
 
+
+            var appointmentTemplates = _mapper.Map<AppointmentTemplates>(request);
+            if (request.Fee <= 0)
+            {
+                return new ApiErrorResult<object>("Fee is not valid.");
+            }
             if (request.DaysFromBirth <= 0)
             {
                 return new ApiErrorResult<object>("DaysFromBirth is not valid.");
@@ -80,10 +90,13 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<object>("Delete successfully.");
         }
 
-        public async Task<ApiResult<List<ATResponseModel>>> GetAll()
+        public async Task<ApiResult<List<ATResponseModel>>> GetAll(bool isAdmin)
         {
             var items = _unitOfWork.GetRepository<AppointmentTemplates>().Entities.Where(x => x.DeletedBy == null);
-
+            if (!isAdmin)
+            {
+                items = items.Where(x => x.Status == (int)AppointmentTemplatesStatus.Active);
+            }
          
             var data = await items.OrderBy(x => x.DaysFromBirth).ToListAsync();
             var res = data.Select(x => new ATResponseModel
@@ -197,6 +210,22 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
             }
+
+            if (request.Status == (int)AppointmentTemplatesStatus.Active)
+            {
+                var validWeek = repo.Entities
+                    .Where(x => x.DaysFromBirth == request.DaysFromBirth
+                        && x.Id != request.Id
+                        && x.Status == (int)AppointmentTemplatesStatus.Active)
+                    .ToList();
+
+                if (validWeek.Any())
+                {
+                    return new ApiErrorResult<object>("Week is existed.");
+                }
+            }
+
+
             var existingImage = existingItem.Image;
 
             _mapper.Map(request, existingItem);

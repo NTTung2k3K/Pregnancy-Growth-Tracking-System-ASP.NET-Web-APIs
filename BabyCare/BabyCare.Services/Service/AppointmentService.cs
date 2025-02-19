@@ -1158,6 +1158,8 @@ namespace BabyCare.Services.Service
 
         public async Task<ApiResult<object>> ConfirmAppointment(ConfirmAppointment request)
         {
+            DateTime localTime = request.AppointmentDate.ToLocalTime(); // Chuyển UTC về múi giờ của server
+
             var repoAppointment = _unitOfWork.GetRepository<Appointment>();
 
             _unitOfWork.BeginTransaction();
@@ -1215,7 +1217,7 @@ namespace BabyCare.Services.Service
             existingItem.Notes = request.Notes;
             existingItem.Status = (int)AppointmentStatus.Confirmed;
             existingItem.AppointmentSlot = request.AppointmentSlot;
-            existingItem.AppointmentDate = request.AppointmentDate;
+            existingItem.AppointmentDate = localTime;
 
             // Lưu thay đổi vào cơ sở dữ liệu
             await repoAppointment.UpdateAsync(existingItem);
