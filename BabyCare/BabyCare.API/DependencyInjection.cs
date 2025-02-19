@@ -358,7 +358,8 @@ Description = "Free package for basic pregnancy tracking.",
         MaxGrowthChartShares = 0,
         HasGenerateAppointments = false,
         HasStandardDeviationAlerts = false,
-        HasViewGrowthChart = false
+        HasViewGrowthChart = false,
+        MaxAppointmentCanBooking = 0,
 
     },
     new MembershipPackage
@@ -376,7 +377,9 @@ Description = "Premium package for tracking growth charts, scheduling appointmen
         MaxGrowthChartShares = 10,
         HasGenerateAppointments = true, // Hỗ trợ tạo lịch hẹn trong 30 ngày
         HasStandardDeviationAlerts = true,
-        HasViewGrowthChart = true
+        HasViewGrowthChart = true,
+        MaxAppointmentCanBooking = 10,
+
     },
     new MembershipPackage
     {
@@ -393,7 +396,8 @@ Description = "Comprehensive package with unlimited features, supporting in-dept
         MaxGrowthChartShares = -1, // Không giới hạn lượt chia sẻ
         HasGenerateAppointments = true, // Hỗ trợ tạo lịch hẹn trong 1 năm
         HasStandardDeviationAlerts = true,
-        HasViewGrowthChart = true
+        HasViewGrowthChart = true,
+        MaxAppointmentCanBooking = -1,
 
     }
 };
