@@ -75,11 +75,11 @@ namespace BabyCare.API.Controllers
             }
         }
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] bool isAdmin)
         {
             try
             {
-                var result = await _appointmentTemplateService.GetAll();
+                var result = await _appointmentTemplateService.GetAll(isAdmin);
                 return Ok(result);
             }
             catch (Exception ex)
