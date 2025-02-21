@@ -53,10 +53,13 @@ namespace BabyCare.Services.Service
                 {
                     return new ApiErrorResult<object>("A child with the same name and date of birth already exists.");
                 }
-                var canGenerate =  _membershipPackageService.CanGenerateAppointments(model.UserId).Result.ResultObj;
-                if (canGenerate == false)
+                if (model.IsGenerateSampleAppointments)
                 {
-                    return new ApiErrorResult<object>("Please buy membership package to use auto generate appointments.");
+                    var canGenerate = _membershipPackageService.CanGenerateAppointments(model.UserId).Result.ResultObj;
+                    if (canGenerate == false)
+                    {
+                        return new ApiErrorResult<object>("Please buy membership package to use auto generate appointments.");
+                    }
                 }
                 // Ánh xạ từ CreateChildModelView sang Child entity
                 Child newChild = _mapper.Map<Child>(model);
@@ -353,7 +356,7 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (!string.IsNullOrWhiteSpace(model.PregnancyWeekAtBirth) && model.PregnancyWeekAtBirth != existingChild.PregnancyWeekAtBirth)
+            if (model.PregnancyWeekAtBirth != null && model.PregnancyWeekAtBirth != existingChild.PregnancyWeekAtBirth)
             {
                 existingChild.PregnancyWeekAtBirth = model.PregnancyWeekAtBirth;
                 isUpdated = true;
@@ -450,7 +453,7 @@ namespace BabyCare.Services.Service
             {
                 query = query.Where(a => a.Name.ToLower().Contains(request.SearchValue.ToLower()) ||
                                        (a.BloodType != null && a.BloodType.ToLower().Contains(request.SearchValue.ToLower())) ||
-                                        (a.PregnancyWeekAtBirth != null && a.PregnancyWeekAtBirth.ToLower().Contains(request.SearchValue.ToLower()))
+                                        (a.PregnancyWeekAtBirth != null && a.PregnancyWeekAtBirth.ToString() == request.SearchValue.ToLower())
                                          );
             }
             if (request.FromDate.HasValue)
