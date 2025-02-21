@@ -96,7 +96,7 @@ namespace BabyCare.WorkerService.Worker
                             if (child != null)
                             {
                                 string gender = child.FetalGender == 0 ? "Nam" : child.FetalGender == 1 ? "Nữ" : "Chưa xác định";
-                                childInfo += $"- {child.Name}, Giới tính: {gender}, Tuần thai: {child.PregnancyWeekAtBirth ?? "N/A"}<br>";
+                                childInfo += $"- {child.Name ?? "N/A"}, Giới tính: {gender}, Tuần thai: {child.PregnancyWeekAtBirth?.ToString() ?? "N/A"} <br>";
                             }
                         }
 

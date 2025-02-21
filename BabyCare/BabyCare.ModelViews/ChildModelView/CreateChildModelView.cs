@@ -40,7 +40,7 @@ namespace BabyCare.ModelViews.ChildModelView
         public string? BloodType { get; set; }
 
         [MaxLength(10, ErrorMessage = "Pregnancy week at birth cannot exceed 10 characters.")]
-        public string? PregnancyWeekAtBirth { get; set; }
+        public int? PregnancyWeekAtBirth { get; set; }
 
 
         public bool IsGenerateSampleAppointments {  get; set; }

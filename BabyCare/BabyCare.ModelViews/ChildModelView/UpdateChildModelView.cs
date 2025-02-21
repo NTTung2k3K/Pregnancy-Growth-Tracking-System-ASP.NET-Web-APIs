@@ -15,7 +15,7 @@ namespace BabyCare.ModelViews.ChildModelView
         public string? Complications { get; set; }
         public IFormFile? PhotoUrl { get; set; }
         public string? BloodType { get; set; }
-        public string? PregnancyWeekAtBirth { get; set; }
+        public int? PregnancyWeekAtBirth { get; set; }
         public bool IsGenerateSampleAppointments { get; set; }
 
 

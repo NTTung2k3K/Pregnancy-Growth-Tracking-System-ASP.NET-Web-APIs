@@ -20,7 +20,7 @@ namespace BabyCare.Contract.Repositories.Entity
         public string? Complications { get; set; }
         public string? PhotoUrl { get; set; }
         public string? BloodType { get; set; }
-        public string? PregnancyWeekAtBirth { get; set; }
+        public int? PregnancyWeekAtBirth { get; set; }
         public bool IsGenerateSampleAppointments { get; set; }
 
         public virtual ApplicationUsers User { get; set; }
