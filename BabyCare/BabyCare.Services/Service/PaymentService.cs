@@ -105,7 +105,7 @@ namespace BabyCare.Services.Service
             var paymentRepo = _unitOfWork.GetRepository<Payment>();
             var userMembershipRepo = _unitOfWork.GetRepository<UserMembership>();
             var membershipPackageRepo = _unitOfWork.GetRepository<MembershipPackage>();
-            var payment = paymentRepo.GetAll();
+            var payment = paymentRepo.GetAll().OrderByDescending(x => x.LastUpdatedTime);
             var response = new List<PaymentResponseModel>();
             foreach (var item in payment)
             {

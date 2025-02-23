@@ -68,10 +68,7 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Price is not correct");
             }
-            if (request.ImageUrl != null)
-            {
-                membershipPackage.ImageUrl = await ImageHelper.Upload(request.ImageUrl);
-            }
+           
             await repo.InsertAsync(membershipPackage);
             await repo.SaveAsync();
             return new ApiSuccessResult<object>("Create successfully.");
@@ -162,13 +159,13 @@ namespace BabyCare.Services.Service
                                     : "Unknown",
                 Description = x.Description,
                 Duration = x.Duration,
-                ImageUrl = x.ImageUrl,
                 OriginalPrice = x.OriginalPrice,
                 HasGenerateAppointments = x.HasGenerateAppointments,
                 HasStandardDeviationAlerts = x.HasStandardDeviationAlerts,
                 HasViewGrowthChart = x.HasViewGrowthChart,
                 MaxGrowthChartShares = x.MaxGrowthChartShares,
-                MaxRecordAdded = x.MaxRecordAdded
+                MaxRecordAdded = x.MaxRecordAdded,
+                MaxAppointmentCanBooking = x.MaxAppointmentCanBooking,
 
             }).ToList();
 
@@ -218,7 +215,6 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
             }
-            var existingImage = existingItem.ImageUrl;
             _mapper.Map(request, existingItem);
             existingItem.Price = (request.OriginalPrice - (request.OriginalPrice * (request.Discount / 100)));
             if (existingItem.Price < 0)
@@ -227,15 +223,7 @@ namespace BabyCare.Services.Service
             }
             existingItem.LastUpdatedTime = DateTime.Now;
             existingItem.LastUpdatedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
-            if (request.ImageUrl != null)
-            {
-                existingItem.ImageUrl = await ImageHelper.Upload(request.ImageUrl);
-            }
-            else
-            {
-                existingItem.ImageUrl = existingImage;
-            }
-            
+           
             await repo.UpdateAsync(existingItem);
             await repo.SaveAsync();
 
@@ -425,7 +413,6 @@ namespace BabyCare.Services.Service
                                     : "Unknown",
                 Description = x.Description,
                 Duration = x.Duration,
-                ImageUrl = x.ImageUrl,
                 OriginalPrice = x.OriginalPrice
 
             }).ToList();

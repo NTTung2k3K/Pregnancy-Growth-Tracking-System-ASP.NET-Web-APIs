@@ -24,6 +24,7 @@ namespace BabyCare.Services.Service
         {
             IQueryable<FetalGrowthStandard> query = _unitOfWork.GetRepository<FetalGrowthStandard>().Entities
                 .AsNoTracking()
+                .OrderByDescending(x => x.LastUpdatedTime)
                 .Where(f => !f.DeletedTime.HasValue);
 
             int totalCount = await query.CountAsync();

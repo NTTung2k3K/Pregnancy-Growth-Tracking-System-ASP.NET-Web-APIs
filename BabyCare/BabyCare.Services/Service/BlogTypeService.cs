@@ -92,6 +92,7 @@ namespace BabyCare.Services.Service
         {
             IQueryable<BlogType> blogTypeQuery = _unitOfWork.GetRepository<BlogType>().Entities
                 .AsNoTracking()
+                .OrderByDescending(x => x.LastUpdatedTime)
                 .Where(p => !p.DeletedTime.HasValue);
 
             if (id != null)

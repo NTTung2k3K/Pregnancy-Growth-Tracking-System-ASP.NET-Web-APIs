@@ -10,7 +10,7 @@ namespace BabyCare.Contract.Repositories.Entity
         public int Duration { get; set; }
         public int? Status { get; set; }
         public int? PackageLevel { get; set; }
-        public string? ImageUrl { get; set; }
+        //public string? ImageUrl { get; set; }
         public decimal? Discount { get; set; }
         public decimal? Price { get; set; }
 

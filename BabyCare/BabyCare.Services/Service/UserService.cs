@@ -588,7 +588,6 @@ namespace BabyCare.Contract.Services.Implements
                         Description = item.Package.Description,
                         Discount = item.Package.Discount,
                         Duration = item.Package.Duration,
-                        ImageUrl = item.Package.ImageUrl,
                         Price = item.Package.Price.Value,
                         PackageLevel = Enum.IsDefined(typeof(PackageLevel), item.Package.PackageLevel.Value)
                                ? ((PackageLevel)item.Package.PackageLevel.Value).ToString()
@@ -968,6 +967,10 @@ namespace BabyCare.Contract.Services.Implements
             var userCheckExisted = await _userManager.FindByEmailAsync(request.Email);
             if (userCheckExisted != null)
             {
+                if (userCheckExisted.Status == ((int)SystemConstant.UserStatus.InActive))
+                {
+                    return new ApiErrorResult<UserLoginResponseModel>("You cannot access system.", System.Net.HttpStatusCode.NotFound);
+                }
                 var updateStatus = await _userManager.UpdateAsync(userCheckExisted);
                 if (!updateStatus.Succeeded)
                 {
@@ -1070,6 +1073,7 @@ namespace BabyCare.Contract.Services.Implements
 
             var doctorUserIds = await _unitOfWork.GetRepository<ApplicationUserRoles>().Entities
         .Where(ur => ur.RoleId == doctorRole.Id)
+        .OrderByDescending(x => x.LastUpdatedTime)
         .Select(ur => ur.UserId)
         .ToListAsync();
 
@@ -1119,7 +1123,9 @@ namespace BabyCare.Contract.Services.Implements
 
             // Lọc danh sách user theo UserId từ bảng User
             var users = await _userManager.Users
-                .Where(u => UserIds.Contains(u.Id) && u.DeletedBy == null).ToListAsync();
+                .Where(u => UserIds.Contains(u.Id) && u.DeletedBy == null)
+                .OrderByDescending(x => x.LastUpdatedTime)
+                .ToListAsync();
 
 
 

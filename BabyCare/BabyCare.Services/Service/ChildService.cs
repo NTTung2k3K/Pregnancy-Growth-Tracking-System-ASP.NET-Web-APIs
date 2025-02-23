@@ -178,6 +178,7 @@ namespace BabyCare.Services.Service
             // Khởi tạo query cơ bản cho bảng Child
             IQueryable<Child> childQuery = _unitOfWork.GetRepository<Child>().Entities
                 .AsNoTracking()
+                .OrderByDescending(x => x.LastUpdatedTime)
                 .Where(c => !c.DeletedTime.HasValue); // Loại bỏ các bản ghi đã bị xóa
 
             // Áp dụng bộ lọc theo id, name, dateOfBirth, bloodType, và pregnancyStage nếu có
@@ -315,18 +316,7 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (model.WeightEstimate.HasValue && model.WeightEstimate != existingChild.WeightEstimate)
-            {
-                existingChild.WeightEstimate = model.WeightEstimate.Value;
-                isUpdated = true;
-            }
-
-            if (model.HeightEstimate.HasValue && model.HeightEstimate != existingChild.HeightEstimate)
-            {
-                existingChild.HeightEstimate = model.HeightEstimate.Value;
-                isUpdated = true;
-            }
-
+            
             if (!string.IsNullOrWhiteSpace(model.DeliveryPlan) && model.DeliveryPlan != existingChild.DeliveryPlan)
             {
                 existingChild.DeliveryPlan = model.DeliveryPlan;
@@ -345,11 +335,7 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (model.PregnancyWeekAtBirth != null && model.PregnancyWeekAtBirth != existingChild.PregnancyWeekAtBirth)
-            {
-                existingChild.PregnancyWeekAtBirth = model.PregnancyWeekAtBirth;
-                isUpdated = true;
-            }
+           
 
             // Upload photo nếu có
             if (model.PhotoUrl != null)
@@ -441,8 +427,7 @@ namespace BabyCare.Services.Service
             if (!string.IsNullOrEmpty(request.SearchValue))
             {
                 query = query.Where(a => a.Name.ToLower().Contains(request.SearchValue.ToLower()) ||
-                                       (a.BloodType != null && a.BloodType.ToLower().Contains(request.SearchValue.ToLower())) ||
-                                        (a.PregnancyWeekAtBirth != null && a.PregnancyWeekAtBirth.ToString() == request.SearchValue.ToLower())
+                                       (a.BloodType != null && a.BloodType.ToLower().Contains(request.SearchValue.ToLower()))
                                          );
             }
             if (request.FromDate.HasValue)
