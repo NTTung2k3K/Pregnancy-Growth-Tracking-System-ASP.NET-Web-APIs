@@ -98,7 +98,7 @@ namespace BabyCare.Services.Service
 
         public async Task<ApiResult<List<ATResponseModel>>> GetAll(bool isAdmin)
         {
-            var items = _unitOfWork.GetRepository<AppointmentTemplates>().Entities.Where(x => x.DeletedBy == null);
+            var items = _unitOfWork.GetRepository<AppointmentTemplates>().Entities.OrderByDescending(x => x.LastUpdatedTime).Where(x => x.DeletedBy == null);
             if (!isAdmin)
             {
                 items = items.Where(x => x.Status == (int)AppointmentTemplatesStatus.Active);

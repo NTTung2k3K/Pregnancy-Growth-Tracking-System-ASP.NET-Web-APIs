@@ -131,6 +131,7 @@ namespace BabyCare.Services.Service
             // Khởi tạo query cơ bản cho bảng Blog
             IQueryable<Blog> blogQuery = _unitOfWork.GetRepository<Blog>().Entities
                 .AsNoTracking()
+                .OrderByDescending(x => x.LastUpdatedTime)
                 .Where(b => !b.DeletedTime.HasValue && b.Status == (int)BlogStatus.Active); // Loại bỏ các bản ghi đã bị xóa
 
             // Áp dụng bộ lọc theo id, title, status, và isFeatured nếu có
@@ -188,6 +189,7 @@ namespace BabyCare.Services.Service
             // Khởi tạo query cơ bản cho bảng Blog
             IQueryable<Blog> blogQuery = _unitOfWork.GetRepository<Blog>().Entities
                 .AsNoTracking()
+                .OrderByDescending(x => x.LastUpdatedTime)
                 .Where(b => !b.DeletedTime.HasValue); // Loại bỏ các bản ghi đã bị xóa
 
             // Áp dụng bộ lọc theo id, title, status, và isFeatured nếu có

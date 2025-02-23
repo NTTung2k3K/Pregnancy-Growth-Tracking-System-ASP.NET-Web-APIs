@@ -279,7 +279,7 @@ namespace BabyCare.Services.Service
             IQueryable<GrowthChart> query = _unitOfWork.GetRepository<GrowthChart>().Entities
                 .AsNoTracking()
                 .Where(g => !g.DeletedTime.HasValue)
-                .OrderByDescending(g => g.CreatedTime);
+                .OrderByDescending(g => g.LastUpdatedTime);
 
             int totalCount = await query.CountAsync();
 

@@ -27,5 +27,7 @@ namespace BabyCare.ModelViews.MembershipPackageModelViews.Response
         public bool HasGenerateAppointments { get; set; }   // 0 nếu không hỗ trợ
         public bool HasStandardDeviationAlerts { get; set; }
         public bool HasViewGrowthChart { get; set; }
+        public int MaxAppointmentCanBooking { get; set; } // -1 = Unlimited
+
     }
 }
