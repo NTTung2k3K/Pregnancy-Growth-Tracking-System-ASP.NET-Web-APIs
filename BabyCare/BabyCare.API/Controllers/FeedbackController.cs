@@ -127,5 +127,19 @@ namespace BabyCare.API.Controllers
             }
 
         }
+        [HttpPut("unban-feedback")]
+        public async Task<IActionResult> UnBlockFeedbackAsync([FromBody] BanFeedbackRequest request)
+        {
+            try
+            {
+                var result = await _feedbackService.UnBlockFeedbackAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+
+        }
     }
 }

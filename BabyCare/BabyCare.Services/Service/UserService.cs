@@ -1000,7 +1000,8 @@ namespace BabyCare.Contract.Services.Implements
                 FullName = $"{request.Family_name} {request.Given_name} {request.Name}",
                 Image = request.Picture,
                 UserName = await _generateGGUsernameAsync(),
-                Status = (int)UserStatus.Active
+                Status = (int)UserStatus.Active,
+                Gender = 0
             };
 
             var addUserStatus = await _userManager.CreateAsync(userEntity);
