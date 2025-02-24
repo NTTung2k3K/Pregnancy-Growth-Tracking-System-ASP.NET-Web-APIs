@@ -25,11 +25,6 @@ namespace BabyCare.ModelViews.ChildModelView
         [MaxLength(50, ErrorMessage = "Pregnancy stage cannot exceed 50 characters.")]
         public string? PregnancyStage { get; set; }
 
-        [Range(0, float.MaxValue, ErrorMessage = "Weight estimate must be a positive number.")]
-        public float? WeightEstimate { get; set; }
-
-        [Range(0, float.MaxValue, ErrorMessage = "Height estimate must be a positive number.")]
-        public float? HeightEstimate { get; set; }
 
         [Required]
         public DateTime DueDate { get; set; }
@@ -44,8 +39,7 @@ namespace BabyCare.ModelViews.ChildModelView
         [MaxLength(3, ErrorMessage = "Blood type cannot exceed 3 characters.")]
         public string? BloodType { get; set; }
 
-        [MaxLength(10, ErrorMessage = "Pregnancy week at birth cannot exceed 10 characters.")]
-        public int? PregnancyWeekAtBirth { get; set; }
+    
 
 
         public bool IsGenerateSampleAppointments {  get; set; }
