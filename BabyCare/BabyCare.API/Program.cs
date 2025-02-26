@@ -20,6 +20,7 @@ builder.Services.AddCorsPolicyBackend();
 
 builder.Services.AddHostedService<ReminderWorker>();
 builder.Services.AddHostedService<FetalGrowthAlertWorker>();
+builder.Services.AddHostedService<AppointmentWorker>();
 
 var app = builder.Build();
 

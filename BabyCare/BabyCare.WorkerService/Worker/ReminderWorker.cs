@@ -39,7 +39,7 @@ namespace BabyCare.WorkerService.Worker
                     _logger.LogError(ex, "Error while checking reminders.");
                 }
 
-                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromHours(12), stoppingToken);
             }
         }
 
