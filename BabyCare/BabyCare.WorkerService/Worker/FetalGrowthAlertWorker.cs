@@ -14,7 +14,7 @@ namespace BabyCare.WorkerService.Worker
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<FetalGrowthAlertWorker> _logger;
         // Thời gian kiểm tra: ví dụ mỗi 1 phút 
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromHours(12);
 
         public FetalGrowthAlertWorker(IServiceScopeFactory serviceScopeFactory, ILogger<FetalGrowthAlertWorker> logger)
         {
