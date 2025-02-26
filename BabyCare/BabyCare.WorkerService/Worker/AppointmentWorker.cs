@@ -28,7 +28,7 @@ namespace BabyCare.WorkerService.Worker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Checking and creating reminders...");
+                _logger.LogInformation("Checking Appointment...");
 
                 try
                 {
@@ -40,40 +40,64 @@ namespace BabyCare.WorkerService.Worker
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while checking reminders.");
+                    _logger.LogError(ex, "Error while checking appointments.");
                 }
 
-                await Task.Delay(TimeSpan.FromHours(12), stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
         }
 
         private async Task CheckCancelAppointment(DatabaseContext dbContext)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var today = now.Date;
 
-            // Khai báo thời gian cho từng slot
-            var slotTimes = new Dictionary<int, TimeSpan>
+            // Lấy danh sách các Appointment cần kiểm tra từ database trước
+            var appointments = await dbContext.Appointments
+                .Where(a => a.Status == (int)BabyCare.Core.Utils.SystemConstant.AppointmentStatus.Pending)
+                .ToListAsync(); // ⚡ Chuyển thành danh sách trên bộ nhớ
+
+            // Danh sách chứa (slotId, thời gian bắt đầu của slot)
+            var slotTimes = new List<Tuple<int, TimeSpan>>
             {
-                { 1, new TimeSpan(9, 30, 0) },  
-                { 2, new TimeSpan(12, 0, 0) },  
-                { 3, new TimeSpan(14, 30, 0) }, 
-                { 4, new TimeSpan(17, 0, 0) }   
+                Tuple.Create(1, new TimeSpan(9, 30, 0)),
+                Tuple.Create(2, new TimeSpan(12, 0, 0)),
+                Tuple.Create(3, new TimeSpan(14, 30, 0)),
+                Tuple.Create(4, new TimeSpan(17, 0, 0))
             };
 
-            var appointments = await dbContext.Appointments
-                .Where(a => a.Status == (int)BabyCare.Core.Utils.SystemConstant.AppointmentStatus.Pending &&
-                            (a.AppointmentDate < today ||
-                             (a.AppointmentDate == today && slotTimes.ContainsKey(a.AppointmentSlot) && now.TimeOfDay > slotTimes[a.AppointmentSlot])))
-                .ToListAsync();
+            // Danh sách để lưu các appointment cần hủy
+            var filteredAppointments = new List<Appointment>();
 
-            foreach (var appointment in appointments)
+            foreach (var a in appointments)
             {
-                appointment.Status = (int)BabyCare.Core.Utils.SystemConstant.AppointmentStatus.CancelledByUser;
+                if (a.AppointmentDate < today)
+                {
+                    filteredAppointments.Add(a);
+                }
+                else if (a.AppointmentDate.Date == today)
+                {
+                    // Tìm xem slot có tồn tại không
+                    var slot = slotTimes.FirstOrDefault(s => s.Item1 == a.AppointmentSlot);
+                    if (slot != null && now.TimeOfDay > slot.Item2) // Kiểm tra thời gian
+                    {
+                        filteredAppointments.Add(a);
+                    }
+                }
             }
 
-            await dbContext.SaveChangesAsync();
+            // Cập nhật trạng thái các lịch hẹn đã bị hủy
+            if (filteredAppointments.Any()) // Chỉ cập nhật nếu có dữ liệu
+            {
+                foreach (var appointment in filteredAppointments)
+                {
+                    appointment.Status = (int)BabyCare.Core.Utils.SystemConstant.AppointmentStatus.CancelledByUser;
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
         }
+
 
 
     }
