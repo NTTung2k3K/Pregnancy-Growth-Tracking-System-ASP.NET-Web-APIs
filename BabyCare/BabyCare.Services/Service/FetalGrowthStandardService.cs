@@ -62,10 +62,10 @@ namespace BabyCare.Services.Service
 
         public async Task<ApiResult<object>> AddFetalGrowthStandardAsync(CreateFetalGrowthStandardModelView model)
         {
-            var existingWeek = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities.Where(x => x.Week == model.Week).ToListAsync();
+            var existingWeek = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities.Where(x => x.Week == model.Week && x.Gender == model.Gender).ToListAsync();
             if (existingWeek.Count > 0)
             {
-                return new ApiErrorResult<object>("Fetal growth standard has existing week.");
+                return new ApiErrorResult<object>("Fetal growth standard has existing");
 
             }
             var entity = _mapper.Map<FetalGrowthStandard>(model);
@@ -88,10 +88,10 @@ namespace BabyCare.Services.Service
             }
             if (model.Week != entity.Week)
             {
-                var existingWeek = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities.Where(x => x.Week == model.Week).ToListAsync();
+                var existingWeek = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities.Where(x => x.Week == model.Week && x.Gender == model.Gender).ToListAsync();
                 if (existingWeek.Count > 0)
                 {
-                    return new ApiErrorResult<object>("Fetal growth standard has existing week.");
+                    return new ApiErrorResult<object>("Fetal growth standard has existing.");
 
                 }
             }
@@ -121,10 +121,10 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<object>("Fetal growth standard deleted successfully.");
         }
 
-        public async Task<ApiResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardByWeekAsync(int week)
+        public async Task<ApiResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardByWeekAsync(int week, int gender)
         {
             var entity = await _unitOfWork.GetRepository<FetalGrowthStandard>().Entities
-                 .FirstOrDefaultAsync(f => f.Week == week && !f.DeletedTime.HasValue);
+                 .FirstOrDefaultAsync(f => f.Week == week && f.Gender == gender &&!f.DeletedTime.HasValue);
 
             if (entity == null)
             {
