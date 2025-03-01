@@ -44,11 +44,11 @@ namespace BabyCare.API.Controllers
             }
         }
         [HttpGet("get-by-week")]
-        public async Task<ActionResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardByWeekAsync([FromQuery]int week)
+        public async Task<ActionResult<FetalGrowthStandardModelView>> GetFetalGrowthStandardByWeekAsync([FromQuery]int week,[FromQuery] int gender)
         {
             try
             {
-                var result = await _fetalGrowthStandardService.GetFetalGrowthStandardByWeekAsync(week);
+                var result = await _fetalGrowthStandardService.GetFetalGrowthStandardByWeekAsync(week,gender);
                 return Ok(result);
             }
             catch (Exception ex)
