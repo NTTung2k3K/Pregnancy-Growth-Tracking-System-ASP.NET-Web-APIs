@@ -44,6 +44,8 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontendLocal");
+app.UseCors("AllowFrontendLocalNextJs");
+
 
 app.UseCors("AllowFrontendVercel");
 
