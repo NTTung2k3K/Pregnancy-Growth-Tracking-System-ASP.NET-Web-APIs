@@ -232,7 +232,7 @@ namespace BabyCare.API
                 }
             }
 
-            if (await userManager.FindByEmailAsync("User1@gmail.com") == null)
+            if (await userManager.FindByEmailAsync("user@gmail.com") == null)
             {
                 var normalUser = new ApplicationUsers()
                 {
