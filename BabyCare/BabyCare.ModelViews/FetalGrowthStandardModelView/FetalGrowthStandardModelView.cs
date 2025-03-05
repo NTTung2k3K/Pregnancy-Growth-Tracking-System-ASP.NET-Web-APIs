@@ -2,6 +2,7 @@
 {
     public class FetalGrowthStandardModelView
     {
+        public int Id { get; set; }
         public int Week { get; set; }
         public string? GestationalAge { get; set; }
         public int Gender { get; set; }
