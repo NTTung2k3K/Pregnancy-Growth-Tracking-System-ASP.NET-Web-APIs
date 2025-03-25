@@ -1,17 +1,20 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+# Use the .NET 8 base image for the runtime environment 
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base 
+USER $APP_UID 
+WORKDIR /app 
+EXPOSE 8080 
+EXPOSE 8081 
 
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+# Use the .NET 8 SDK image for build environment 
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build 
 
+# Define the build configuration argument (default is 'Release') 
+ARG BUILD_CONFIGURATION=Release 
 
-# This stage is used to build the service project
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
+# Set the working directory 
+WORKDIR /src 
+
+# Copy all project files and restore dependencies
 COPY ["BabyCare.API/BabyCare.API.csproj", "BabyCare.API/"]
 COPY ["BabyCare.Core/BabyCare.Core.csproj", "BabyCare.Core/"]
 COPY ["BabyCare.Services/BabyCare.Services.csproj", "BabyCare.Services/"]
@@ -20,18 +23,25 @@ COPY ["BabyCare.Repositories/BabyCare.Repositories.csproj", "BabyCare.Repositori
 COPY ["BabyCare.Contract.Repositories/BabyCare.Contract.Repositories.csproj", "BabyCare.Contract.Repositories/"]
 COPY ["BabyCare.ModelViews/BabyCare.ModelViews.csproj", "BabyCare.ModelViews/"]
 COPY ["BabyCare.WorkerService/BabyCare.WorkerService.csproj", "BabyCare.WorkerService/"]
-RUN dotnet restore "./BabyCare.API/BabyCare.API.csproj"
+
+# Restore dependencies for the main project
+RUN dotnet restore "/src/BabyCare.API/BabyCare.API.csproj"
+
+# Copy the entire solution
 COPY . .
-WORKDIR "/src/BabyCare.API"
-RUN dotnet build "./BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Set the working directory for the build process 
+WORKDIR "/src/BabyCare.API" 
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
+# Build the project 
+RUN dotnet build "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/build 
+
+# Publish stage 
+FROM build AS publish 
+RUN dotnet publish "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false 
+
+# Final stage 
+FROM base AS final 
+WORKDIR /app 
+COPY --from=publish /app/publish . 
 ENTRYPOINT ["dotnet", "BabyCare.API.dll"]
