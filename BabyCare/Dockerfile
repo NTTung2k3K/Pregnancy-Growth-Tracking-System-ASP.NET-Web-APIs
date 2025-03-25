@@ -1,29 +1,36 @@
-﻿# Dùng base image cho ASP.NET Core
+# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+# This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-# Dùng SDK để build project
+
+# This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-
-# Copy toàn bộ solution để đảm bảo context đúng
+COPY ["BabyCare.API/BabyCare.API.csproj", "BabyCare.API/"]
+COPY ["BabyCare.Core/BabyCare.Core.csproj", "BabyCare.Core/"]
+COPY ["BabyCare.Services/BabyCare.Services.csproj", "BabyCare.Services/"]
+COPY ["BabyCare.Contract.Services/BabyCare.Contract.Services.csproj", "BabyCare.Contract.Services/"]
+COPY ["BabyCare.Repositories/BabyCare.Repositories.csproj", "BabyCare.Repositories/"]
+COPY ["BabyCare.Contract.Repositories/BabyCare.Contract.Repositories.csproj", "BabyCare.Contract.Repositories/"]
+COPY ["BabyCare.ModelViews/BabyCare.ModelViews.csproj", "BabyCare.ModelViews/"]
+COPY ["BabyCare.WorkerService/BabyCare.WorkerService.csproj", "BabyCare.WorkerService/"]
+RUN dotnet restore "./BabyCare.API/BabyCare.API.csproj"
 COPY . .
+WORKDIR "/src/BabyCare.API"
+RUN dotnet build "./BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Chạy restore với đúng thư mục
-WORKDIR /src/BabyCare.API
-RUN dotnet restore
-
-# Build ứng dụng
-RUN dotnet build -c $BUILD_CONFIGURATION -o /app/build
-
-# Publish ứng dụng
+# This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
-RUN dotnet publish -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Final stage để chạy app
+# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
