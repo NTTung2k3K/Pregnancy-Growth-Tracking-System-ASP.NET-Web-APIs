@@ -1,23 +1,21 @@
-# Sử dụng base image .NET 8 runtime
+# Use the .NET 8 base image for the runtime environment
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-# Sử dụng .NET SDK để build dự án
+# Use the .NET 8 SDK image for build environment
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
-# Định nghĩa biến cấu hình build
+# Define the build configuration argument (default is 'Release')
 ARG BUILD_CONFIGURATION=Release
 
-# Đặt thư mục làm việc
+# Set the working directory
 WORKDIR /src
 
-# Sao chép solution file trước để restore dependency
+# Copy the solution file and project files
 COPY ["BabyCare/BabyCare.sln", "BabyCare/"]
-
-# Copy từng project file để tránh cache sai
 COPY ["BabyCare/BabyCare.API/BabyCare.API.csproj", "BabyCare/BabyCare.API/"]
 COPY ["BabyCare/BabyCare.Core/BabyCare.Core.csproj", "BabyCare/BabyCare.Core/"]
 COPY ["BabyCare/BabyCare.Services/BabyCare.Services.csproj", "BabyCare/BabyCare.Services/"]
@@ -27,22 +25,27 @@ COPY ["BabyCare/BabyCare.Contract.Repositories/BabyCare.Contract.Repositories.cs
 COPY ["BabyCare/BabyCare.ModelViews/BabyCare.ModelViews.csproj", "BabyCare/BabyCare.ModelViews/"]
 
 # Restore dependencies
-WORKDIR /src/BabyCare
-RUN dotnet restore "BabyCare.sln"
+RUN dotnet restore "BabyCare/BabyCare.sln"
 
-# Sao chép toàn bộ mã nguồn vào container
+# Copy the rest of the application files
 COPY . .
 
-# Build project
+# Set the working directory for the build process
 WORKDIR "/src/BabyCare/BabyCare.API"
+
+# Build the project
 RUN dotnet build "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Publish ứng dụng để chuẩn bị deploy
+# Publish the application to prepare for deployment
 FROM build AS publish
 RUN dotnet publish "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Final image để chạy ứng dụng
+# Set up the final image
 FROM base AS final
 WORKDIR /app
+
+# Copy the published files from the publish stage
 COPY --from=publish /app/publish .
+
+# Set the entry point for the container
 ENTRYPOINT ["dotnet", "BabyCare.API.dll"]
