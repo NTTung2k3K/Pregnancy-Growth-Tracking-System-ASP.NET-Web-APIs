@@ -28,7 +28,7 @@ namespace BabyCare.Services.Service
             _contextAccessor = contextAccessor;
         }
 
-        public async Task<ApiResult<object>> AddChildAsync(CreateChildModelView model)
+        public async Task<ApiResult<ChildModelView>> AddChildAsync(CreateChildModelView model)
         {
             try
             {
@@ -40,14 +40,14 @@ namespace BabyCare.Services.Service
 
                 if (existingChild != null)
                 {
-                    return new ApiErrorResult<object>("A child with the same name and date of birth already exists.");
+                    return new ApiErrorResult<ChildModelView>("A child with the same name and date of birth already exists.");
                 }
                 if (model.IsGenerateSampleAppointments)
                 {
                     var canGenerate = _membershipPackageService.CanGenerateAppointments(model.UserId).Result.ResultObj;
                     if (canGenerate == false)
                     {
-                        return new ApiErrorResult<object>("Please buy membership package to use auto generate appointments.");
+                        return new ApiErrorResult<ChildModelView>("Please buy membership package to use auto generate appointments.");
                     }
                 }
                 // Ánh xạ từ CreateChildModelView sang Child entity
@@ -80,8 +80,9 @@ namespace BabyCare.Services.Service
 
                 }
                 _unitOfWork.CommitTransaction();
+                var response = _mapper.Map<ChildModelView>(newChild);
 
-                return new ApiSuccessResult<object>("Child added successfully.");
+                return new ApiSuccessResult<ChildModelView>(response, "Child added successfully.");
             }
             catch (Exception ex)
             {
@@ -194,9 +195,7 @@ namespace BabyCare.Services.Service
             if (!string.IsNullOrWhiteSpace(bloodType))
                 childQuery = childQuery.Where(c => c.BloodType.Contains(bloodType));
 
-            if (!string.IsNullOrWhiteSpace(pregnancyStage))
-                childQuery = childQuery.Where(c => c.PregnancyStage.Contains(pregnancyStage));
-
+            
             // Sắp xếp theo thời gian tạo giảm dần
             childQuery = childQuery.OrderByDescending(c => c.CreatedTime);
 
@@ -310,24 +309,6 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (!string.IsNullOrWhiteSpace(model.PregnancyStage) && model.PregnancyStage != existingChild.PregnancyStage)
-            {
-                existingChild.PregnancyStage = model.PregnancyStage;
-                isUpdated = true;
-            }
-
-            
-            if (!string.IsNullOrWhiteSpace(model.DeliveryPlan) && model.DeliveryPlan != existingChild.DeliveryPlan)
-            {
-                existingChild.DeliveryPlan = model.DeliveryPlan;
-                isUpdated = true;
-            }
-
-            if (!string.IsNullOrWhiteSpace(model.Complications) && model.Complications != existingChild.Complications)
-            {
-                existingChild.Complications = model.Complications;
-                isUpdated = true;
-            }
 
             if (!string.IsNullOrWhiteSpace(model.BloodType) && model.BloodType != existingChild.BloodType)
             {

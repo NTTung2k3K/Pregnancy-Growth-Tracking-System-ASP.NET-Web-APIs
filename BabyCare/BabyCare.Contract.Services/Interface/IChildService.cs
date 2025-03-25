@@ -16,7 +16,7 @@ namespace BabyCare.Contract.Services.Interface
     string? bloodType,      // Filter by child's blood type
     string? pregnancyStage  // Filter by child's pregnancy stage
 );
-        Task<ApiResult<object>> AddChildAsync(CreateChildModelView model);
+        Task<ApiResult<ChildModelView>> AddChildAsync(CreateChildModelView model);
         Task<ApiResult<object>> UpdateChildAsync(int id, UpdateChildModelView model);
         Task<ApiResult<object>> DeleteChildAsync(int id);
         Task<ApiResult<ChildModelViewAddeRecords>> GetChildByIdAsync(int id);

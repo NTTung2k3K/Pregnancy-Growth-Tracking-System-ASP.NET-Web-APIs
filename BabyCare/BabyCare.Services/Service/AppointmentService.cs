@@ -83,11 +83,15 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("User is not existed.", System.Net.HttpStatusCode.NotFound);
             }
-            var canBooking = await _membershipPackageService.CanBooking(request.UserId);
-            if (!canBooking)
+            if (!request.IsDoctorCreate)
             {
-                return new ApiErrorResult<object>("User cannot booking. Please buy membership package.", System.Net.HttpStatusCode.NotFound);
+                var canBooking = await _membershipPackageService.CanBooking(request.UserId);
+                if (!canBooking)
+                {
+                    return new ApiErrorResult<object>("User cannot booking. Please buy membership package.", System.Net.HttpStatusCode.NotFound);
+                }
             }
+            
             var validStatuses = new List<int>
             {
                 (int)AppointmentStatus.Completed,
