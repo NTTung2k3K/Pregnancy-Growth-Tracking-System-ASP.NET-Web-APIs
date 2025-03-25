@@ -1,18 +1,23 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
+# Sử dụng base image .NET 8 runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
+USER app
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-
-# This stage is used to build the service project
+# Sử dụng .NET SDK để build dự án
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+# Định nghĩa biến cấu hình build
 ARG BUILD_CONFIGURATION=Release
-WORKDIR /src/BabyCare
+
+# Đặt thư mục làm việc
+WORKDIR /src
+
+# Sao chép solution file trước để restore dependency
 COPY ["BabyCare/BabyCare.sln", "BabyCare/"]
+
+# Copy từng project file để tránh cache sai
 COPY ["BabyCare/BabyCare.API/BabyCare.API.csproj", "BabyCare/BabyCare.API/"]
 COPY ["BabyCare/BabyCare.Core/BabyCare.Core.csproj", "BabyCare/BabyCare.Core/"]
 COPY ["BabyCare/BabyCare.Services/BabyCare.Services.csproj", "BabyCare/BabyCare.Services/"]
@@ -20,17 +25,23 @@ COPY ["BabyCare/BabyCare.Contract.Services/BabyCare.Contract.Services.csproj", "
 COPY ["BabyCare/BabyCare.Repositories/BabyCare.Repositories.csproj", "BabyCare/BabyCare.Repositories/"]
 COPY ["BabyCare/BabyCare.Contract.Repositories/BabyCare.Contract.Repositories.csproj", "BabyCare/BabyCare.Contract.Repositories/"]
 COPY ["BabyCare/BabyCare.ModelViews/BabyCare.ModelViews.csproj", "BabyCare/BabyCare.ModelViews/"]
-RUN dotnet restore "BabyCare/BabyCare.sln"
+
+# Restore dependencies
+WORKDIR /src/BabyCare
+RUN dotnet restore "BabyCare.sln"
+
+# Sao chép toàn bộ mã nguồn vào container
 COPY . .
+
+# Build project
 WORKDIR "/src/BabyCare/BabyCare.API"
-RUN dotnet build "./BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
+# Publish ứng dụng để chuẩn bị deploy
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
+# Final image để chạy ứng dụng
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
