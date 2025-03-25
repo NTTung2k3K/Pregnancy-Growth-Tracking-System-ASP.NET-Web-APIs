@@ -17,6 +17,7 @@ builder.Services.AddSwagger();
 builder.Services.AddConfig(builder.Configuration);
 builder.Services.AddConfigJWT(builder.Configuration);
 builder.Services.AddCorsPolicyBackend();
+builder.Services.AddHttpClient();
 
 builder.Services.AddHostedService<ReminderWorker>();
 builder.Services.AddHostedService<FetalGrowthAlertWorker>();
