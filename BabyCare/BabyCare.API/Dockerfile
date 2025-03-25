@@ -19,7 +19,6 @@ COPY ["BabyCare.Contract.Services/BabyCare.Contract.Services.csproj", "BabyCare.
 COPY ["BabyCare.Repositories/BabyCare.Repositories.csproj", "BabyCare.Repositories/"]
 COPY ["BabyCare.Contract.Repositories/BabyCare.Contract.Repositories.csproj", "BabyCare.Contract.Repositories/"]
 COPY ["BabyCare.ModelViews/BabyCare.ModelViews.csproj", "BabyCare.ModelViews/"]
-COPY ["BabyCare.WorkerService/BabyCare.WorkerService.csproj", "BabyCare.WorkerService/"]
 RUN dotnet restore "./BabyCare.API/BabyCare.API.csproj"
 COPY . .
 WORKDIR "/src/BabyCare.API"
