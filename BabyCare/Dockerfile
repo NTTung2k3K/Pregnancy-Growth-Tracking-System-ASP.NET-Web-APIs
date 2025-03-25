@@ -1,33 +1,27 @@
-# Dùng .NET 8 base image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+# Use official .NET SDK image
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
 
-# Dùng .NET SDK để build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
+# Copy solution and project files
+COPY *.sln ./
+COPY BabyCare.API/*.csproj ./BabyCare.API/
+COPY BabyCare.Contract.Repositories/*.csproj ./BabyCare.Contract.Repositories/
+COPY BabyCare.Contract.Services/*.csproj ./BabyCare.Contract.Services/
+COPY BabyCare.Core/*.csproj ./BabyCare.Core/
+COPY BabyCare.ModelViews/*.csproj ./BabyCare.ModelViews/
+COPY BabyCare.Repositories/*.csproj ./BabyCare.Repositories/
+COPY BabyCare.Services/*.csproj ./BabyCare.Services/
+COPY BabyCare.WorkerService/*.csproj ./BabyCare.WorkerService/
 
-# Chỉ copy file .csproj trước rồi restore (để tận dụng caching)
-COPY ["BabyCare.API/BabyCare.API.csproj", "BabyCare.API/"]
-WORKDIR "/src/BabyCare.API"
-RUN dotnet restore "BabyCare.API.csproj"
+# Restore dependencies
+RUN dotnet restore BabyCare.sln
 
-# Copy toàn bộ source code vào container
-COPY . .
+# Copy all files and build
+COPY . ./
+RUN dotnet publish BabyCare.API -c Release -o out
 
-# Build project
-RUN dotnet build "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-# Publish project
-FROM build AS publish
-RUN dotnet publish "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-# Final image setup
-FROM base AS final
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:7.0
 WORKDIR /app
-COPY --from=publish /app/publish .
-
-# Khởi chạy ứng dụng
+COPY --from=build-env /app/out .
 ENTRYPOINT ["dotnet", "BabyCare.API.dll"]
