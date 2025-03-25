@@ -14,8 +14,10 @@ using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
 using BabyCare.ModelViews.AuthModelViews.Response;
 using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.FetalGrowthRecordModelView;
+using BabyCare.ModelViews.RoleModelViews;
 using BabyCare.ModelViews.UserModelViews.Response;
 using BabyCare.Repositories.Context;
+using BabyCare.Repositories.UOW;
 using Firebase.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -39,11 +41,12 @@ namespace BabyCare.Services.Service
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly UserManager<ApplicationUsers> _userManager;
         private readonly IFetalGrowthRecordService _fetalGrowthRecordService;
+        private readonly IMembershipPackageService _membershipPackageService;
 
 
-
-        public AppointmentService(IFetalGrowthRecordService fetalGrowthRecordService, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
+        public AppointmentService(IMembershipPackageService membershipPackageService, IFetalGrowthRecordService fetalGrowthRecordService, IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, UserManager<ApplicationUsers> userManager)
         {
+            _membershipPackageService = membershipPackageService;
             _fetalGrowthRecordService = fetalGrowthRecordService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -70,6 +73,7 @@ namespace BabyCare.Services.Service
 
         public async Task<ApiResult<object>> CreateAppointment(CreateAppointmentRequest request)
         {
+
             if (request.IsDoctorCreate)
             {
 
@@ -93,19 +97,36 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("User is not existed.", System.Net.HttpStatusCode.NotFound);
             }
-            // Check child is existed
-            //var existingChild = await repoChild.GetByIdAsync(request.ChildId);
-            //if (existingChild == null)
-            //{
-            //    return new ApiErrorResult<object>("Child is not existed.", System.Net.HttpStatusCode.NotFound);
-            //}
-            // Check appointment template is existed
+            var canBooking = await _membershipPackageService.CanBooking(request.UserId);
+            if (!canBooking)
+            {
+                return new ApiErrorResult<object>("User cannot booking. Please buy membership package.", System.Net.HttpStatusCode.NotFound);
+            }
+            var validStatuses = new List<int>
+            {
+                (int)AppointmentStatus.Completed,
+                (int)AppointmentStatus.Confirmed,
+                (int)AppointmentStatus.Pending
+            };
+
+            var existingAppointment = await repoAppointment.Entities
+                .Where(x => x.AppointmentSlot == request.AppointmentSlot
+                && x.AppointmentDate.Date == request.AppointmentDate.Date
+                 && validStatuses.Contains(x.Status.Value)
+                && x.AppointmentUsers.Any(au => au.UserId == request.UserId)
+                && x.AppointmentChildren.Any(ac => request.ChildIds.Contains(ac.ChildId.Value)))
+            .FirstOrDefaultAsync();
+
+            if (existingAppointment != null)
+            {
+                return new ApiErrorResult<object>("Appointment already exists for this slot with the selected child.", System.Net.HttpStatusCode.Conflict);
+            }
+
             var existingAT = await repoAT.GetByIdAsync(request.AppointmentTemplateId);
             if (existingAT == null)
             {
                 return new ApiErrorResult<object>("Appointment Type is not existed.", System.Net.HttpStatusCode.NotFound);
             }
-
 
 
             try
@@ -144,12 +165,14 @@ namespace BabyCare.Services.Service
                         }
                     }
 
-                    // Kiểm tra lại nếu slot vẫn bị trùng thì báo lỗi
-                    if (slotOnDay.Any(x => x.AppointmentSlot == request.AppointmentSlot))
+                    // Kiểm tra xem slot có bị trùng bởi người khác không (Nếu đã có bác sĩ, user khác đã đặt slot này thì báo lỗi)
+                    if (repoAppointment.Entities.Any(x => x.AppointmentDate.Date == request.AppointmentDate.Date
+                        && x.AppointmentSlot == request.AppointmentSlot
+                        && validStatuses.Contains(x.Status.Value)))
                     {
                         return new ApiErrorResult<object>(
-                            "Slot has been selected by another doctor. Please choose another slot.",
-                            System.Net.HttpStatusCode.NotFound
+                            "This slot has already been taken. Please choose another slot.",
+                            System.Net.HttpStatusCode.Conflict
                         );
                     }
                 }
@@ -178,6 +201,8 @@ namespace BabyCare.Services.Service
                     Description = $"{existingAT.Name}_{appointment.AppointmentDate.ToString()}_Slot:{appointment.AppointmentSlot}_Estimate Cost:{appointment.Fee}",
                     UserId = request.UserId,
                     DoctorId = doctorId != null ? doctorId.Value : null,
+                    AssignedBy = request.IsDoctorCreate ? Guid.Parse(_contextAccessor.HttpContext?.User?.FindFirst("userId").Value) : request.UserId,
+                    AssignedTime = DateTime.Now,
                 };
                 await repoAppointmentUser.InsertAsync(appointmentUser);
                 await repoAppointmentUser.SaveAsync();
@@ -199,6 +224,7 @@ namespace BabyCare.Services.Service
                     await repoAC.InsertAsync(appointmentChild);
                 }
 
+                await _membershipPackageService.UpdateAppointmentBooking(request.UserId);
                 await repoAC.SaveAsync();
 
 
@@ -226,7 +252,7 @@ namespace BabyCare.Services.Service
                     childrenHtml += $@"
         <tr>
             <td style='padding: 12px; text-align: center;'>{child.Child.Name}</td>
-            <td style='padding: 12px; text-align: center;'>{child.Child.PregnancyWeekAtBirth}</td>
+            <td style='padding: 12px; text-align: center;'>{child.Child.BloodType}</td>
             <td style='padding: 12px; text-align: center;'>{child.Child.DueDate:dd/MM/yyyy}</td>
         </tr>";
                 }
@@ -260,7 +286,7 @@ namespace BabyCare.Services.Service
                     childrenAdminHtml += $@"
         <tr>
             <td style='padding: 12px; text-align: center;'>{child.Child.Name}</td>
-            <td style='padding: 12px; text-align: center;'>{child.Child.PregnancyWeekAtBirth}</td>
+            <td style='padding: 12px; text-align: center;'>{child.Child.BloodType}</td>
             <td style='padding: 12px; text-align: center;'>{child.Child.DueDate:dd/MM/yyyy}</td>
         </tr>";
                 }
@@ -360,17 +386,17 @@ namespace BabyCare.Services.Service
             var user = await _userManager.FindByIdAsync(existingItem.AppointmentUsers.FirstOrDefault().UserId.ToString());
 
             response.User = _mapper.Map<UserResponseModel>(user);
-            response.Doctors = new();
-            foreach (var doctor in existingItem.AppointmentUsers)
+            response.AppoinmentUsers = new();
+
+            var appointmentUser = existingItem.AppointmentUsers.OrderByDescending(x => x.AssignedTime).FirstOrDefault();
+            if (appointmentUser != null)
             {
-                if (doctor.Doctor == null)
-                {
-                    continue;
-                }
-                var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
-                var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
-                response.Doctors.Add(doctorModel);
+                var appointmentUserModel = _mapper.Map<AppoinmentUserResponseModel>(appointmentUser);
+                appointmentUserModel.Doctor = _mapper.Map<EmployeeResponseModel>(appointmentUserModel.Doctor);
+
+                response.AppoinmentUsers.Add(appointmentUserModel);
             }
+
             var at = repoAT.GetById(existingItem.AppointmentTemplateId);
             response.AppointmentTemplate = _mapper.Map<ATResponseModel>(at);
             response.Childs = new();
@@ -691,11 +717,8 @@ namespace BabyCare.Services.Service
 
             // Lấy tất cả các Appointment liên quan đến userId
             var allAppointments = await repo.Entities
-                .Include(x => x.AppointmentTemplate)
-                .Include(x => x.AppointmentUsers).ThenInclude(x => x.User)
-                .Include(x => x.AppointmentChildren).ThenInclude(x => x.Child)
                 .Where(x => x.AppointmentUsers.Any(au => au.UserId == userId) && x.DeletedBy == null)
-                 .OrderBy(x => x.AppointmentDate)
+                 .OrderByDescending(x => x.AppointmentDate)
 
                 .ToListAsync();
             var responseList = new List<AppointmentResponseModel>();
@@ -735,6 +758,8 @@ namespace BabyCare.Services.Service
                         response.Doctors.Add(doctorModel);
                     }
                 }
+
+
 
                 // Map AppointmentTemplate
                 var at = await repoAT.GetByIdAsync(appointment.AppointmentTemplateId);
@@ -801,17 +826,24 @@ namespace BabyCare.Services.Service
 
                 // Map Doctors
                 response.Doctors = new();
-                foreach (var doctor in appointment.AppointmentUsers)
+                var firstDoctor = appointment.AppointmentUsers.OrderByDescending(x => x.AssignedTime).FirstOrDefault();
+                if (firstDoctor != null)
                 {
-                    if (doctor.Doctor == null) continue;
 
-                    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
-                    if (doctorCheck != null)
-                    {
-                        var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
-                        response.Doctors.Add(doctorModel);
-                    }
+                    var doctorModel = _mapper.Map<EmployeeResponseModel>(firstDoctor.User);
+                    response.Doctors.Add(doctorModel);
                 }
+                //foreach (var doctor in appointment.AppointmentUsers)
+                //{
+                //    if (doctor.Doctor == null) continue;
+
+                //    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
+                //    if (doctorCheck != null)
+                //    {
+                //        var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
+                //        response.Doctors.Add(doctorModel);
+                //    }
+                //}
 
                 // Map AppointmentTemplate
                 var at = await repoAT.GetByIdAsync(appointment.AppointmentTemplateId);
@@ -835,7 +867,81 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<List<AppointmentResponseModel>>(responseList);
         }
 
-        public async Task<ApiResult<List<AppointmentResponseModel>>> GetAll()
+        public async Task<ApiResult<List<AppointmentResponseModel>>> GetAll(Guid doctorId)
+        {
+            var repo = _unitOfWork.GetRepository<Appointment>();
+            var repoChild = _unitOfWork.GetRepository<Child>();
+            var repoAT = _unitOfWork.GetRepository<AppointmentTemplates>();
+
+            var appointmentsQuery = repo.Entities
+                .Where(x => x.DeletedBy == null && x.Status != (int)AppointmentStatus.Pending && x.AppointmentUsers.Any(x => x.DoctorId == doctorId))
+                .OrderByDescending(x => x.AppointmentDate); // Sắp xếp theo Date tăng dần
+
+            // Thực thi truy vấn
+            var allAppointments = await appointmentsQuery.ToListAsync();
+
+            // Ánh xạ kết quả sang ResponseModel
+            var responseList = new List<AppointmentResponseModel>();
+            foreach (var appointment in allAppointments)
+            {
+                var response = _mapper.Map<AppointmentResponseModel>(appointment);
+
+                // Chuyển Status thành string
+                if (Enum.IsDefined(typeof(AppointmentStatus), appointment.Status))
+                {
+                    response.Status = ((AppointmentStatus)appointment.Status).ToString();
+                }
+                else
+                {
+                    response.Status = "Unknown";
+                }
+
+                // Lấy thông tin User
+                var user = await _userManager.FindByIdAsync(appointment.AppointmentUsers.FirstOrDefault()?.UserId.ToString());
+                response.User = _mapper.Map<UserResponseModel>(user);
+
+                // Lấy thông tin Doctor
+                response.Doctors = new();
+                var firstDoctor = appointment.AppointmentUsers.OrderByDescending(x => x.AssignedTime).FirstOrDefault();
+                if (firstDoctor != null && firstDoctor.DoctorId == doctorId)
+                {
+
+                    var doctorModel = _mapper.Map<EmployeeResponseModel>(firstDoctor.User);
+                    response.Doctors.Add(doctorModel);
+                }
+                else
+                {
+                    continue;
+                }
+                //foreach (var doctor in appointment.AppointmentUsers)
+                //{
+                //    if (doctor.Doctor == null) continue;
+
+                //    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
+                //    var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
+                //    response.Doctors.Add(doctorModel);
+                //}
+
+                // Lấy thông tin Appointment Template
+                var at = await repoAT.GetByIdAsync(appointment.AppointmentTemplateId);
+                response.AppointmentTemplate = _mapper.Map<ATResponseModel>(at);
+
+                // Lấy thông tin Child
+                response.Childs = new();
+                foreach (var child in appointment.AppointmentChildren)
+                {
+                    var childCheck = await repoChild.GetByIdAsync(child.ChildId);
+                    var childModel = _mapper.Map<ChildModelView>(childCheck);
+                    response.Childs.Add(childModel);
+                }
+
+                responseList.Add(response);
+            }
+
+            return new ApiSuccessResult<List<AppointmentResponseModel>>(responseList);
+        }
+
+        public async Task<ApiResult<List<AppointmentResponseModel>>> GetAllByAdmin()
         {
             var repo = _unitOfWork.GetRepository<Appointment>();
             var repoChild = _unitOfWork.GetRepository<Child>();
@@ -983,7 +1089,7 @@ namespace BabyCare.Services.Service
         public async Task<ApiResult<BasePaginatedList<AppointmentResponseModel>>> GetAppointmentsByUserIdPagination(SearchAppointmentByUserId request)
         {
             var query = _unitOfWork.GetRepository<Appointment>().Entities.AsQueryable();
-            query = query.Where(x => x.AppointmentUsers.Any(x => x.UserId == request.userId) && x.Status != (int)AppointmentStatus.Pending);
+            query = query.Where(x => x.AppointmentUsers.Any(x => x.UserId == request.userId) && x.Status != (int)AppointmentStatus.Pending).OrderByDescending(x => x.AppointmentDate.Date);
             // 1. Áp dụng bộ lọc (Filtering)
             if (!string.IsNullOrEmpty(request.SearchValue))
             {
@@ -1054,17 +1160,26 @@ namespace BabyCare.Services.Service
                 var user = await _userManager.FindByIdAsync(existingItem.AppointmentUsers.FirstOrDefault().UserId.ToString());
 
                 added.User = _mapper.Map<UserResponseModel>(user);
+                var appointmentUserRes = existingItem.AppointmentUsers.OrderByDescending(x => x.AssignedTime).FirstOrDefault();
+
+
                 added.Doctors = new();
-                foreach (var doctor in existingItem.AppointmentUsers)
+                if (appointmentUserRes != null)
                 {
-                    if (doctor.Doctor == null)
-                    {
-                        continue;
-                    }
-                    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
-                    var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
-                    added.Doctors.Add(doctorModel);
+                    var doctorResponse = _mapper.Map<EmployeeResponseModel>(appointmentUserRes.Doctor);
+                    added.Doctors.Add(doctorResponse);
+
                 }
+                //foreach (var doctor in )
+                //{
+                //    if (doctor.Doctor == null)
+                //    {
+                //        continue;
+                //    }
+                //    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
+                //    var doctorModel = ;
+                //    added.Doctors.Add(doctorModel);
+                //}
                 added.AppointmentTemplate = _mapper.Map<ATResponseModel>(existingItem.AppointmentTemplate);
                 added.Childs = new();
                 foreach (var child in existingItem.AppointmentChildren)
@@ -1082,6 +1197,8 @@ namespace BabyCare.Services.Service
 
         public async Task<ApiResult<object>> ConfirmAppointment(ConfirmAppointment request)
         {
+            DateTime localTime = request.AppointmentDate.ToLocalTime(); // Chuyển UTC về múi giờ của server
+
             var repoAppointment = _unitOfWork.GetRepository<Appointment>();
 
             _unitOfWork.BeginTransaction();
@@ -1139,7 +1256,7 @@ namespace BabyCare.Services.Service
             existingItem.Notes = request.Notes;
             existingItem.Status = (int)AppointmentStatus.Confirmed;
             existingItem.AppointmentSlot = request.AppointmentSlot;
-            existingItem.AppointmentDate = request.AppointmentDate;
+            existingItem.AppointmentDate = localTime;
 
             // Lưu thay đổi vào cơ sở dữ liệu
             await repoAppointment.UpdateAsync(existingItem);
@@ -1167,7 +1284,7 @@ namespace BabyCare.Services.Service
                 childrenHtml += $@"
         <tr>
             <td style='padding: 12px; text-align: center;'>{child.Child.Name}</td>
-            <td style='padding: 12px; text-align: center;'>{child.Child.PregnancyWeekAtBirth}</td>
+            <td style='padding: 12px; text-align: center;'>{child.Child.BloodType}</td>
             <td style='padding: 12px; text-align: center;'>{child.Child.DueDate:dd/MM/yyyy}</td>
         </tr>";
             }
@@ -1201,7 +1318,7 @@ namespace BabyCare.Services.Service
                 childrenAdminHtml += $@"
         <tr>
             <td style='padding: 12px; text-align: center;'>{child.Child.Name}</td>
-            <td style='padding: 12px; text-align: center;'>{child.Child.PregnancyWeekAtBirth}</td>
+            <td style='padding: 12px; text-align: center;'>{child.Child.BloodType}</td>
             <td style='padding: 12px; text-align: center;'>{child.Child.DueDate:dd/MM/yyyy}</td>
         </tr>";
             }
@@ -1279,17 +1396,28 @@ namespace BabyCare.Services.Service
 
                 // Map Doctors
                 response.Doctors = new();
-                foreach (var doctor in appointment.AppointmentUsers)
+                var firstDoctor = appointment.AppointmentUsers.OrderByDescending(x => x.AssignedTime).FirstOrDefault();
+                if (firstDoctor != null && firstDoctor.DoctorId == userId)
                 {
-                    if (doctor.Doctor == null) continue;
 
-                    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
-                    if (doctorCheck != null)
-                    {
-                        var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
-                        response.Doctors.Add(doctorModel);
-                    }
+                    var doctorModel = _mapper.Map<EmployeeResponseModel>(firstDoctor.User);
+                    response.Doctors.Add(doctorModel);
                 }
+                else
+                {
+                    continue;
+                }
+                //foreach (var doctor in )
+                //{
+                //    if (doctor.Doctor == null) continue;
+
+                //    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
+                //    if (doctorCheck != null)
+                //    {
+                //        var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
+                //        response.Doctors.Add(doctorModel);
+                //    }
+                //}
 
                 // Map AppointmentTemplate
                 var at = await repoAT.GetByIdAsync(appointment.AppointmentTemplateId);
@@ -1313,67 +1441,216 @@ namespace BabyCare.Services.Service
             return new ApiSuccessResult<List<AppointmentResponseModel>>(responseList);
         }
 
-        public async Task<ApiResult<object>> ChangeDoctorAppointment(Guid DoctorId, int AppointmentId, string reason)
+        public async Task<ApiResult<AppointmentResponseModelV2>> GetAppointmentByIdSideAdmin(int id)
         {
-            var appointmentRepo = _unitOfWork.GetRepository<Appointment>();
+            var repo = _unitOfWork.GetRepository<Appointment>();
+            var repoChild = _unitOfWork.GetRepository<Child>();
+            var repoAT = _unitOfWork.GetRepository<AppointmentTemplates>();
+            var repoFGR = _unitOfWork.GetRepository<FetalGrowthRecord>();
+            var repoFGSD = _unitOfWork.GetRepository<FetalGrowthStandard>();
 
-            // Tìm kiếm cuộc hẹn dựa trên AppointmentId
-            var existingItem = await appointmentRepo.Entities.FirstOrDefaultAsync(x => x.Id == AppointmentId);
 
+
+            // Check mp is existed
+            var existingItem = await repo.Entities.Include(x => x.AppointmentTemplate).Include(x => x.AppointmentUsers).ThenInclude(x => x.User)
+                .Include(x => x.AppointmentChildren).ThenInclude(x => x.Child)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (existingItem == null || existingItem.DeletedBy != null)
             {
-                return new ApiErrorResult<object>("Appointment is not existed.");
+                return new ApiErrorResult<AppointmentResponseModelV2>("Appointment is not existed.");
+            }
+            var response = _mapper.Map<AppointmentResponseModelV2>(existingItem);
+
+
+            if (Enum.IsDefined(typeof(AppointmentStatus), existingItem.Status))
+            {
+                response.Status = ((AppointmentStatus)existingItem.Status).ToString();
+            }
+            else
+            {
+                response.Status = "Unknown";
+            }
+            var user = await _userManager.FindByIdAsync(existingItem.AppointmentUsers.FirstOrDefault().UserId.ToString());
+
+            response.User = _mapper.Map<UserResponseModel>(user);
+            response.AppoinmentUsers = new();
+
+            foreach (var appointmentUser in existingItem.AppointmentUsers)
+            {
+                if (appointmentUser.Doctor == null)
+                {
+                    continue;
+                }
+                var doctorCheck = await _userManager.FindByIdAsync(appointmentUser.DoctorId.ToString());
+                if (doctorCheck != null)
+                {
+                    var appointmentUserModel = _mapper.Map<AppoinmentUserResponseModel>(appointmentUser);
+                    appointmentUserModel.Doctor = _mapper.Map<EmployeeResponseModel>(appointmentUserModel.Doctor);
+
+                    response.AppoinmentUsers.Add(appointmentUserModel);
+                }
+
+            }
+            var at = repoAT.GetById(existingItem.AppointmentTemplateId);
+            response.AppointmentTemplate = _mapper.Map<ATResponseModel>(at);
+            response.Childs = new();
+            foreach (var child in existingItem.AppointmentChildren)
+            {
+                // Map Child entity sang ChildModelViewAddeRecords
+                var childModel = _mapper.Map<ChildModelViewAddeRecords>(child.Child);
+
+                // Lấy các FGR liên quan và map cùng tiêu chuẩn
+                var fgrs = await repoFGR.Entities
+                    .Include(x => x.FetalGrowthStandard) // Đảm bảo include dữ liệu liên quan
+                    .Where(x => x.ChildId == child.ChildId)
+                    .ToListAsync();
+
+                // Map danh sách FGR sang ModelView
+                childModel.FetalGrowthRecordModelViews = _mapper.Map<List<FetalGrowthRecordModelViewAddedStandards>>(fgrs);
+
+                // Thêm vào response
+                response.Childs.Add(childModel);
             }
 
-            // Lấy repository của AppointmentUser
-            var appointmentUserRepo = _unitOfWork.GetRepository<AppointmentUser>();
 
-            // Kiểm tra xem đã có bản ghi AppointmentUser với cùng AppointmentId và DoctorId hay chưa
-            var existingAppointmentUser = await appointmentUserRepo.Entities
-                .FirstOrDefaultAsync(x => x.AppointmentId == AppointmentId && x.DoctorId == DoctorId);
 
-            if (existingAppointmentUser != null)
+            return new ApiSuccessResult<AppointmentResponseModelV2>(response);
+        }
+        public async Task<ApiResult<object>> ChangeDoctorAppointment(ChangeDoctorAppointmentRequest request)
+        {
+            try
             {
-                return new ApiErrorResult<object>("This doctor is already assigned to this appointment.");
+                _unitOfWork.BeginTransaction();
+                var changerId = _contextAccessor.HttpContext?.User?.FindFirst("userId");
+                if (changerId == null)
+                {
+                    return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
+                }
+                // Tìm kiếm cuộc hẹn dựa trên AppointmentId
+                var existingItem = await _unitOfWork.GetRepository<Appointment>().Entities.FirstOrDefaultAsync(x => x.Id == request.AppointmentId);
+
+                if (existingItem == null || existingItem.DeletedBy != null)
+                {
+                    return new ApiErrorResult<object>("Appointment is not existed.");
+                }
+
+                // Kiểm tra xem đã có bản ghi AppointmentUser với cùng AppointmentId và DoctorId hay chưa
+                var existingAppointmentUser = await _unitOfWork.GetRepository<AppointmentUser>().Entities
+                    .FirstOrDefaultAsync(x => x.AppointmentId == request.AppointmentId && x.DoctorId == request.DoctorId);
+
+                if (existingAppointmentUser != null)
+                {
+                    return new ApiErrorResult<object>("This doctor is already assigned to this appointment.");
+                }
+
+                // Lấy ngày của cuộc hẹn hiện tại (loại bỏ phần giờ phút)
+                var appointmentDate = existingItem.AppointmentDate.Date;
+
+                // Kiểm tra xem bác sĩ đã có lịch trong cùng ngày và cùng slot (ngoại trừ cuộc hẹn hiện tại) hay không
+                bool doctorBusy = await _unitOfWork.GetRepository<AppointmentUser>().Entities
+                    .AnyAsync(x => x.DoctorId == request.DoctorId
+                        && x.AppointmentId != request.AppointmentId
+                        && x.Appointment.AppointmentDate == appointmentDate
+                        && x.Appointment.AppointmentSlot == existingItem.AppointmentSlot);
+
+                if (doctorBusy)
+                {
+                    return new ApiErrorResult<object>("This doctor is busy at the selected time slot.");
+                }
+
+                var userId = existingItem.AppointmentUsers.FirstOrDefault()?.UserId ?? Guid.Empty;
+                if (userId == Guid.Empty)
+                {
+                    return new ApiErrorResult<object>("User is not existed.");
+                }
+
+                var auId = await GetNextAppointmentUserIdAsync();
+                var appointmentUser = new AppointmentUser()
+                {
+                    //Id = auId,
+                    AppointmentId = request.AppointmentId,
+                    DoctorId = request.DoctorId,
+                    AssignedTime = DateTime.Now,
+                    CreatedTime = DateTime.Now,
+                    Description = existingItem.Description,
+                    UserId = userId,
+                    LastUpdatedTime = DateTime.Now,
+                    Reason = request.Reason,
+                    AssignedBy = Guid.Parse(changerId.Value),
+                };
+
+                _unitOfWork.GetRepository<AppointmentUser>().Insert(appointmentUser);
+                await _unitOfWork.SaveAsync();
+                _unitOfWork.CommitTransaction();
+                return new ApiSuccessResult<object>("Doctor appointment changed successfully.");
             }
-
-            // Lấy ngày của cuộc hẹn hiện tại (loại bỏ phần giờ phút)
-            var appointmentDate = existingItem.AppointmentDate.Date;
-
-            // Kiểm tra xem bác sĩ đã có lịch trong cùng ngày và cùng slot (ngoại trừ cuộc hẹn hiện tại) hay không
-            bool doctorBusy = await appointmentUserRepo.Entities
-                .AnyAsync(x => x.DoctorId == DoctorId
-                    && x.AppointmentId != AppointmentId
-                    // Kiểm tra cuộc hẹn của bác sĩ có diễn ra trong khoảng thời gian của ngày hiện tại
-                    && x.Appointment.AppointmentDate == appointmentDate
-                    // So sánh slot của cuộc hẹn
-                    && x.Appointment.AppointmentSlot == existingItem.AppointmentSlot);
-
-            if (doctorBusy)
+            catch (Exception ex)
             {
-                return new ApiErrorResult<object>("This doctor is busy at the selected time slot.");
+                _unitOfWork.RollBack();
+                throw new Exception("Transaction failed.", ex);
             }
-
-
-            var appointmentUser = new AppointmentUser()
-            {
-                AppointmentId = AppointmentId,
-                DoctorId = DoctorId,
-                //Appointment = existingItem,
-                AssignedTime = DateTime.Now,
-                CreatedTime = DateTime.Now,
-                Description = existingItem.Description,
-                UserId = existingItem.AppointmentUsers.FirstOrDefault().UserId,
-                Reason = reason,
-                
-            };
-
-            await appointmentUserRepo.InsertAsync(appointmentUser);
-            await appointmentUserRepo.SaveAsync();
-
-            return new ApiSuccessResult<object>("Doctor appointment changed successfully.");
         }
 
+        public async Task<ApiResult<List<EmployeeResponseModel>>> GetAllDoctorFree(int appointmentId)
+        {
+            try
+            {
+                var repo = _unitOfWork.GetRepository<Appointment>().Entities;
+                var repoAU = _unitOfWork.GetRepository<AppointmentUser>().Entities;
+
+                // Lấy thông tin cuộc hẹn hiện tại
+                var appointment = await repo
+                    .Where(a => a.Id == appointmentId)
+                    .Select(a => new { a.AppointmentDate, a.AppointmentSlot })
+                    .FirstOrDefaultAsync();
+
+                if (appointment == null)
+                {
+                    return new ApiErrorResult<List<EmployeeResponseModel>>("Appointment not found.");
+                }
+
+                // Lấy danh sách tất cả bác sĩ
+                var allDoctors = await _userManager.Users
+                    .Where(u => u.UserRoles.Any(r => r.Role.Name == "Doctor")) // Chỉ lấy bác sĩ
+                    .ToListAsync();
+
+                // Lấy danh sách DoctorId đã có mặt trong cuộc hẹn này
+                var assignedDoctorIds = await repoAU
+                    .Where(au => au.AppointmentId == appointmentId && au.DoctorId != null)
+                    .Select(au => au.DoctorId.Value)
+                    .ToListAsync();
+
+                // Lấy danh sách DoctorId đã có lịch trong cùng ngày và slot đó
+                var busyDoctorIds = await repoAU
+                    .Where(au => au.Appointment.AppointmentDate == appointment.AppointmentDate
+                                && au.Appointment.AppointmentSlot == appointment.AppointmentSlot
+                                && au.DoctorId != null)
+                    .Select(au => au.DoctorId.Value)
+                    .ToListAsync();
+
+                // Lọc danh sách bác sĩ chưa được gán vào cuộc hẹn này và không bận trong ngày + slot đó
+                var availableDoctors = allDoctors
+                    .Where(d => !assignedDoctorIds.Contains(d.Id) && !busyDoctorIds.Contains(d.Id))
+                    .Select(d => new EmployeeResponseModel
+                    {
+                        Id = d.Id,
+                        FullName = d.FullName,
+                        Image = d.Image,
+                        DateOfBirth = d.DateOfBirth,
+                        Address = d.Address,
+                        Gender = d.Gender == 1 ? "Male" : "Female",
+                        PhoneNumber = d.PhoneNumber,
+                        Email = d.Email,
+                        Status = d.Status == 1 ? "Active" : "Inactive",
+                    }).ToList();
+
+                return new ApiSuccessResult<List<EmployeeResponseModel>>(availableDoctors);
+            }
+            catch (Exception ex)
+            {
+                return new ApiErrorResult<List<EmployeeResponseModel>>(ex.Message);
+            }
+        }
 
     }
 }

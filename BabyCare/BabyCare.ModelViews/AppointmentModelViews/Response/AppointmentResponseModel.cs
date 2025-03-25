@@ -1,5 +1,6 @@
 ﻿using BabyCare.ModelViews.AppointmentTemplateModelViews.Response;
 using BabyCare.ModelViews.ChildModelView;
+using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -41,11 +42,19 @@ namespace BabyCare.ModelViews.AppointmentModelViews.Response
         public string Name { get; set; }
 
         public virtual UserModelViews.Response.UserResponseModel User { get; set; }
-        public virtual List<UserModelViews.Response.EmployeeResponseModel> Doctors { get; set; }
+        public virtual List<AppoinmentUserResponseModel> AppoinmentUsers { get; set; }
         public virtual ATResponseModel AppointmentTemplate { get; set; }
         public virtual List<ChildModelViewAddeRecords> Childs {  get; set; }
          
         //public virtual Reminder Reminder { get; set; }
+    }
+    public class AppoinmentUserResponseModel
+    {
+        public EmployeeResponseModel Doctor { get; set; }
+        public DateTime? AssignedTime { get; set; }
+        public Guid AssignedBy { get; set; }
+        public string? Description { get; set; }
+        public string Reason { get; set; }
     }
     public class ChildModelViewAddeRecords : ChildModelView.ChildModelView
     {

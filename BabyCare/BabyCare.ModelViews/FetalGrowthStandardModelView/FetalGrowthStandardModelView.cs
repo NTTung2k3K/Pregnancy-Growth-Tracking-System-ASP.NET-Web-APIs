@@ -3,7 +3,10 @@
     public class FetalGrowthStandardModelView
     {
         public int Id { get; set; }
+        public int Week { get; set; }
         public string? GestationalAge { get; set; }
+        public int Gender { get; set; }
+
         public float MinWeight { get; set; }
         public float MaxWeight { get; set; }
         public float AverageWeight { get; set; }

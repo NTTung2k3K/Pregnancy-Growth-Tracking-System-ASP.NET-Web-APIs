@@ -1,6 +1,7 @@
 ﻿using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Core.Utils;
 using BabyCare.Repositories.Context;
+using BabyCare.Services.Service;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -95,15 +96,15 @@ namespace BabyCare.WorkerService.Worker
                             if (child != null)
                             {
                                 string gender = child.FetalGender == 0 ? "Nam" : child.FetalGender == 1 ? "Nữ" : "Chưa xác định";
-                                childInfo += $"- {child.Name}, Giới tính: {gender}, Tuần thai: {child.PregnancyWeekAtBirth ?? "N/A"}\n";
+                                childInfo += $"- {child.Name ?? "N/A"}, Giới tính: {gender}, Nhóm máu: {child.BloodType?.ToString() ?? "N/A"} <br>";
                             }
                         }
 
                         // Thay thế dữ liệu vào template
                         content = content.Replace("{{Name}}", user.FullName)
                                          .Replace("{{AppointmentName}}", appointment.Name)
-                                         .Replace("{{AppointmentDate}}", appointment.AppointmentDate.ToString("yyyy-MM-dd HH:mm"))
-                                         .Replace("{{AppointmentSlot}}", appointment.AppointmentSlot.ToString())
+                                         .Replace("{{AppointmentDate}}", appointment.AppointmentDate.ToString("yyyy-MM-dd"))
+                                         .Replace("{{AppointmentSlot}}", AppointmentService.GetSlotString(appointment.AppointmentSlot))
                                          .Replace("{{Notes}}", appointment.Notes ?? "Không có")
                                          .Replace("{{Description}}", appointment.Description ?? "Không có")
                                          .Replace("{{Fee}}", appointment.Fee?.ToString("N0") ?? "Miễn phí")

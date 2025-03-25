@@ -30,9 +30,10 @@ namespace BabyCare.Services.Service
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
-
-        public ChildService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor)
+        private readonly IMembershipPackageService _membershipPackageService;
+        public ChildService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor contextAccessor, IMembershipPackageService membershipPackageService)
         {
+            _membershipPackageService = membershipPackageService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
@@ -52,7 +53,14 @@ namespace BabyCare.Services.Service
                 {
                     return new ApiErrorResult<object>("A child with the same name and date of birth already exists.");
                 }
-
+                if (model.IsGenerateSampleAppointments)
+                {
+                    var canGenerate = _membershipPackageService.CanGenerateAppointments(model.UserId).Result.ResultObj;
+                    if (canGenerate == false)
+                    {
+                        return new ApiErrorResult<object>("Please buy membership package to use auto generate appointments.");
+                    }
+                }
                 // Ánh xạ từ CreateChildModelView sang Child entity
                 Child newChild = _mapper.Map<Child>(model);
                 newChild.IsGenerateSampleAppointments = model.IsGenerateSampleAppointments;
@@ -103,9 +111,10 @@ namespace BabyCare.Services.Service
 
 
             var appointmentTemplatesRepo = _unitOfWork.GetRepository<AppointmentTemplates>();
-            var allAT = appointmentTemplatesRepo.GetAll();
+            var allAT = appointmentTemplatesRepo.GetAll().Where(x => x.Status == (int)AppointmentTemplatesStatus.Active).ToList();
             foreach (var appointmentTemplates in allAT)
             {
+                var now = DateTime.Now;
                 var appointment = new Appointment()
                 {
                     AppointmentTemplateId = appointmentTemplates.Id,
@@ -114,6 +123,11 @@ namespace BabyCare.Services.Service
                     Fee = appointmentTemplates.Fee,
                     Name = appointmentTemplates.Name,
                 };
+                // If appointment date < now change status
+                if(appointment.AppointmentDate.Date < now.Date)
+                {
+                    appointment.Status = (int)AppointmentStatus.Lated;
+                }
                 await appointmentRepo.InsertAsync(appointment);
                 await appointmentRepo.SaveAsync();
                 await _unitOfWork.SaveAsync();
@@ -175,6 +189,7 @@ namespace BabyCare.Services.Service
             // Khởi tạo query cơ bản cho bảng Child
             IQueryable<Child> childQuery = _unitOfWork.GetRepository<Child>().Entities
                 .AsNoTracking()
+                .OrderByDescending(x => x.LastUpdatedTime)
                 .Where(c => !c.DeletedTime.HasValue); // Loại bỏ các bản ghi đã bị xóa
 
             // Áp dụng bộ lọc theo id, name, dateOfBirth, bloodType, và pregnancyStage nếu có
@@ -312,18 +327,7 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (model.WeightEstimate.HasValue && model.WeightEstimate != existingChild.WeightEstimate)
-            {
-                existingChild.WeightEstimate = model.WeightEstimate.Value;
-                isUpdated = true;
-            }
-
-            if (model.HeightEstimate.HasValue && model.HeightEstimate != existingChild.HeightEstimate)
-            {
-                existingChild.HeightEstimate = model.HeightEstimate.Value;
-                isUpdated = true;
-            }
-
+            
             if (!string.IsNullOrWhiteSpace(model.DeliveryPlan) && model.DeliveryPlan != existingChild.DeliveryPlan)
             {
                 existingChild.DeliveryPlan = model.DeliveryPlan;
@@ -342,11 +346,7 @@ namespace BabyCare.Services.Service
                 isUpdated = true;
             }
 
-            if (!string.IsNullOrWhiteSpace(model.PregnancyWeekAtBirth) && model.PregnancyWeekAtBirth != existingChild.PregnancyWeekAtBirth)
-            {
-                existingChild.PregnancyWeekAtBirth = model.PregnancyWeekAtBirth;
-                isUpdated = true;
-            }
+           
 
             // Upload photo nếu có
             if (model.PhotoUrl != null)
@@ -438,8 +438,7 @@ namespace BabyCare.Services.Service
             if (!string.IsNullOrEmpty(request.SearchValue))
             {
                 query = query.Where(a => a.Name.ToLower().Contains(request.SearchValue.ToLower()) ||
-                                       (a.BloodType != null && a.BloodType.ToLower().Contains(request.SearchValue.ToLower())) ||
-                                        (a.PregnancyWeekAtBirth != null && a.PregnancyWeekAtBirth.ToLower().Contains(request.SearchValue.ToLower()))
+                                       (a.BloodType != null && a.BloodType.ToLower().Contains(request.SearchValue.ToLower()))
                                          );
             }
             if (request.FromDate.HasValue)

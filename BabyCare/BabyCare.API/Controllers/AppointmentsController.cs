@@ -179,6 +179,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
             }
         }
+        [HttpGet("get-by-id-side-admin")]
+        public async Task<IActionResult> GetAppointmentByIdSideAdmin([FromQuery] int id)
+        {
+            try
+            {
+                var result = await _appointmentService.GetAppointmentByIdSideAdmin(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+            }
+        }
         [HttpGet("get-all-by-user-id")]
         public async Task<IActionResult> GetAppointmentsByUserId([FromQuery] Guid userId)
         {
@@ -219,11 +232,24 @@ namespace BabyCare.API.Controllers
             }
         }
         [HttpGet("get-all")]
+        public async Task<IActionResult> GetAll([FromQuery] Guid doctorId)
+        {
+            try
+            {
+                var result = await _appointmentService.GetAll(doctorId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+            }
+        }
+        [HttpGet("get-all-by-admin")]
         public async Task<IActionResult> GetAll()
         {
             try
             {
-                var result = await _appointmentService.GetAll();
+                var result = await _appointmentService.GetAllByAdmin();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -233,16 +259,30 @@ namespace BabyCare.API.Controllers
         }
 
         [HttpPost("change-doctor-appointment")]
-        public async Task<IActionResult> ChangeDoctorAppointment([FromQuery] Guid DoctorId, [FromQuery] int AppointmentId, [FromQuery] string Reason)
+        public async Task<IActionResult> ChangeDoctorAppointment(ChangeDoctorAppointmentRequest request)
         {
             try
             {
-                var result = await _appointmentService.ChangeDoctorAppointment(DoctorId, AppointmentId, Reason);
+                var result = await _appointmentService.ChangeDoctorAppointment(request);
                 return Ok(result);
             }
             catch (Exception ex)
             {
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
+            }
+        }
+
+        [HttpGet("get-doctor-free")]
+        public async Task<IActionResult> GetAllDoctorFree([FromQuery] int appointmentId)
+        {
+            try
+            {
+                var result = await _appointmentService.GetAllDoctorFree(appointmentId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
             }
         }
 

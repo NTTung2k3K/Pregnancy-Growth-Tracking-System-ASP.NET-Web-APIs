@@ -33,25 +33,22 @@ namespace BabyCare.Services.Service
         {
             var currentYear = DateTime.Now.Year;
             var paymentRepo = _unitOfWork.GetRepository<Payment>();
+            var paymentCounts = new List<object>();
 
-            var payments = paymentRepo.GetAll()
-                .Where(p => p.PaymentDate.Year == currentYear)
-                .ToList();
+            for (int month = 1; month <= 12; month++)
+            {
+                var count = paymentRepo.Entities
+                    .Where(p => p.PaymentDate.Year == currentYear && p.PaymentDate.Month == month && p.Status == "Success")
+                    .Count();
 
-            var statistics = payments
-                .GroupBy(p => p.PaymentDate.Month)
-                .Select(g => new
-                {
-                    Month = g.Key,
-                    TransactionCount = g.Count(),
-                    TotalAmount = g.Sum(p => p.Amount)
-                })
-                .OrderBy(s => s.Month)
-                .ToList();
+                var totalAmount = paymentRepo.Entities
+                    .Where(p => p.PaymentDate.Year == currentYear && p.PaymentDate.Month == month && p.Status == "Success")
+                    .Sum(p => p.Amount);
 
-            var result = statistics.Cast<object>().ToList();
+                paymentCounts.Add(new { month, transactionCount = count, totalAmount });
+            }
 
-            return new ApiSuccessResult<List<object>>(result, "Get successfully", System.Net.HttpStatusCode.OK);
+            return new ApiSuccessResult<List<object>>(paymentCounts);
         }
         public async Task<ApiResult<List<PaymentResponseModel>>> GetRecentTransactions(int quantity)
         {
@@ -82,7 +79,7 @@ namespace BabyCare.Services.Service
             var paymentRepo = _unitOfWork.GetRepository<Payment>();
 
             var totalRevenue =  paymentRepo.GetAll()
-                .Where(p => p.PaymentDate.Year == currentYear)
+                .Where(p => p.PaymentDate.Year == currentYear && p.Status == "Success")
                 .Sum(p => p.Amount);
 
             return new ApiSuccessResult<decimal>(totalRevenue);
@@ -115,7 +112,7 @@ namespace BabyCare.Services.Service
             var paymentRepo = _unitOfWork.GetRepository<Payment>();
             var userMembershipRepo = _unitOfWork.GetRepository<UserMembership>();
             var membershipPackageRepo = _unitOfWork.GetRepository<MembershipPackage>();
-            var payment = paymentRepo.GetAll();
+            var payment = paymentRepo.GetAll().OrderByDescending(x => x.LastUpdatedTime);
             var response = new List<PaymentResponseModel>();
             foreach (var item in payment)
             {

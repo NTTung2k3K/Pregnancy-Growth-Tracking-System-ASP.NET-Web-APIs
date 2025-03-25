@@ -75,10 +75,7 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Price is not correct");
             }
-            if (request.ImageUrl != null)
-            {
-                membershipPackage.ImageUrl = await ImageHelper.Upload(request.ImageUrl);
-            }
+           
             await repo.InsertAsync(membershipPackage);
             await repo.SaveAsync();
             return new ApiSuccessResult<object>("Create successfully.");
@@ -169,8 +166,13 @@ namespace BabyCare.Services.Service
                                     : "Unknown",
                 Description = x.Description,
                 Duration = x.Duration,
-                ImageUrl = x.ImageUrl,
-                OriginalPrice = x.OriginalPrice
+                OriginalPrice = x.OriginalPrice,
+                HasGenerateAppointments = x.HasGenerateAppointments,
+                HasStandardDeviationAlerts = x.HasStandardDeviationAlerts,
+                HasViewGrowthChart = x.HasViewGrowthChart,
+                MaxGrowthChartShares = x.MaxGrowthChartShares,
+                MaxRecordAdded = x.MaxRecordAdded,
+                MaxAppointmentCanBooking = x.MaxAppointmentCanBooking,
 
             }).ToList();
 
@@ -220,7 +222,6 @@ namespace BabyCare.Services.Service
             {
                 return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
             }
-            var existingImage = existingItem.ImageUrl;
             _mapper.Map(request, existingItem);
             existingItem.Price = (request.OriginalPrice - (request.OriginalPrice * (request.Discount / 100)));
             if (existingItem.Price < 0)
@@ -229,15 +230,7 @@ namespace BabyCare.Services.Service
             }
             existingItem.LastUpdatedTime = DateTime.Now;
             existingItem.LastUpdatedBy = _contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
-            if (request.ImageUrl != null)
-            {
-                existingItem.ImageUrl = await ImageHelper.Upload(request.ImageUrl);
-            }
-            else
-            {
-                existingItem.ImageUrl = existingImage;
-            }
-            
+           
             await repo.UpdateAsync(existingItem);
             await repo.SaveAsync();
 
@@ -427,13 +420,144 @@ namespace BabyCare.Services.Service
                                     : "Unknown",
                 Description = x.Description,
                 Duration = x.Duration,
-                ImageUrl = x.ImageUrl,
                 OriginalPrice = x.OriginalPrice
 
             }).ToList();
 
             // return to client
             return new ApiSuccessResult<List<MPResponseModel>>(res);
+        }
+
+
+
+        //  Lấy gói hiện tại của user (nếu có)
+        public async Task<UserMembership?> GetUserActiveMembership(Guid userId)
+        {
+            var currentDate = DateTime.Now;
+            var rs = await _unitOfWork.GetRepository<UserMembership>().Entities
+                .Where(um => um.UserId == userId  && um.EndDate.Date >= currentDate.Date)
+                .OrderByDescending(um => um.EndDate) // Chọn gói có hạn lâu nhất
+                .FirstOrDefaultAsync();
+            return rs;
+        }
+
+        //  Lấy gói MembershipPackage hiện tại của user
+        public async Task<MembershipPackage?> GetUserActivePackage(Guid userId)
+        {
+            var membership = await GetUserActiveMembership(userId);
+            return membership?.Package;
+        }
+
+       
+
+        //  Lấy số lần chia sẻ Growth Chart tối đa dựa trên gói của user
+        public async Task<int> GetMaxGrowthChartShares(Guid userId)
+        {
+            var package = await GetUserActivePackage(userId);
+            return package?.MaxGrowthChartShares ?? 0;
+        }
+
+        //  Kiểm tra xem user còn quyền chia sẻ Growth Chart không
+        public async Task<bool> CanShareGrowthChart(Guid userId)
+        {
+            var membership = await GetUserActiveMembership(userId);
+            if (membership == null || membership.Package == null)
+                return false; // Không có gói hợp lệ
+
+            int maxShares = membership.Package.PackageLevel == (int)SystemConstant.PackageLevel.Gold
+                            ? -1 // Gói Gold không giới hạn
+                            : membership.Package.MaxGrowthChartShares; // Gói Silver giới hạn 10 lần, Bronze không có tính năng này
+
+            if (maxShares == -1) return true; // Nếu là gói Gold thì luôn được chia sẻ
+
+            return membership.GrowthChartShareCount < maxShares;
+        }
+
+        //  Tăng số lần chia sẻ Growth Chart
+        public async Task<bool> ShareGrowthChart(Guid userId)
+        {
+            var membership = await GetUserActiveMembership(userId);
+            if (membership == null || !await CanShareGrowthChart(userId))
+                return false;
+
+            membership.GrowthChartShareCount += 1;
+            return true;
+        }
+
+        public async Task<bool> UpdateAppointmentBooking(Guid userId)
+        {
+            var membership = await GetUserActiveMembership(userId);
+            if (membership == null || !await CanBooking(userId))
+                return false;
+
+            membership.AppointmentBookingCount += 1;
+            return true;
+        }
+
+
+
+        public async Task<bool> CanAddedRecord(Guid userId)
+        {
+            var membership = await GetUserActiveMembership(userId);
+            if (membership == null || membership.Package == null)
+                return false; // Không có gói hợp lệ
+
+            int maxAdded= membership.Package.PackageLevel == (int)SystemConstant.PackageLevel.Gold
+                            ? -1 // Gói Gold không giới hạn
+                            : membership.Package.MaxRecordAdded; // Gói Silver giới hạn 10 lần, Bronze không có tính năng này
+
+            if (maxAdded == -1) return true; // Nếu là gói Gold thì luôn được chia sẻ
+
+            return membership.AddedRecordCount < maxAdded;
+        }
+        public async Task<bool> CanBooking(Guid userId)
+        {
+            var membership = await GetUserActiveMembership(userId);
+            if (membership == null || membership.Package == null)
+                return false; // Không có gói hợp lệ
+
+            int maxBooking = membership.Package.PackageLevel == (int)SystemConstant.PackageLevel.Gold
+                            ? -1 // Gói Gold không giới hạn
+                            : membership.Package.MaxAppointmentCanBooking; // Gói Silver giới hạn 10 lần, Bronze không có tính năng này
+
+            if (maxBooking == -1) return true; // Nếu là gói Gold thì luôn được chia sẻ
+
+            return membership.AddedRecordCount < maxBooking;
+        }
+
+        //  Tăng số lần add record
+        public async Task<bool> AddedRecord(Guid userId)
+        {
+            var membership = await GetUserActiveMembership(userId);
+            if (membership == null || !await CanAddedRecord(userId))
+                return false;
+
+            membership.AddedRecordCount += 1;
+            return true;
+        }
+
+        public async Task<ApiResult<bool>> CanGenerateAppointments(Guid userId)
+        {
+            var package = await GetUserActivePackage(userId);
+            return  new ApiSuccessResult<bool>(package?.HasGenerateAppointments ?? false);
+        }
+
+        public async Task<bool> HasStandardDeviationAlerts(Guid userId)
+        {
+            var package = await GetUserActivePackage(userId);
+            return package?.HasStandardDeviationAlerts ?? false;
+        }
+
+        public async Task<ApiResult<bool>> CanViewGrowthChart(Guid userId)
+        {
+            var package = await GetUserActivePackage(userId);
+            return new ApiSuccessResult<bool>(package?.HasViewGrowthChart ?? false);
+        }
+
+        public async Task<int> GetMaxAppointmentCanBooking(Guid userId)
+        {
+            var package = await GetUserActivePackage(userId);
+            return package?.MaxAppointmentCanBooking?? 0;
         }
     }
 }

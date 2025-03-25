@@ -12,6 +12,7 @@ using BabyCare.ModelViews.AuthModelViews.Request;
 using BabyCare.ModelViews.AuthModelViews.Response;
 using BabyCare.ModelViews.ChildModelView;
 using BabyCare.ModelViews.MembershipPackageModelViews.Response;
+using BabyCare.ModelViews.UserMembershipModelView.Response;
 using BabyCare.ModelViews.UserModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
 using Firebase.Auth;
@@ -370,7 +371,7 @@ namespace BabyCare.Contract.Services.Implements
                 return new ApiErrorResult<EmployeeLoginResponseModel>("You cannot access system.", System.Net.HttpStatusCode.NotFound);
 
             }
-            
+
             // Generate refresh token
             var refreshTokenData = GenerateRefreshToken();
             var accessTokenData = await GenerateAccessTokenAsync(existingUser);
@@ -557,7 +558,7 @@ namespace BabyCare.Contract.Services.Implements
             {
                 response.Status = "Unknown";
             }
-            if(existingUser.Gender != null)
+            if (existingUser.Gender != null)
             {
                 if (Enum.IsDefined(typeof(Gender), existingUser.Gender))
                 {
@@ -569,9 +570,47 @@ namespace BabyCare.Contract.Services.Implements
                 response.Gender = "Unknown";
             }
 
+
             var userChilds = _mapper.Map<List<ChildModelView>>(existingUser.Children);
             response.Childs = userChilds;
 
+
+            response.UserMembershipResponses = new();
+            foreach (var item in existingUser.UserMemberships.OrderByDescending(x => x.EndDate))
+            {
+                var userMembership = new UserMembershipResponse()
+                {
+                    AddedRecordCount = item.AddedRecordCount,
+                    EndDate = item.EndDate,
+                    GrowthChartShareCount = item.GrowthChartShareCount,
+                    Id = item.Id,
+                    StartDate = item.StartDate,
+                    Status = item.Status,
+                    Package = new MPResponseModel()
+                    {
+                        Status = Enum.IsDefined(typeof(PackageStatus), item.Package.Status)
+                               ? ((PackageStatus)item.Package.Status.Value).ToString()
+                                  : "Unknown",
+                        Id = item.PackageId,
+                        Description = item.Package.Description,
+                        Discount = item.Package.Discount,
+                        Duration = item.Package.Duration,
+                        Price = item.Package.Price.Value,
+                        PackageLevel = Enum.IsDefined(typeof(PackageLevel), item.Package.PackageLevel.Value)
+                               ? ((PackageLevel)item.Package.PackageLevel.Value).ToString()
+                                  : "Unknown",
+                        PackageName = item.Package.PackageName,
+                        OriginalPrice = item.Package.OriginalPrice,
+                        ShowPriority = item.Package.ShowPriority,
+                        HasGenerateAppointments = item.Package.HasGenerateAppointments,
+                        HasStandardDeviationAlerts = item.Package.HasStandardDeviationAlerts,
+                        HasViewGrowthChart = item.Package.HasViewGrowthChart,
+                        MaxGrowthChartShares = item.Package.MaxGrowthChartShares,
+                        MaxRecordAdded = item.Package.MaxRecordAdded
+                    }
+                };
+                response.UserMembershipResponses.Add(userMembership);
+            }
 
             return new ApiSuccessResult<UserResponseModel>(response);
 
@@ -675,7 +714,7 @@ namespace BabyCare.Contract.Services.Implements
             {
                 return new ApiErrorResult<object>("Gender is not valid.", System.Net.HttpStatusCode.BadRequest);
             }
-            if(_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
+            if (_contextAccessor.HttpContext?.User?.FindFirst("userId")?.Value == null)
             {
                 return new ApiErrorResult<object>("Plase login to use this function.", System.Net.HttpStatusCode.BadRequest);
             }
@@ -935,6 +974,10 @@ namespace BabyCare.Contract.Services.Implements
             var userCheckExisted = await _userManager.FindByEmailAsync(request.Email);
             if (userCheckExisted != null)
             {
+                if (userCheckExisted.Status == ((int)SystemConstant.UserStatus.InActive))
+                {
+                    return new ApiErrorResult<UserLoginResponseModel>("You cannot access system.", System.Net.HttpStatusCode.NotFound);
+                }
                 var updateStatus = await _userManager.UpdateAsync(userCheckExisted);
                 if (!updateStatus.Succeeded)
                 {
@@ -964,7 +1007,8 @@ namespace BabyCare.Contract.Services.Implements
                 FullName = $"{request.Family_name} {request.Given_name} {request.Name}",
                 Image = request.Picture,
                 UserName = await _generateGGUsernameAsync(),
-                Status = (int)UserStatus.Active
+                Status = (int)UserStatus.Active,
+                Gender = 0
             };
 
             var addUserStatus = await _userManager.CreateAsync(userEntity);
@@ -1037,6 +1081,7 @@ namespace BabyCare.Contract.Services.Implements
 
             var doctorUserIds = await _unitOfWork.GetRepository<ApplicationUserRoles>().Entities
         .Where(ur => ur.RoleId == doctorRole.Id)
+        .OrderByDescending(x => x.LastUpdatedTime)
         .Select(ur => ur.UserId)
         .ToListAsync();
 
@@ -1086,7 +1131,9 @@ namespace BabyCare.Contract.Services.Implements
 
             // Lọc danh sách user theo UserId từ bảng User
             var users = await _userManager.Users
-                .Where(u => UserIds.Contains(u.Id) && u.DeletedBy == null).ToListAsync();
+                .Where(u => UserIds.Contains(u.Id) && u.DeletedBy == null)
+                .OrderByDescending(x => x.LastUpdatedTime)
+                .ToListAsync();
 
 
 
@@ -1095,7 +1142,7 @@ namespace BabyCare.Contract.Services.Implements
                 Address = x.Address,
                 DateOfBirth = x.DateOfBirth,
                 FullName = x.FullName,
-                Gender = Enum.IsDefined(typeof(Gender), x.Gender)
+                Gender = x.Gender == null ? "Unknown" : Enum.IsDefined(typeof(Gender), x.Gender)
                                ? ((Gender)x.Gender).ToString()
                                   : "Unknown",
                 Image = x.Image,
@@ -1117,7 +1164,7 @@ namespace BabyCare.Contract.Services.Implements
 
         public async Task<ApiResult<UploadImageResponseModel>> UploadImage(UploadImageRequest request)
         {
-            string res =  await BabyCare.Core.Firebase.ImageHelper.Upload(request.Image);
+            string res = await BabyCare.Core.Firebase.ImageHelper.Upload(request.Image);
             return new ApiSuccessResult<UploadImageResponseModel>(new UploadImageResponseModel { ImageUrl = res });
         }
         #endregion

@@ -36,6 +36,9 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> AddBlogAsync(CreateBlogModelView model);
         Task<ApiResult<object>> UpdateBlogAsync(int id, UpdateBlogModelView model);
         Task<ApiResult<object>> DeleteBlogAsync(int id);
+        Task<ApiResult<object>> UpdateQuantity(UpdateQuantityRequest request);
+
+
         Task<ApiResult<BlogModelView>> GetBlogByIdAsync(int id);
         Task<ApiResult<BasePaginatedList<BlogModelView>>> GetBlogByWeekAsync(SeachOptimizeBlogByWeek request);
 
