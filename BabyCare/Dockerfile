@@ -1,47 +1,40 @@
-# Use the .NET 8 base image for the runtime environment 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base 
-USER $APP_UID 
-WORKDIR /app 
-EXPOSE 8080 
-EXPOSE 8081 
+# ============================================
+# 1️⃣ Base image cho runtime (production)
+# ============================================
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
 
-# Use the .NET 8 SDK image for build environment 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build 
+# ============================================
+# 2️⃣ Build & Restore dependencies
+# ============================================
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
 
-# Define the build configuration argument (default is 'Release') 
-ARG BUILD_CONFIGURATION=Release 
+# Copy toàn bộ source code trước khi restore
+COPY . . 
 
-# Set the working directory 
-WORKDIR /src 
+# Chạy restore trên toàn bộ project
+RUN dotnet restore "BabyCare.API/BabyCare.API.csproj"
 
-# Copy all project files and restore dependencies
-COPY ["BabyCare.API/BabyCare.API.csproj", "BabyCare.API/"]
-COPY ["BabyCare.Core/BabyCare.Core.csproj", "BabyCare.Core/"]
-COPY ["BabyCare.Services/BabyCare.Services.csproj", "BabyCare.Services/"]
-COPY ["BabyCare.Contract.Services/BabyCare.Contract.Services.csproj", "BabyCare.Contract.Services/"]
-COPY ["BabyCare.Repositories/BabyCare.Repositories.csproj", "BabyCare.Repositories/"]
-COPY ["BabyCare.Contract.Repositories/BabyCare.Contract.Repositories.csproj", "BabyCare.Contract.Repositories/"]
-COPY ["BabyCare.ModelViews/BabyCare.ModelViews.csproj", "BabyCare.ModelViews/"]
-COPY ["BabyCare.WorkerService/BabyCare.WorkerService.csproj", "BabyCare.WorkerService/"]
+# Build ứng dụng
+WORKDIR "/src/BabyCare.API"
+RUN dotnet build "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Restore dependencies for the main project
-RUN dotnet restore "/src/BabyCare.API/BabyCare.API.csproj"
+# ============================================
+# 3️⃣ Publish ứng dụng
+# ============================================
+FROM build AS publish
+RUN dotnet publish "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Copy the entire solution
-COPY . .
+# ============================================
+# 4️⃣ Final image cho production
+# ============================================
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
 
-# Set the working directory for the build process 
-WORKDIR "/src/BabyCare.API" 
-
-# Build the project 
-RUN dotnet build "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/build 
-
-# Publish stage 
-FROM build AS publish 
-RUN dotnet publish "BabyCare.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false 
-
-# Final stage 
-FROM base AS final 
-WORKDIR /app 
-COPY --from=publish /app/publish . 
+# Chạy ứng dụng
 ENTRYPOINT ["dotnet", "BabyCare.API.dll"]
