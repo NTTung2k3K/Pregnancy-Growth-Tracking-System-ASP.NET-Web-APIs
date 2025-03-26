@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BabyCare.ModelViews", "Baby
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BabyCare.WorkerService", "BabyCare.WorkerService\BabyCare.WorkerService.csproj", "{F234C1EA-44C7-44FE-8545-C8DF24C5C2B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BabyCare.CronJobs", "BabyCare.CronJobs\BabyCare.CronJobs.csproj", "{C64C47FD-5A97-4827-8038-DF9F68498854}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +67,10 @@ Global
 		{F234C1EA-44C7-44FE-8545-C8DF24C5C2B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F234C1EA-44C7-44FE-8545-C8DF24C5C2B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F234C1EA-44C7-44FE-8545-C8DF24C5C2B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C64C47FD-5A97-4827-8038-DF9F68498854}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C64C47FD-5A97-4827-8038-DF9F68498854}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C64C47FD-5A97-4827-8038-DF9F68498854}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C64C47FD-5A97-4827-8038-DF9F68498854}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -78,6 +84,7 @@ Global
 		{C35A33FC-8BB0-4027-9094-4DAB48AC3513} = {71ABCFBD-2D13-41D2-A288-5B6B406C3C3B}
 		{FBAA5C63-0D97-469D-A24D-212E029657C8} = {764E208B-E22C-49BF-A0B3-9492AB64C892}
 		{F234C1EA-44C7-44FE-8545-C8DF24C5C2B1} = {71ABCFBD-2D13-41D2-A288-5B6B406C3C3B}
+		{C64C47FD-5A97-4827-8038-DF9F68498854} = {71ABCFBD-2D13-41D2-A288-5B6B406C3C3B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {44AD9DDA-1356-49FA-80E2-2BD31FFBCBA5}
