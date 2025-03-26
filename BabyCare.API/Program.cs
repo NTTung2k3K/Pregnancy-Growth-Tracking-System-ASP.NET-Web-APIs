@@ -53,9 +53,8 @@ if (builder.Environment.IsProduction() && builder.Configuration.GetValue<int?>("
 
 
 app.UseHttpsRedirection();
-app.UseCors();
+app.UseCors("AllowSpecificOrigins");
 
-app.UseCors("AllowFrontendVercel");
 
 app.UseAuthorization();
 
