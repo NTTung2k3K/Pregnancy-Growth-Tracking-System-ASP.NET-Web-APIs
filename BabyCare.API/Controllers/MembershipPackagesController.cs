@@ -66,12 +66,22 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+        public static string GetIpAddress(HttpContext context)
+        {
+            var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = context.Connection.RemoteIpAddress?.ToString();
+            }
+            return ip ?? "0.0.0.0"; // Tránh null
+        }
+
         [HttpPost("buy-package")]
         public async Task<IActionResult> BuyPackage([FromBody] BuyPackageRequest request)
         {
             try
             {
-                var ipAddress = NetworkHelper.GetIpAddress(HttpContext);
+                var ipAddress = MembershipPackagesController.GetIpAddress(HttpContext);
                 var result = await _membershipPackageService.BuyPackage(request, ipAddress);
 
                 return Ok(result);
