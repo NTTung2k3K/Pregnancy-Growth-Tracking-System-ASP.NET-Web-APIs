@@ -51,6 +51,7 @@ namespace BabyCare.Core.Utils
         {
             Female = 0,
             Male = 1,
+            Unknown = 2,
         }
 
         public enum AppointmentStatus
