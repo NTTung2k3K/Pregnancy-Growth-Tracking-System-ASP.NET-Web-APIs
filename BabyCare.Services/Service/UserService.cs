@@ -52,35 +52,35 @@ namespace BabyCare.Contract.Services.Implements
             var existingUser = await _userManager.FindByEmailAsync(request.Email);
             if (existingUser == null)
             {
-                return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.", System.Net.HttpStatusCode.NotFound);
+                return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.");
             }
             if (existingUser.DeletedBy != null)
             {
-                return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.", System.Net.HttpStatusCode.NotFound);
+                return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.");
             }
             var validPassword = await _userManager.CheckPasswordAsync(existingUser, request.Password);
             if (!validPassword)
             {
-                return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.", System.Net.HttpStatusCode.NotFound);
+                return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.");
             }
             var roles = await _userManager.GetRolesAsync(existingUser);
             foreach (var role in roles)
             {
                 if (role != SystemConstant.Role.USER)
                 {
-                    return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.", System.Net.HttpStatusCode.NotFound);
+                    return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.");
                 }
             }
             var isConfirmed = await _userManager.IsEmailConfirmedAsync(existingUser);
             if (!isConfirmed)
             {
-                return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.", System.Net.HttpStatusCode.NotFound);
+                return new ApiErrorResult<UserLoginResponseModel>("Email hoặc mật khẩu không đúng.");
 
             }
 
             if (existingUser.Status == ((int)SystemConstant.UserStatus.InActive))
             {
-                return new ApiErrorResult<UserLoginResponseModel>("You cannot access system.", System.Net.HttpStatusCode.NotFound);
+                return new ApiErrorResult<UserLoginResponseModel>("You cannot access system.");
 
             }
             var refreshTokenData = GenerateRefreshToken();
@@ -1160,6 +1160,67 @@ namespace BabyCare.Contract.Services.Implements
             string res = await BabyCare.Core.Firebase.ImageHelper.Upload(request.Image);
             return new ApiSuccessResult<UploadImageResponseModel>(new UploadImageResponseModel { ImageUrl = res });
         }
+
+        public async Task<ApiResult<List<EmployeeResponseModel>>> GetAllEmployee()
+        {
+            // Lấy danh sách Role có tên DOCTOR hoặc ADMIN
+            var doctorAdminRoles = await _roleManager.Roles
+                .Where(r => r.Name == SystemConstant.Role.DOCTOR || r.Name == SystemConstant.Role.ADMIN)
+                .ToListAsync();
+
+            if (doctorAdminRoles == null || !doctorAdminRoles.Any())
+            {
+                return new ApiSuccessResult<List<EmployeeResponseModel>>(new List<EmployeeResponseModel>());
+            }
+
+            // Lấy danh sách RoleId tương ứng
+            var roleIds = doctorAdminRoles.Select(r => r.Id).ToList();
+
+            // Lấy danh sách UserId của những người có RoleId nằm trong danh sách roleIds
+            var doctorAdminUserIds = await _unitOfWork.GetRepository<ApplicationUserRoles>().Entities
+                .Where(ur => roleIds.Contains(ur.RoleId))
+                .OrderByDescending(x => x.LastUpdatedTime)
+                .Select(ur => ur.UserId)
+                .ToListAsync();
+
+            // Lọc danh sách user theo UserId từ bảng User
+            var users = await _userManager.Users
+                .Where(u => doctorAdminUserIds.Contains(u.Id) && u.DeletedBy == null)
+                .ToListAsync();
+
+            // Trả về danh sách nhân viên
+            var items = users.Select(user => new EmployeeResponseModel
+            {
+                Address = user.Address,
+                DateOfBirth = user.DateOfBirth,
+                FullName = user.FullName,
+                Email = user.Email,
+                Gender = Enum.IsDefined(typeof(Gender), user.Gender) ? ((Gender)user.Gender).ToString() : "Unknown",
+                Image = user.Image,
+                Id = user.Id,
+                Status = Enum.IsDefined(typeof(EmployeeStatus), user.Status) ? ((EmployeeStatus)user.Status).ToString() : "Unknown",
+
+                // Lấy role phù hợp của user
+                Role = new ModelViews.RoleModelViews.RoleModelView()
+                {
+                    Id = doctorAdminRoles.FirstOrDefault(r => r.Id ==
+                         _unitOfWork.GetRepository<ApplicationUserRoles>().Entities
+                         .Where(ur => ur.UserId == user.Id)
+                         .Select(ur => ur.RoleId)
+                         .FirstOrDefault()
+                    )?.Id.ToString(),
+                    Name = doctorAdminRoles.FirstOrDefault(r => r.Id ==
+                         _unitOfWork.GetRepository<ApplicationUserRoles>().Entities
+                         .Where(ur => ur.UserId == user.Id)
+                         .Select(ur => ur.RoleId)
+                         .FirstOrDefault()
+                    )?.Name
+                }
+            }).ToList();
+
+            return new ApiSuccessResult<List<EmployeeResponseModel>>(items);
+        }
+
         #endregion
 
 
