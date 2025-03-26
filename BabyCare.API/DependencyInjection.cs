@@ -42,7 +42,7 @@ namespace BabyCare.API
         {
             services.AddDbContext<DatabaseContext>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(configuration.GetConnectionString("BabyCareDb"));
+                options.UseLazyLoadingProxies().UseMySQL(configuration.GetConnectionString("BabyCareDb"));
             });
         }
 
