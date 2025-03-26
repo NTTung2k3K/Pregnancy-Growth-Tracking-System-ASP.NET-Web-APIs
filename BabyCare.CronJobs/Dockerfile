@@ -11,11 +11,12 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["BabyCare.CronJobs/BabyCare.CronJobs.csproj", "BabyCare.CronJobs/"]
-COPY ["BabyCare.Contract.Services/BabyCare.Contract.Services.csproj", "BabyCare.Contract.Services/"]
-COPY ["BabyCare.Repositories/BabyCare.Repositories.csproj", "BabyCare.Repositories/"]
 COPY ["BabyCare.Contract.Repositories/BabyCare.Contract.Repositories.csproj", "BabyCare.Contract.Repositories/"]
 COPY ["BabyCare.Core/BabyCare.Core.csproj", "BabyCare.Core/"]
+COPY ["BabyCare.Contract.Services/BabyCare.Contract.Services.csproj", "BabyCare.Contract.Services/"]
+COPY ["BabyCare.Repositories/BabyCare.Repositories.csproj", "BabyCare.Repositories/"]
 COPY ["BabyCare.ModelViews/BabyCare.ModelViews.csproj", "BabyCare.ModelViews/"]
+COPY ["BabyCare.Services/BabyCare.Services.csproj", "BabyCare.Services/"]
 RUN dotnet restore "./BabyCare.CronJobs/BabyCare.CronJobs.csproj"
 COPY . .
 WORKDIR "/src/BabyCare.CronJobs"
