@@ -20,11 +20,11 @@ namespace BabyCare.API.Controllers
         /// Nhận câu hỏi từ người dùng và trả lời bằng AI dựa trên dữ liệu của một Child cụ thể
         /// </summary>
         [HttpPost("get-answer-child")]
-        public async Task<IActionResult> GetAIResponseAsync(string question, Guid userId, int childId)
+        public async Task<IActionResult> GetAIResponseAsync([FromBody] AIChildQuestion aIChildQuestion)
         {
             try
             {
-                var result = await _aiChildService.GetAIResponseAsync(question, userId, childId);
+                var result = await _aiChildService.GetAIResponseAsync(aIChildQuestion.question, aIChildQuestion.userId, aIChildQuestion.childId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -32,5 +32,11 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+    }
+    public class AIChildQuestion
+    {
+         public string question { get; set; }
+        public Guid userId { get; set; }
+        public int childId { get; set; }
     }
 }
