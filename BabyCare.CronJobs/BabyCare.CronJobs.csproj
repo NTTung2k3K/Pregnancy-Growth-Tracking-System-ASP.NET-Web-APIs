@@ -5,16 +5,20 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-BabyCare.CronJobs-2c99c58e-7e63-4489-9009-71f3567c2660</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
   </ItemGroup>
-
+	
   <ItemGroup>
+    <ProjectReference Include="..\BabyCare.Contract.Repositories\BabyCare.Contract.Repositories.csproj" />
     <ProjectReference Include="..\BabyCare.Contract.Services\BabyCare.Contract.Services.csproj" />
+    <ProjectReference Include="..\BabyCare.Core\BabyCare.Core.csproj" />
+    <ProjectReference Include="..\BabyCare.Repositories\BabyCare.Repositories.csproj" />
+    <ProjectReference Include="..\BabyCare.Services\BabyCare.Services.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\BabyCare.Repositories\BabyCare.Repositories.csproj" />
   </ItemGroup>
 </Project>
