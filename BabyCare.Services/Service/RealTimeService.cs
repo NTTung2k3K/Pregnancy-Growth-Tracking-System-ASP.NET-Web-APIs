@@ -7,14 +7,16 @@ using BabyCare.Core.APIResponse;
 using BabyCare.Core.Utils;
 using Firebase.Auth;
 using Microsoft.EntityFrameworkCore;
+using BabyCare.Contract.Repositories.Interface;
 
 public class RealTimeService : IRealTimeService
 {
     private readonly Pusher _pusher;
     private readonly UserManager<ApplicationUsers> _userManager;
     private readonly RoleManager<ApplicationRoles> _roleManager;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public RealTimeService(UserManager<ApplicationUsers> userManager, RoleManager<ApplicationRoles> roleManager)
+    public RealTimeService(UserManager<ApplicationUsers> userManager, RoleManager<ApplicationRoles> roleManager, IUnitOfWork unitOfWork)
     {
         _pusher = new Pusher("1964573", "01567a69c62f53eeceb1", "2a5e8270339a5c65862a", new PusherOptions
         {
@@ -23,6 +25,7 @@ public class RealTimeService : IRealTimeService
         });
         _userManager = userManager;
         _roleManager = roleManager;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task SendMessage(string channel, string message)
@@ -32,28 +35,46 @@ public class RealTimeService : IRealTimeService
 
 
     /// Kiểm tra userId và role của người dùng
-    public async Task<ApiResult<string>> CheckUserRole(string userName)
+    public async Task<ApiResult<string>> CheckUserRole(Guid userId)
     {
-        // Truy vấn người dùng từ userName và đảm bảo rằng người dùng không bị xóa
-        var user = await _userManager.Users
-            .FirstOrDefaultAsync(x => x.UserName == userName && x.DeletedBy == null);
+        // Lấy danh sách Role có tên DOCTOR hoặc ADMIN
+        var doctorAdminRoles = await _roleManager.Roles
+            .Where(r => r.Name == SystemConstant.Role.DOCTOR || r.Name == SystemConstant.Role.ADMIN)
+            .ToListAsync();
 
-        // Kiểm tra xem người dùng có tồn tại hay không
-        if (user == null)
+        if (doctorAdminRoles == null || !doctorAdminRoles.Any())
         {
-            return new ApiErrorResult<string>("User not found.");
+            return new ApiErrorResult<string>("No roles found.");
         }
 
-        // Lấy tất cả các role của người dùng
-        var roles = await _userManager.GetRolesAsync(user);
+        // Lấy danh sách RoleId tương ứng
+        var roleIds = doctorAdminRoles.Select(r => r.Id).ToList();
 
-        // Kiểm tra nếu người dùng có role Admin hoặc Doctor
-        if (roles.Contains(SystemConstant.Role.ADMIN) || roles.Contains(SystemConstant.Role.DOCTOR))
+        // Lấy danh sách UserId của những người có RoleId nằm trong danh sách roleIds
+        var doctorAdminUserIds = await _unitOfWork.GetRepository<ApplicationUserRoles>().Entities
+            .Where(ur => roleIds.Contains(ur.RoleId))
+            .OrderByDescending(x => x.LastUpdatedTime)
+            .Select(ur => ur.UserId)
+            .ToListAsync();
+
+        // Kiểm tra xem userId có tồn tại trong danh sách doctorAdminUserIds không
+        if (doctorAdminUserIds.Contains(userId))
         {
+            // Lọc user theo userId từ bảng Users
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.Id == userId && u.DeletedBy == null);
+
+            if (user == null)
+            {
+                return new ApiErrorResult<string>("User not found.");
+            }
+
             return new ApiSuccessResult<string>("Valid user with correct role");
         }
 
-        // Nếu không có role hợp lệ
+        // Nếu không tìm thấy userId hợp lệ
         return new ApiErrorResult<string>("User does not have Admin or Doctor role.");
     }
+
+
 }

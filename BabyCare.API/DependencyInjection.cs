@@ -77,6 +77,7 @@ namespace BabyCare.API
                 .AddScoped<IAppointmentTemplateService, AppointmentTemplateService>()
                 .AddScoped<IFetalGrowthStandardService, FetalGrowthStandardService>()
                 .AddScoped<IAIChildService, AIChildService>()
+                .AddScoped<IRealTimeService, RealTimeService>()
                 .AddScoped<IAIWebsiteService, AIWebsiteService>();
 
 
