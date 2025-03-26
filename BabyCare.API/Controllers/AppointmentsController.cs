@@ -147,6 +147,19 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
             }
         }
+        [HttpGet("get-available-slot-user")]
+        public async Task<IActionResult> GetAvailableSlotsUserAsync([FromQuery] DateTime date)
+        {
+            try
+            {
+                var result = await _appointmentService.GetAvailableSlotsUserAsync(date);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+            }
+        }
         [HttpGet("get-appointment-status-handler")]
         public  IActionResult GetAppointmentStatusHandler()
         {

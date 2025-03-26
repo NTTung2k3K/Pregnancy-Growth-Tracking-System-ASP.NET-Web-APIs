@@ -12,7 +12,7 @@ namespace BabyCare.Contract.Services.Interface
         Task<ApiResult<object>> CreateAppointment(CreateAppointmentRequest request);
         Task<ApiResult<object>> UpdateAppointment(UpdateAppointmentRequest request);
         Task<ApiResult<object>> ConfirmAppointment(ConfirmAppointment request);
-
+        Task<List<int>> GetAvailableSlotsUserAsync(DateTime appointmentDate);
         Task<ApiResult<object>> UpdateByDoctorAppointment(UpdateAppointmentByDoctorRequest request);
         Task<ApiResult<BasePaginatedList<AppointmentResponseModel>>> GetAppointmentsByUserIdPagination(SearchAppointmentByUserId request);
 
