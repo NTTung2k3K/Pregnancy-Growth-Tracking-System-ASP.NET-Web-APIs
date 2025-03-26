@@ -824,62 +824,51 @@ namespace BabyCare.Services.Service
         public async Task<ApiResult<List<AppointmentResponseModel>>> GetAllByAdmin()
         {
             var repo = _unitOfWork.GetRepository<Appointment>();
-            var repoChild = _unitOfWork.GetRepository<Child>();
-            var repoAT = _unitOfWork.GetRepository<AppointmentTemplates>();
 
-            var appointmentsQuery = repo.Entities
+            var appointments = await repo.Entities
                 .Where(x => x.DeletedBy == null && x.Status != (int)AppointmentStatus.Pending)
-                .OrderBy(x => x.AppointmentDate); // Sắp xếp theo Date tăng dần
+                .Include(x => x.AppointmentUsers)
+                .ThenInclude(x => x.User) // Load thông tin bác sĩ & user luôn
+                .Include(x => x.AppointmentChildren)
+                .ThenInclude(x => x.Child) // Load thông tin trẻ em
+                .Include(x => x.AppointmentTemplate) // Load template cuộc hẹn
+                .OrderBy(x => x.AppointmentDate)
+                .ToListAsync(); // Load tất cả dữ liệu trong 1 query
 
-            // Thực thi truy vấn
-            var allAppointments = await appointmentsQuery.ToListAsync();
+            // Tạo Dictionary để tra cứu User nhanh hơn
+            var userIds = appointments.SelectMany(x => x.AppointmentUsers.Select(u => u.UserId)).Distinct();
+            var users = await _userManager.Users.Where(u => userIds.Contains(u.Id)).ToListAsync();
+            var userDict = users.ToDictionary(u => u.Id);
 
-            // Ánh xạ kết quả sang ResponseModel
-            var responseList = new List<AppointmentResponseModel>();
-            foreach (var appointment in allAppointments)
+            var responseList = appointments.Select(appointment =>
             {
                 var response = _mapper.Map<AppointmentResponseModel>(appointment);
-
-                // Chuyển Status thành string
-                if (Enum.IsDefined(typeof(AppointmentStatus), appointment.Status))
-                {
-                    response.Status = ((AppointmentStatus)appointment.Status).ToString();
-                }
-                else
-                {
-                    response.Status = "Unknown";
-                }
+                response.Status = Enum.IsDefined(typeof(AppointmentStatus), appointment.Status)
+                    ? ((AppointmentStatus)appointment.Status).ToString()
+                    : "Unknown";
 
                 // Lấy thông tin User
-                var user = await _userManager.FindByIdAsync(appointment.AppointmentUsers.FirstOrDefault()?.UserId.ToString());
-                response.User = _mapper.Map<UserResponseModel>(user);
+                var userId = appointment.AppointmentUsers.FirstOrDefault()?.UserId;
+                response.User = userId != null && userDict.ContainsKey((Guid)userId)
+                    ? _mapper.Map<UserResponseModel>(userDict[userId.Value])
+                    : null;
 
                 // Lấy thông tin Doctor
-                response.Doctors = new();
-                foreach (var doctor in appointment.AppointmentUsers)
-                {
-                    if (doctor.Doctor == null) continue;
-
-                    var doctorCheck = await _userManager.FindByIdAsync(doctor.DoctorId.ToString());
-                    var doctorModel = _mapper.Map<EmployeeResponseModel>(doctorCheck);
-                    response.Doctors.Add(doctorModel);
-                }
+                response.Doctors = appointment.AppointmentUsers
+                    .Where(d => d.DoctorId != null)
+                    .Select(d => _mapper.Map<EmployeeResponseModel>(d.User))
+                    .ToList();
 
                 // Lấy thông tin Appointment Template
-                var at = await repoAT.GetByIdAsync(appointment.AppointmentTemplateId);
-                response.AppointmentTemplate = _mapper.Map<ATResponseModel>(at);
+                response.AppointmentTemplate = _mapper.Map<ATResponseModel>(appointment.AppointmentTemplate);
 
                 // Lấy thông tin Child
-                response.Childs = new();
-                foreach (var child in appointment.AppointmentChildren)
-                {
-                    var childCheck = await repoChild.GetByIdAsync(child.ChildId);
-                    var childModel = _mapper.Map<ChildModelView>(childCheck);
-                    response.Childs.Add(childModel);
-                }
+                response.Childs = appointment.AppointmentChildren
+                    .Select(child => _mapper.Map<ChildModelView>(child.Child))
+                    .ToList();
 
-                responseList.Add(response);
-            }
+                return response;
+            }).ToList();
 
             return new ApiSuccessResult<List<AppointmentResponseModel>>(responseList);
         }
