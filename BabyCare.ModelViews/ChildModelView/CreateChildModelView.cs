@@ -22,7 +22,6 @@ namespace BabyCare.ModelViews.ChildModelView
         public DateTime DueDate { get; set; }
         public IFormFile? PhotoUrl { get; set; }
 
-        [MaxLength(3, ErrorMessage = "Blood type cannot exceed 3 characters.")]
         public string? BloodType { get; set; }
 
 
