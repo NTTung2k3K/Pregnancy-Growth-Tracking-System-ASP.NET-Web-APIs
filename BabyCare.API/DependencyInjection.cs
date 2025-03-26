@@ -85,30 +85,19 @@ namespace BabyCare.API
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowFrontendLocal", builder =>
+                options.AddPolicy("AllowSpecificOrigins", builder =>
                 {
-                    builder.WithOrigins("http://localhost:5173") // Các nguồn được phép
-                           .AllowAnyMethod()  // Cho phép tất cả các phương thức HTTP (GET, POST, PUT, DELETE,...)
-                           .AllowAnyHeader()  // Cho phép tất cả các header
-                           .AllowCredentials(); // Cho phép gửi thông tin xác thực (cookies, headers, v.v.)
-                });
-                options.AddPolicy("AllowFrontendLocalNextJs", builder =>
-                {
-                    builder.WithOrigins("http://localhost:3000") // Các nguồn được phép
-                           .AllowAnyMethod()  // Cho phép tất cả các phương thức HTTP (GET, POST, PUT, DELETE,...)
-                           .AllowAnyHeader()  // Cho phép tất cả các header
-                           .AllowCredentials(); // Cho phép gửi thông tin xác thực (cookies, headers, v.v.)
-                });
-                options.AddPolicy("AllowFrontendVercel", builder =>
-                {
-                    builder.WithOrigins("https://baby-care-theta.vercel.app") // Các nguồn được phép
-                           .AllowAnyMethod()  // Cho phép tất cả các phương thức HTTP (GET, POST, PUT, DELETE,...)
-                           .AllowAnyHeader()  // Cho phép tất cả các header
-                           .SetPreflightMaxAge(TimeSpan.FromMinutes(10))
-                           .AllowCredentials(); // Cho phép gửi thông tin xác thực (cookies, headers, v.v.)
+                    builder
+                        .WithOrigins(
+                            "http://localhost:5173",
+                            "http://localhost:3000",
+                            "https://baby-care-theta.vercel.app"
+                        )
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
             });
-
 
         }
         public static void AddSwagger(this IServiceCollection services)

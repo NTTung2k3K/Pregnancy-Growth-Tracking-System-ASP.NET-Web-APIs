@@ -53,9 +53,7 @@ if (builder.Environment.IsProduction() && builder.Configuration.GetValue<int?>("
 
 
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontendLocal");
-app.UseCors("AllowFrontendLocalNextJs");
-
+app.UseCors();
 
 app.UseCors("AllowFrontendVercel");
 
