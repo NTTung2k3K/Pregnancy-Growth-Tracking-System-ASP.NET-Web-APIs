@@ -41,7 +41,6 @@ public class ChatController : ControllerBase
         }
 
         // Tạo tên kênh duy nhất cho cặp người gửi và người nhận, đảm bảo thứ tự không thay đổi
-        // So sánh Guid của người gửi và người nhận và đảm bảo thứ tự ổn định
         var userIdStr = request.UserId.ToString("D");  // Chuyển Guid thành chuỗi
         var recipientUserIdStr = request.RecipientUserId.ToString("D");  // Chuyển Guid thành chuỗi
 
@@ -49,10 +48,19 @@ public class ChatController : ControllerBase
         var channelName = $"chat-{(string.Compare(userIdStr, recipientUserIdStr) < 0 ? userIdStr : recipientUserIdStr)}-{(string.Compare(userIdStr, recipientUserIdStr) < 0 ? recipientUserIdStr : userIdStr)}";
 
         // Gửi tin nhắn qua Pusher tới kênh duy nhất
-        await _realTimeService.SendMessage(channelName, request.Message, request.UserId);
+        await _realTimeService.SendMessage(channelName, request.Message, request.UserId, request.RecipientUserId);
 
-        return Ok(new { message = "Message sent to " + request.RecipientUserId });
+        // Trả về channelName, UserId, RecipientUserId và nội dung tin nhắn cho frontend
+        return Ok(new
+        {
+            message = "Message sent to " + request.RecipientUserId,
+            channelName,
+            userId = request.UserId,
+            recipientUserId = request.RecipientUserId,
+            messageContent = request.Message
+        });
     }
+
 }
 
 public class SendMessageRequest

@@ -6,7 +6,7 @@ namespace BabyCare.Contract.Services.Interface
 {
     public interface IRealTimeService
     {
-        Task SendMessage(string channel, string message, Guid senderId);
+        Task SendMessage(string channel, string message, Guid senderId, Guid receiverId);
         Task<ApiResult<string>> CheckUserRole(Guid userId);
     }
 }
