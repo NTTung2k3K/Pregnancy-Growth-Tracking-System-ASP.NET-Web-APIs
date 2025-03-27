@@ -50,7 +50,7 @@ public class RealTimeService : IRealTimeService
                 UserId = senderId,
                 RecipientUserId = receiverId,
                 MessageContent = message,
-                SendAt = DateTime.Now,
+                SendAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Local),
                 ChannelName = channel
             };
 
