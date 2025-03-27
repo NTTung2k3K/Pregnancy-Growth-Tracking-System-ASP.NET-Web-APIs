@@ -50,7 +50,7 @@ public class RealTimeService : IRealTimeService
                 UserId = senderId,
                 RecipientUserId = receiverId,
                 MessageContent = message,
-                SendAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Local),
+                SendAt = DateTime.UtcNow,
                 ChannelName = channel
             };
 
@@ -128,7 +128,7 @@ public class RealTimeService : IRealTimeService
             SenderId = _mapper.Map<EmployeeResponseModel>(m.User),
             ReceiverId = _mapper.Map<EmployeeResponseModel>(m.RecipientUser),
             Message = m.MessageContent,
-            SentAt = m.SendAt
+            SentAt = m.SendAt.ToLocalTime()
         }).ToList();
 
         return mappedMessages;
