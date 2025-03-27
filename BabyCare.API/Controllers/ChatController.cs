@@ -40,22 +40,24 @@ public class ChatController : ControllerBase
             return BadRequest(new { message = "Recipient is not an Admin or Doctor, cannot receive messages." });
         }
 
-        // Tạo tên kênh duy nhất cho cặp người gửi và người nhận
-        // Chuyển Guid thành chuỗi và đảm bảo thứ tự không thay đổi
-        var channelName = $"chat-{Guid.NewGuid()}-{request.UserId}-{request.RecipientUserId}";
+        // Tạo tên kênh duy nhất cho cặp người gửi và người nhận, đảm bảo thứ tự không thay đổi
+        // So sánh Guid của người gửi và người nhận và đảm bảo thứ tự ổn định
+        var userIdStr = request.UserId.ToString("D");  // Chuyển Guid thành chuỗi
+        var recipientUserIdStr = request.RecipientUserId.ToString("D");  // Chuyển Guid thành chuỗi
+
+        // Tạo tên kênh dựa trên thứ tự của các Guid để luôn ổn định
+        var channelName = $"chat-{(string.Compare(userIdStr, recipientUserIdStr) < 0 ? userIdStr : recipientUserIdStr)}-{(string.Compare(userIdStr, recipientUserIdStr) < 0 ? recipientUserIdStr : userIdStr)}";
 
         // Gửi tin nhắn qua Pusher tới kênh duy nhất
         await _realTimeService.SendMessage(channelName, request.Message, request.UserId);
 
         return Ok(new { message = "Message sent to " + request.RecipientUserId });
     }
-
-
 }
 
 public class SendMessageRequest
 {
     public string Message { get; set; }
-    public Guid UserId { get; set; } 
+    public Guid UserId { get; set; }
     public Guid RecipientUserId { get; set; }
 }
