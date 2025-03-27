@@ -45,12 +45,14 @@ public class RealTimeService : IRealTimeService
                 senderId = senderId.ToString(),
                 receiverId = receiverId.ToString()
             });
+            var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
             var chatMessage = new UserMessage
             {
                 UserId = senderId,
                 RecipientUserId = receiverId,
                 MessageContent = message,
-                SendAt = DateTime.UtcNow,
+                SendAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone),
                 ChannelName = channel
             };
 
@@ -128,7 +130,7 @@ public class RealTimeService : IRealTimeService
             SenderId = _mapper.Map<EmployeeResponseModel>(m.User),
             ReceiverId = _mapper.Map<EmployeeResponseModel>(m.RecipientUser),
             Message = m.MessageContent,
-            SentAt = m.SendAt.ToLocalTime()
+            SentAt = m.SendAt
         }).ToList();
 
         return mappedMessages;
