@@ -17,6 +17,7 @@ using BabyCare.ModelViews.MembershipPackageModelViews.Response;
 using BabyCare.ModelViews.PaymentModelView.Response;
 using BabyCare.ModelViews.RoleModelViews;
 using BabyCare.ModelViews.UserMembershipModelView.Response;
+using BabyCare.ModelViews.UserMessage;
 using BabyCare.ModelViews.UserModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
 
@@ -92,6 +93,9 @@ namespace BabyCare.Repositories.Mapper
             CreateMap<UserMembership, UserMembershipResponse>().ReverseMap();
             #endregion
 
+            CreateMap<ChatMessage, ChatMessageModelView>()
+           .ForMember(dest => dest.SenderId, opt => opt.MapFrom(src => new EmployeeResponseModel { Id = src.SenderId }))
+           .ForMember(dest => dest.ReceiverId, opt => opt.MapFrom(src => new EmployeeResponseModel { Id = src.ReceiverId }));
 
             CreateMap<ApplicationRoles, RoleModelView>().ReverseMap();
             CreateMap<ApplicationRoles, CreateRoleModelView>().ReverseMap();

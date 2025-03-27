@@ -8,6 +8,8 @@ using BabyCare.Core.Utils;
 using Firebase.Auth;
 using Microsoft.EntityFrameworkCore;
 using BabyCare.Contract.Repositories.Interface;
+using BabyCare.ModelViews.UserMessage;
+using AutoMapper;
 
 public class RealTimeService : IRealTimeService
 {
@@ -15,8 +17,10 @@ public class RealTimeService : IRealTimeService
     private readonly UserManager<ApplicationUsers> _userManager;
     private readonly RoleManager<ApplicationRoles> _roleManager;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public RealTimeService(UserManager<ApplicationUsers> userManager, RoleManager<ApplicationRoles> roleManager, IUnitOfWork unitOfWork)
+
+    public RealTimeService(IMapper mapper, UserManager<ApplicationUsers> userManager, RoleManager<ApplicationRoles> roleManager, IUnitOfWork unitOfWork)
     {
         _pusher = new Pusher("1964573", "01567a69c62f53eeceb1", "2a5e8270339a5c65862a", new PusherOptions
         {
@@ -26,6 +30,7 @@ public class RealTimeService : IRealTimeService
         _userManager = userManager;
         _roleManager = roleManager;
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task SendMessage(string channel, string message, Guid senderId, Guid receiverId)
@@ -39,7 +44,18 @@ public class RealTimeService : IRealTimeService
                 senderId = senderId.ToString(),
                 receiverId = receiverId.ToString()
             });
+            var chatMessage = new UserMessage
+            {
+                UserId = senderId,
+                RecipientUserId = receiverId,
+                MessageContent = message,
+                SendAt = DateTime.Now,
+                ChannelName = channel
+            };
 
+            var messageRepo = _unitOfWork.GetRepository<UserMessage>();
+            await messageRepo.InsertAsync(chatMessage);
+            await _unitOfWork.SaveAsync();
 
             // Không cần kiểm tra kết quả vì Pusher TriggerAsync sẽ ném ra ngoại lệ nếu có lỗi
         }
@@ -95,5 +111,14 @@ public class RealTimeService : IRealTimeService
         return new ApiErrorResult<string>("User does not have Admin or Doctor role.");
     }
 
+    public async Task<List<ChatMessageModelView>> GetMessageHistory(Guid senderId, Guid receiverId)
+    {
+        var messages = await _unitOfWork.GetRepository<UserMessage>().Entities
+            .Where(m => (m.UserId == senderId && m.RecipientUserId == receiverId) ||
+                        (m.UserId == receiverId && m.RecipientUserId == senderId))
+            .OrderBy(m => m.SendAt)
+            .ToListAsync();
 
+        return _mapper.Map<List<ChatMessageModelView>>(messages);
+    }
 }

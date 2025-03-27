@@ -21,6 +21,8 @@ namespace BabyCare.Repositories.Context
 
         // Domain-specific tables
         public virtual DbSet<Appointment> Appointments => Set<Appointment>();
+
+        public virtual DbSet<UserMessage> UserMessages => Set<UserMessage>();
         public virtual DbSet<AppointmentUser> AppointmentUsers => Set<AppointmentUser>();
 
         public virtual DbSet<Reminder> Reminders => Set<Reminder>();
@@ -145,6 +147,8 @@ namespace BabyCare.Repositories.Context
 
             // Define table configurations for other entities if needed
             builder.Entity<Appointment>().ToTable("Appointments");
+            builder.Entity<UserMessage>().ToTable("UserMessage");
+
             builder.Entity<Reminder>().ToTable("Reminders");
             builder.Entity<BlogType>().ToTable("BlogTypes");
             builder.Entity<Blog>().ToTable("Blogs");
