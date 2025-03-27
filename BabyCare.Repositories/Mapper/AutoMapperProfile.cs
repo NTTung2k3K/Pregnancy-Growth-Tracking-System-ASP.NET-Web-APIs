@@ -93,9 +93,9 @@ namespace BabyCare.Repositories.Mapper
             CreateMap<UserMembership, UserMembershipResponse>().ReverseMap();
             #endregion
 
-            CreateMap<ChatMessage, ChatMessageModelView>()
-           .ForMember(dest => dest.SenderId, opt => opt.MapFrom(src => new EmployeeResponseModel { Id = src.SenderId }))
-           .ForMember(dest => dest.ReceiverId, opt => opt.MapFrom(src => new EmployeeResponseModel { Id = src.ReceiverId }));
+            CreateMap<UserMessage, ChatMessageModelView>()
+           .ForMember(dest => dest.SenderId, opt => opt.MapFrom(src => new EmployeeResponseModel { Id = src.UserId }))
+           .ForMember(dest => dest.ReceiverId, opt => opt.MapFrom(src => new EmployeeResponseModel { Id = src.RecipientUserId }));
 
             CreateMap<ApplicationRoles, RoleModelView>().ReverseMap();
             CreateMap<ApplicationRoles, CreateRoleModelView>().ReverseMap();
