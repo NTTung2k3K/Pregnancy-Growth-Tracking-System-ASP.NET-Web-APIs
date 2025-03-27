@@ -1,6 +1,8 @@
 ﻿using BabyCare.Contract.Repositories.Entity;
 using BabyCare.Contract.Services.Interface;
+using BabyCare.Core;
 using BabyCare.Core.APIResponse;
+using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -59,6 +61,19 @@ public class ChatController : ControllerBase
             recipientUserId = request.RecipientUserId,
             messageContent = request.Message
         });
+    }
+    [HttpGet("get-message")]
+    public async Task<IActionResult> GetMessageHistory([FromQuery] Guid senderId,[FromQuery] Guid receiverId)
+    {
+        try
+        {
+            var result = await _realTimeService.GetMessageHistory(senderId, receiverId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<BasePaginatedList<EmployeeResponseModel>>(ex.Message));
+        }
     }
 
 }

@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using BabyCare.Contract.Repositories.Interface;
 using BabyCare.ModelViews.UserMessage;
 using AutoMapper;
+using BabyCare.ModelViews.UserModelViews.Response;
 
 public class RealTimeService : IRealTimeService
 {
@@ -117,8 +118,20 @@ public class RealTimeService : IRealTimeService
             .Where(m => (m.UserId == senderId && m.RecipientUserId == receiverId) ||
                         (m.UserId == receiverId && m.RecipientUserId == senderId))
             .OrderBy(m => m.SendAt)
+            .Include(m => m.User) // Người gửi
+            .Include(m => m.RecipientUser) // Người nhận
             .ToListAsync();
 
-        return _mapper.Map<List<ChatMessageModelView>>(messages);
+        var mappedMessages = messages.Select(m => new ChatMessageModelView
+        {
+            Id = m.Id,
+            SenderId = _mapper.Map<EmployeeResponseModel>(m.User),
+            ReceiverId = _mapper.Map<EmployeeResponseModel>(m.RecipientUser),
+            Message = m.MessageContent,
+            SentAt = m.SendAt
+        }).ToList();
+
+        return mappedMessages;
     }
+
 }

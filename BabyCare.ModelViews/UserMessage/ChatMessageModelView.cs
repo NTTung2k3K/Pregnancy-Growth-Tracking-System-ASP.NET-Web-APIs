@@ -9,7 +9,7 @@ namespace BabyCare.ModelViews.UserMessage
 {
     public class ChatMessageModelView
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public EmployeeResponseModel SenderId { get; set; }
         public EmployeeResponseModel ReceiverId { get; set; }
         public string Message { get; set; }
