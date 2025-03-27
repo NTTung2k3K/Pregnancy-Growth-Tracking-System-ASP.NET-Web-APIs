@@ -40,16 +40,17 @@ public class ChatController : ControllerBase
             return BadRequest(new { message = "Recipient is not an Admin or Doctor, cannot receive messages." });
         }
 
-        // Nếu cả người gửi và người nhận đều hợp lệ, tiếp tục gửi tin nhắn
-        if (request.UserId != null && request.RecipientUserId != null)
-        {
-            await _realTimeService.SendMessage(request.RecipientUserId.ToString(), request.Message);
+        // Tạo tên kênh duy nhất cho cặp người gửi và người nhận
+        // Chuyển Guid thành chuỗi và đảm bảo thứ tự không thay đổi
+        var channelName = $"chat-{Guid.NewGuid()}-{request.UserId}-{request.RecipientUserId}";
 
-            return Ok(new { message = "Message sent to " + request.RecipientUserId });
-        }
+        // Gửi tin nhắn qua Pusher tới kênh duy nhất
+        await _realTimeService.SendMessage(channelName, request.Message, request.UserId);
 
-        return BadRequest(new { message = "Invalid request. UserIds are required." });
+        return Ok(new { message = "Message sent to " + request.RecipientUserId });
     }
+
+
 }
 
 public class SendMessageRequest

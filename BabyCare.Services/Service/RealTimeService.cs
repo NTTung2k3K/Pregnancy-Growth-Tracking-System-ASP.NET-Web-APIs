@@ -28,10 +28,26 @@ public class RealTimeService : IRealTimeService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task SendMessage(string channel, string message)
+    public async Task SendMessage(string channel, string message, Guid senderId)
     {
-        var result = await _pusher.TriggerAsync(channel, "new-message", new { text = message });
+        try
+        {
+            // Gửi tin nhắn qua Pusher
+            var result = await _pusher.TriggerAsync(channel, "new-message", new
+            {
+                text = message,
+                senderId = senderId.ToString()  // Thêm thông tin người gửi vào payload
+            });
+
+            // Không cần kiểm tra kết quả vì Pusher TriggerAsync sẽ ném ra ngoại lệ nếu có lỗi
+        }
+        catch (Exception ex)
+        {
+            // Nếu có lỗi xảy ra trong quá trình gửi tin nhắn, ném lỗi hoặc xử lý theo cách bạn muốn
+            throw new Exception("Failed to send message via Pusher.", ex);
+        }
     }
+
 
 
     /// Kiểm tra userId và role của người dùng
