@@ -51,6 +51,7 @@ public class ChatController : ControllerBase
 
         // Gửi tin nhắn qua Pusher tới kênh duy nhất
         await _realTimeService.SendMessage(channelName, request.Message, request.UserId, request.RecipientUserId);
+        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
 
         // Trả về channelName, UserId, RecipientUserId và nội dung tin nhắn cho frontend
         return Ok(new
@@ -59,7 +60,8 @@ public class ChatController : ControllerBase
             channelName,
             userId = request.UserId,
             recipientUserId = request.RecipientUserId,
-            messageContent = request.Message
+            messageContent = request.Message,
+            sendAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone)
         });
     }
     [HttpGet("get-message")]
@@ -83,4 +85,5 @@ public class SendMessageRequest
     public string Message { get; set; }
     public Guid UserId { get; set; }
     public Guid RecipientUserId { get; set; }
+    
 }
