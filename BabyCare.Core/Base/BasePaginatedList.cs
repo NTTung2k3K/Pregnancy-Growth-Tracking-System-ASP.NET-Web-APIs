@@ -17,6 +17,7 @@
         public int PageSize { get; private set; }
 
         // Constructor để khởi tạo danh sách phân trang
+        public BasePaginatedList() { }
         public BasePaginatedList(List<T> items, int count, int pageNumber, int pageSize)
         {
             TotalItems = count;
