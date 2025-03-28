@@ -24,7 +24,13 @@ namespace BabyCare.API.Controllers
         private async Task ClearCache()
         {
             var cache = _redis.GetDatabase();
-            await cache.KeyDeleteAsync("membership_packages");
+            var server = _redis.GetServer(_redis.GetEndPoints().First());
+
+            var keys = server.Keys(pattern: "membership_packages*").ToArray(); // Lấy tất cả key liên quan
+            foreach (var key in keys)
+            {
+                await cache.KeyDeleteAsync(key);
+            }
         }
 
         [HttpPost("create")]

@@ -129,7 +129,9 @@ public class RealTimeService : IRealTimeService
             Id = m.Id,
             SenderId = _mapper.Map<EmployeeResponseModel>(m.User),
             ReceiverId = _mapper.Map<EmployeeResponseModel>(m.RecipientUser),
+            SendAt = m.SendAt,
             Message = m.MessageContent,
+            
         }).ToList();
 
         return mappedMessages;

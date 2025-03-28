@@ -13,5 +13,6 @@ namespace BabyCare.ModelViews.UserMessage
         public EmployeeResponseModel SenderId { get; set; }
         public EmployeeResponseModel ReceiverId { get; set; }
         public string Message { get; set; }
+        public DateTime SendAt { get; set; }
     }
 }
