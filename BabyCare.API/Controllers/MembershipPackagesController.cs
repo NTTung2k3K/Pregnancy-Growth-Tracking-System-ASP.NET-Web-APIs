@@ -5,7 +5,7 @@ using BabyCare.ModelViews.MembershipPackageModelViews.Request;
 using BabyCare.ModelViews.UserModelViews.Response;
 using Microsoft.AspNetCore.Mvc;
 using VNPAY.NET.Utilities;
-
+using StackExchange.Redis;
 namespace BabyCare.API.Controllers
 {
     [Route("api/[controller]")]
@@ -50,15 +50,29 @@ namespace BabyCare.API.Controllers
                 return BadRequest(new BabyCare.Core.APIResponse.ApiErrorResult<object>(ex.Message));
             }
         }
+
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromServices] IConnectionMultiplexer redis)
         {
             try
             {
-                //var resultDescription = $"{paymentResult.PaymentResponse.Description}. {paymentResult.TransactionStatus.Description}.";
+                var cache = redis.GetDatabase();
+                string cacheKey = "membership_packages";
 
+                // Kiểm tra xem dữ liệu đã có trong cache chưa
+                var cachedData = await cache.StringGetAsync(cacheKey);
+                if (!cachedData.IsNullOrEmpty)
+                {
+                    // Trả về dữ liệu từ cache
+                    return Ok(System.Text.Json.JsonSerializer.Deserialize<object>(cachedData!));
+                }
 
+                // Nếu chưa có trong cache, gọi service để lấy dữ liệu
                 var result = await _membershipPackageService.GetAll();
+
+                // Lưu vào Redis với thời gian hết hạn (10 phút)
+                await cache.StringSetAsync(cacheKey, System.Text.Json.JsonSerializer.Serialize(result), TimeSpan.FromMinutes(10));
+
                 return Ok(result);
             }
             catch (Exception ex)
