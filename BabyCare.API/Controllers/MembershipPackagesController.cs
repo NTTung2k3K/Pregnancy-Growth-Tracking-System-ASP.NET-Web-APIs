@@ -13,25 +13,12 @@ namespace BabyCare.API.Controllers
     public class MembershipPackagesController : ControllerBase
     {
         private readonly IMembershipPackageService _membershipPackageService;
-        private readonly IConnectionMultiplexer _redis;
 
-        public MembershipPackagesController(IMembershipPackageService membershipPackageService, IConnectionMultiplexer redis)
+        public MembershipPackagesController(IMembershipPackageService membershipPackageService)
         {
             _membershipPackageService = membershipPackageService;
-            _redis = redis;
         }
 
-        private async Task ClearCache()
-        {
-            var cache = _redis.GetDatabase();
-            var server = _redis.GetServer(_redis.GetEndPoints().First());
-
-            var keys = server.Keys(pattern: "membership_packages*").ToArray(); // Lấy tất cả key liên quan
-            foreach (var key in keys)
-            {
-                await cache.KeyDeleteAsync(key);
-            }
-        }
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateMembershipPackage([FromForm] CreateMPRequest request)
@@ -39,7 +26,6 @@ namespace BabyCare.API.Controllers
             try
             {
                 var result = await _membershipPackageService.CreateMembershipPackage(request);
-                await ClearCache(); // Xóa cache khi tạo mới
                 return Ok(result);
             }
             catch (Exception ex)
@@ -54,7 +40,6 @@ namespace BabyCare.API.Controllers
             try
             {
                 var result = await _membershipPackageService.UpdateMembershipPackage(request);
-                await ClearCache(); // Xóa cache khi cập nhật
                 return Ok(result);
             }
             catch (Exception ex)
@@ -69,7 +54,6 @@ namespace BabyCare.API.Controllers
             try
             {
                 var result = await _membershipPackageService.DeleteMembershipPackage(request);
-                await ClearCache(); // Xóa cache khi xóa
                 return Ok(result);
             }
             catch (Exception ex)
@@ -83,19 +67,7 @@ namespace BabyCare.API.Controllers
         {
             try
             {
-                var cache = _redis.GetDatabase();
-                string cacheKey = "membership_packages";
-
-                var cachedData = await cache.StringGetAsync(cacheKey);
-                if (!cachedData.IsNullOrEmpty)
-                {
-                    return Ok(System.Text.Json.JsonSerializer.Deserialize<object>(cachedData!));
-                }
-
                 var result = await _membershipPackageService.GetAll();
-
-                await cache.StringSetAsync(cacheKey, System.Text.Json.JsonSerializer.Serialize(result), TimeSpan.FromMinutes(BabyCare.Core.Utils.TimeHelper.CACHE_TIME_MINUTES));
-
                 return Ok(result);
             }
             catch (Exception ex)
@@ -109,19 +81,7 @@ namespace BabyCare.API.Controllers
         {
             try
             {
-                var cache = _redis.GetDatabase();
-                string cacheKey = $"membership_packages_{request.PageIndex}_{request.PageSize}";
-
-                var cachedData = await cache.StringGetAsync(cacheKey);
-                if (!cachedData.IsNullOrEmpty)
-                {
-                    return Ok(System.Text.Json.JsonSerializer.Deserialize<object>(cachedData!));
-                }
-
                 var result = await _membershipPackageService.GetMembershipPackagePagination(request);
-
-                await cache.StringSetAsync(cacheKey, System.Text.Json.JsonSerializer.Serialize(result), TimeSpan.FromMinutes(BabyCare.Core.Utils.TimeHelper.CACHE_TIME_MINUTES));
-
                 return Ok(result);
             }
             catch (Exception ex)
@@ -135,18 +95,7 @@ namespace BabyCare.API.Controllers
         {
             try
             {
-                var cache = _redis.GetDatabase();
-                string cacheKey = $"membership_package_{id}";
-
-                var cachedData = await cache.StringGetAsync(cacheKey);
-                if (!cachedData.IsNullOrEmpty)
-                {
-                    return Ok(System.Text.Json.JsonSerializer.Deserialize<object>(cachedData!));
-                }
-
                 var result = await _membershipPackageService.GetMembershipPackageById(id);
-
-                await cache.StringSetAsync(cacheKey, System.Text.Json.JsonSerializer.Serialize(result), TimeSpan.FromMinutes(BabyCare.Core.Utils.TimeHelper.CACHE_TIME_MINUTES)    );
 
                 return Ok(result);
             }

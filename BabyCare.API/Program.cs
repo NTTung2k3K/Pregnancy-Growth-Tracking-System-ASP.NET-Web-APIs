@@ -19,15 +19,7 @@ builder.Services.AddConfig(builder.Configuration);
 builder.Services.AddConfigJWT(builder.Configuration);
 builder.Services.AddCorsPolicyBackend();
 builder.Services.AddHttpClient();
-builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(new ConfigurationOptions
-{
-    EndPoints = { builder.Configuration["Redis:EndPoints"] }, // Chỉ host:port, không có redis://
-    Password = builder.Configuration["Redis:Password"], // Thêm mật khẩu
-    ConnectTimeout = 10000, // Tăng thời gian chờ kết nối lên 10 giây
-    ConnectRetry = 3, // Số lần thử kết nối lại
-    AbortOnConnectFail = false, // Không ngắt kết nối nếu không thành công
-    SyncTimeout = 10000 // Tăng thời gian đồng bộ
-}));
+
 builder.Services.AddHostedService<ReminderWorker>();
 builder.Services.AddHostedService<FetalGrowthAlertWorker>();
 builder.Services.AddHostedService<AppointmentWorker>();
