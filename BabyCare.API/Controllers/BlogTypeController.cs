@@ -90,6 +90,7 @@ namespace BabyCare.API.Controllers
         /// </summary>
         [HttpDelete("delete/{id}")]
         public async Task<ActionResult<string>> DeleteBlogType(int id)
+
         {
             try
             {
